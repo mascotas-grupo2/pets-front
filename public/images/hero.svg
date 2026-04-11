@@ -1,0 +1,14 @@
+<svg viewBox="0 0 520 520" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="heartGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#8b73ff"/>
+      <stop offset="100%" stop-color="#6c5ce7"/>
+    </linearGradient>
+  </defs>
+  <path d="M260 445 C 85 340, 45 210, 135 148 C 200 103, 245 138, 260 178 C 275 138, 320 103, 385 148 C 475 210, 435 340, 260 445 Z" fill="url(#heartGrad)"/>
+  <ellipse cx="260" cy="295" rx="56" ry="48" fill="#ffffff"/>
+  <ellipse cx="184" cy="242" rx="24" ry="30" fill="#ffffff"/>
+  <ellipse cx="224" cy="192" rx="22" ry="28" fill="#ffffff"/>
+  <ellipse cx="296" cy="192" rx="22" ry="28" fill="#ffffff"/>
+  <ellipse cx="336" cy="242" rx="24" ry="30" fill="#ffffff"/>
+</svg>
