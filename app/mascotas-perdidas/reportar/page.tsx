@@ -1,50 +1,67 @@
 "use client";
 
+import {
+  FormikHandleChange,
+  FormikHandleError,
+} from "@/components/utils/FormikHelper";
+import ShowError from "@/components/utils/ShowError";
+import handleToast from "@/components/utils/toast";
+import { useAppDispatch } from "@/src/hooks";
+import { reportPet } from "@/src/pets/report.pets";
+import { ReportForm } from "@/types/reportar";
+import { reportValidationSchema } from "@/validation/reportar";
+import { useFormik } from "formik";
 import { useRouter } from "next/navigation";
-import { ChangeEvent, FormEvent, useState } from "react";
-import { AnimalType } from "@/types/pet";
-import { addPet } from "@/lib/storage";
+import { ChangeEvent } from "react";
+import { toast } from "sonner";
 
 export default function ReportPage() {
   const router = useRouter();
-  const [photo, setPhoto] = useState("");
-  const [fileName, setFileName] = useState("");
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [animalType, setAnimalType] = useState<AnimalType>("perro");
-  const [date, setDate] = useState("");
-  const [location, setLocation] = useState("");
-  const [contactPhone, setContactPhone] = useState("");
-  const [contactEmail, setContactEmail] = useState("");
-  const [submitting, setSubmitting] = useState(false);
+  const dispatch = useAppDispatch();
 
   function handleFile(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
-    setFileName(file.name);
     const reader = new FileReader();
-    reader.onload = () => setPhoto(reader.result as string);
+    reader.onload = () =>
+      formik.setFieldValue("photo", {
+        file: file,
+        name: file.name,
+        url: reader.result as string,
+      });
     reader.readAsDataURL(file);
   }
 
-  function handleSubmit(e: FormEvent) {
-    e.preventDefault();
-    if (!photo) return;
-    setSubmitting(true);
-    addPet({
-      id: crypto.randomUUID(),
-      name: name || undefined,
-      photo,
-      description,
-      animalType,
-      date,
-      location,
-      contactPhone,
-      contactEmail,
-      createdAt: new Date().toISOString(),
-    });
-    router.push("/mascotas-perdidas");
-  }
+  const formik = useFormik<ReportForm>({
+    enableReinitialize: true,
+    initialValues: {
+      name: "",
+      description: "",
+      animalType: "perro",
+      date: new Date().toISOString().split("T")[0] || "",
+      photo: null,
+      location: "",
+      contactPhone: "",
+      contactEmail: "",
+    },
+    validationSchema: reportValidationSchema,
+    onSubmit: async (values) => {
+      try {
+        const res = await reportPet(values);
+        if (res) {
+          handleToast("success", "¡Publicación creada con éxito!");
+          dispatch({ type: "REPORT_PET", payload: res });
+          router.push("/mascotas-perdidas");
+        }
+      } catch (error) {
+        console.error(error);
+        handleToast(
+          "error",
+          "No se pudo crear la publicación. Intentá de nuevo.",
+        );
+      }
+    },
+  });
 
   return (
     <main>
@@ -56,26 +73,33 @@ export default function ReportPage() {
       </div>
 
       <div className="container">
-        <form className="form-card" onSubmit={handleSubmit}>
+        <form className="form-card" onSubmit={formik.handleSubmit}>
           <div className="form-grid">
             <div className="field full">
               <label className="field-label">Foto de la mascota *</label>
               <label className="file-drop">
                 <div className="icon">📷</div>
                 <div>
-                  <strong>{fileName || "Click para subir una imagen"}</strong>
+                  <strong>
+                    {formik.values.photo?.name || "Click para subir una imagen"}
+                  </strong>
                 </div>
                 <div className="hint">PNG, JPG hasta ~5 MB</div>
                 <input
                   type="file"
                   accept="image/*"
                   onChange={handleFile}
-                  required={!photo}
+                  //required={!formik.values.photo?.file}
                 />
+                <ShowError message={FormikHandleError(formik, "photo")} />
               </label>
-              {photo && (
+              {formik.values.photo?.url && (
                 /* eslint-disable-next-line @next/next/no-img-element */
-                <img src={photo} alt="Vista previa" className="preview" />
+                <img
+                  src={formik.values.photo.url}
+                  alt="Vista previa"
+                  className="preview"
+                />
               )}
             </div>
 
@@ -84,35 +108,40 @@ export default function ReportPage() {
               <input
                 className="input"
                 type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
+                name="name"
+                value={formik.values.name}
+                onChange={(e) => FormikHandleChange(formik, "name", e)}
                 placeholder="Ej: Toby"
               />
+              <ShowError message={FormikHandleError(formik, "name")} />
             </div>
 
             <div className="field">
               <label className="field-label">Tipo de animal *</label>
               <select
                 className="select"
-                value={animalType}
-                onChange={(e) => setAnimalType(e.target.value as AnimalType)}
-                required
+                value={formik.values.animalType}
+                onChange={(e) => FormikHandleChange(formik, "animalType", e)}
+                name="animalType"
+                onBlur={formik.handleBlur}
               >
                 <option value="perro">Perro</option>
                 <option value="gato">Gato</option>
                 <option value="otro">Otro</option>
               </select>
+              <ShowError message={FormikHandleError(formik, "animalType")} />
             </div>
 
             <div className="field full">
               <label className="field-label">Descripción *</label>
               <textarea
                 className="textarea"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
+                value={formik.values.description}
+                onChange={(e) => FormikHandleChange(formik, "description", e)}
+                name="description"
                 placeholder="Color, tamaño, señas particulares, comportamiento…"
-                required
               />
+              <ShowError message={FormikHandleError(formik, "description")} />
             </div>
 
             <div className="field">
@@ -120,10 +149,11 @@ export default function ReportPage() {
               <input
                 className="input"
                 type="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                required
+                value={formik.values.date}
+                onChange={(e) => FormikHandleChange(formik, "date", e)}
+                name="date"
               />
+              <ShowError message={FormikHandleError(formik, "date")} />
             </div>
 
             <div className="field">
@@ -131,23 +161,25 @@ export default function ReportPage() {
               <input
                 className="input"
                 type="text"
-                value={location}
-                onChange={(e) => setLocation(e.target.value)}
+                value={formik.values.location}
+                onChange={(e) => FormikHandleChange(formik, "location", e)}
+                name="location"
                 placeholder="Dirección, barrio o zona"
-                required
               />
+              <ShowError message={FormikHandleError(formik, "location")} />
             </div>
 
             <div className="field">
               <label className="field-label">Teléfono de contacto *</label>
               <input
                 className="input"
-                type="tel"
-                value={contactPhone}
-                onChange={(e) => setContactPhone(e.target.value)}
+                type="text"
+                value={formik.values.contactPhone}
+                onChange={(e) => FormikHandleChange(formik, "contactPhone", e)}
+                name="contactPhone"
                 placeholder="+54 11 5555-5555"
-                required
               />
+              <ShowError message={FormikHandleError(formik, "contactPhone")} />
             </div>
 
             <div className="field">
@@ -155,11 +187,12 @@ export default function ReportPage() {
               <input
                 className="input"
                 type="email"
-                value={contactEmail}
-                onChange={(e) => setContactEmail(e.target.value)}
+                value={formik.values.contactEmail}
+                onChange={(e) => FormikHandleChange(formik, "contactEmail", e)}
+                name="contactEmail"
                 placeholder="tu@email.com"
-                required
               />
+              <ShowError message={FormikHandleError(formik, "contactEmail")} />
             </div>
           </div>
 
@@ -174,9 +207,9 @@ export default function ReportPage() {
             <button
               type="submit"
               className="btn btn-primary"
-              disabled={submitting || !photo}
+              disabled={formik.isSubmitting}
             >
-              {submitting ? "Publicando…" : "Publicar"}
+              {formik.isSubmitting ? "Publicando…" : "Publicar"}
             </button>
           </div>
         </form>

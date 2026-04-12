@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Brand } from "./brand";
+import { useAppSelector } from "@/src/hooks";
 
 const NAV = [
   { href: "/", label: "Inicio" },
@@ -14,6 +15,8 @@ const NAV = [
 
 export function SiteHeader() {
   const pathname = usePathname();
+  const user = useAppSelector((state) => state.user);
+
   return (
     <header className="site-header">
       <div className="container">
@@ -41,9 +44,15 @@ export function SiteHeader() {
           <Link href="/mascotas-perdidas/reportar" className="btn btn-primary btn-sm">
             Reportar
           </Link>
-          <Link href="/login" className="btn btn-outline btn-sm">
-            Ingresar
-          </Link>
+          {user ? (
+            <Link href="/account" className="btn btn-outline btn-sm">
+              Mi Cuenta
+            </Link>
+          ) : (
+            <Link href="/login" className="btn btn-outline btn-sm">
+              Ingresar
+            </Link>
+          )}
         </div>
       </div>
     </header>
