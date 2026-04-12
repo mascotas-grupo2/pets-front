@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Brand } from "./brand";
-import { useAppSelector } from "@/src/hooks";
+import { useAppSelector } from "@/redux/hooks";
 
 const NAV = [
   { href: "/", label: "Inicio" },

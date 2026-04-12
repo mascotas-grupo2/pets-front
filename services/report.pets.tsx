@@ -1,5 +1,5 @@
 import { ReportForm } from "@/types/reportar";
-import axiosInstance from "../axios";
+import axiosInstance from "./axios";
 
 const axios = axiosInstance;
 

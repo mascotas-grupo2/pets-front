@@ -1,7 +1,7 @@
 "use client";
 
 import { Provider } from "react-redux";
-import store from "@/src/store";
+import store from "@/redux/store";
 import React from "react";
 import { Toaster } from "sonner";
 // import { TuContextoProvider } from "@/context/TuContexto"; // Donde iría un futuro Context

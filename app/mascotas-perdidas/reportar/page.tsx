@@ -6,14 +6,13 @@ import {
 } from "@/components/utils/FormikHelper";
 import ShowError from "@/components/utils/ShowError";
 import handleToast from "@/components/utils/toast";
-import { useAppDispatch } from "@/src/hooks";
-import { reportPet } from "@/src/pets/report.pets";
+import { useAppDispatch } from "@/redux/hooks";
+import { reportPet } from "@/services/report.pets";
 import { ReportForm } from "@/types/reportar";
 import { reportValidationSchema } from "@/validation/reportar";
 import { useFormik } from "formik";
 import { useRouter } from "next/navigation";
 import { ChangeEvent } from "react";
-import { toast } from "sonner";
 
 export default function ReportPage() {
   const router = useRouter();
