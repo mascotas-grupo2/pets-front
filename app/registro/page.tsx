@@ -7,42 +7,37 @@ import {
 import ShowError from "@/components/utils/ShowError";
 import handleToast from "@/components/utils/toast";
 import { useAppDispatch } from "@/redux/hooks";
-import { login } from "@/services/service.login";
-import { LoginForm } from "@/types/login";
-import { loginValidationSchema } from "@/validation/login";
+import { register } from "@/services/service.register";
+import { RegisterForm } from "@/types/register";
+import { registerValidationSchema } from "@/validation/register";
 import { useFormik } from "formik";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
-export default function LoginPage() {
+export default function RegisterPage() {
   const router = useRouter();
   const dispatch = useAppDispatch();
-  const formik = useFormik<LoginForm>({
+  const formik = useFormik<RegisterForm>({
     initialValues: {
+      name: "",
       email: "",
       password: "",
+      confirmPassword: "",
     },
-    validationSchema: loginValidationSchema,
+    validationSchema: registerValidationSchema,
     onSubmit: async (values) => {
-      console.log(values);
       try {
-        const userData = await login(values.email, values.password);
+        const userData = await register(values.name, values.email, values.password);
         if (userData) {
-          handleToast(
-            "success",
-            "¡Ingreso exitoso! Redirigiendo a tu cuenta...",
-          );
+          handleToast("success", "Registro exitoso. Redirigiendo...");
           dispatch({ type: "SET_USER", payload: userData });
           router.push("/account");
         } else {
-          handleToast(
-            "error",
-            "Credenciales inválidas. Por favor, intentá de nuevo.",
-          );
+          handleToast("error", "No se pudo crear la cuenta. Intentá de nuevo.");
         }
       } catch (error) {
         console.error(error);
-        handleToast("error", "Ocurrió un error al intentar ingresar.");
+        handleToast("error", "Ocurrió un error al intentar registrarte.");
       }
     },
   });
@@ -50,9 +45,22 @@ export default function LoginPage() {
   return (
     <main className="auth-wrap">
       <div className="auth-card">
-        <h1>Ingresar</h1>
-        <p className="sub">Bienvenido de nuevo a Furry Friends</p>
+        <h1>Registrarme</h1>
+        <p className="sub">Creá tu cuenta en Furry Friends</p>
         <form className="auth-form" onSubmit={formik.handleSubmit}>
+          <div className="field">
+            <label className="field-label">Nombre</label>
+            <input
+              className="input"
+              type="text"
+              name="name"
+              value={formik.values.name}
+              onChange={(e) => FormikHandleChange(formik, "name", e)}
+              placeholder="Tu nombre"
+            />
+            <ShowError message={FormikHandleError(formik, "name")} />
+          </div>
+
           <div className="field">
             <label className="field-label">Email</label>
             <input
@@ -65,6 +73,7 @@ export default function LoginPage() {
             />
             <ShowError message={FormikHandleError(formik, "email")} />
           </div>
+
           <div className="field">
             <label className="field-label">Contraseña</label>
             <input
@@ -77,12 +86,26 @@ export default function LoginPage() {
             />
             <ShowError message={FormikHandleError(formik, "password")} />
           </div>
+
+          <div className="field">
+            <label className="field-label">Confirmar contraseña</label>
+            <input
+              className="input"
+              type="password"
+              value={formik.values.confirmPassword}
+              onChange={(e) => FormikHandleChange(formik, "confirmPassword", e)}
+              name="confirmPassword"
+              placeholder="••••••••"
+            />
+            <ShowError message={FormikHandleError(formik, "confirmPassword")} />
+          </div>
+
           <button type="submit" className="btn btn-primary btn-lg">
-            Ingresar
+            Crear cuenta
           </button>
         </form>
         <div className="divider">
-          ¿No tenés cuenta? <Link href="/registro">Registrate</Link>
+          ¿Ya tenés cuenta? <Link href="/login">Ingresar</Link>
         </div>
       </div>
     </main>
