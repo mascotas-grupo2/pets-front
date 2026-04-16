@@ -46,6 +46,7 @@ export default function ReportPage() {
     validationSchema: reportValidationSchema,
     onSubmit: async (values) => {
       try {
+        console.log(values);
         const res = await reportPet(values);
         if (res) {
           handleToast("success", "¡Publicación creada con éxito!");
