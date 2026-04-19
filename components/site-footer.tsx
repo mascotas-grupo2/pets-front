@@ -37,7 +37,7 @@ export function SiteFooter() {
           <h4>Contacto</h4>
           <p>📍 Av. Siempre Viva 1234, CABA</p>
           <p>📞 +54 (011) 5555-1234</p>
-          <p>✉️ hola@furryfriends.app</p>
+          <p>✉️ hola@HuellitasUnidas.app</p>
         </div>
 
         <div className="footer-col">
@@ -64,7 +64,7 @@ export function SiteFooter() {
 
       <div className="footer-bottom">
         <div className="container">
-          <span>©2026 Furry Friends. Todos los derechos reservados.</span>
+          <span>©2026 Huellitas Unidas. Todos los derechos reservados.</span>
           <div className="footer-social" aria-label="Redes sociales">
             <a href="#" aria-label="Facebook">f</a>
             <a href="#" aria-label="Instagram">ig</a>

@@ -12,7 +12,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Furry Friends — Mascotas perdidas",
+  title: "Huellitas Unidas — Mascotas perdidas",
   description:
     "Reportá y encontrá mascotas perdidas cerca tuyo. Comunidad para reunir animales con sus familias.",
 };

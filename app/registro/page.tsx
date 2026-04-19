@@ -46,7 +46,7 @@ export default function RegisterPage() {
     <main className="auth-wrap">
       <div className="auth-card">
         <h1>Registrarme</h1>
-        <p className="sub">Creá tu cuenta en Furry Friends</p>
+        <p className="sub">Creá tu cuenta en Huellitas Unidas</p>
         <form className="auth-form" onSubmit={formik.handleSubmit}>
           <div className="field">
             <label className="field-label">Nombre</label>

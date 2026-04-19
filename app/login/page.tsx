@@ -51,7 +51,7 @@ export default function LoginPage() {
     <main className="auth-wrap">
       <div className="auth-card">
         <h1>Ingresar</h1>
-        <p className="sub">Bienvenido de nuevo a Furry Friends</p>
+        <p className="sub">Bienvenido de nuevo a Huellitas Unidas</p>
         <form className="auth-form" onSubmit={formik.handleSubmit}>
           <div className="field">
             <label className="field-label">Email</label>

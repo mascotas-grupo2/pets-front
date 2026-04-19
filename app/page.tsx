@@ -23,7 +23,7 @@ export default function Home() {
               Reunilos con su <span className="accent">Familia</span>
             </h1>
             <p>
-              Furry Friends es una comunidad para reportar y encontrar
+              Huellitas Unidas es una comunidad para reportar y encontrar
               mascotas perdidas. Cargá una publicación con foto y ubicación,
               compartila, y ayudá a que vuelvan a casa.
             </p>
@@ -44,7 +44,7 @@ export default function Home() {
           </div>
           <div className="hero-visual">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/images/hero.svg" alt="Furry Friends" />
+            <img src="/images/hero.svg" alt="Huellitas Unidas" />
           </div>
         </div>
       </section>

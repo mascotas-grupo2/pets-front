@@ -7,7 +7,7 @@ export default function AboutPage() {
             Una comunidad para <span style={{ color: "var(--primary-500)" }}>reunir</span> mascotas con su familia.
           </h1>
           <p style={{ marginBottom: "1.5rem" }}>
-            Furry Friends nació en 2026 como un espacio gratuito y abierto
+            Huellitas Unidas nació en 2026 como un espacio gratuito y abierto
             para que cualquier persona pueda reportar una mascota perdida y
             cualquier vecino pueda ayudarla a volver a casa. Creemos que la
             comunidad es la herramienta más poderosa para resolver estos
