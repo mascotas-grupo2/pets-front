@@ -4,7 +4,7 @@ export function Brand() {
   return (
     <Link href="/" className="brand" aria-label="Huellitas Unidas">
       <span className="brand-mark" aria-hidden>
-        🐾
+        <span className="brand-paw">🐾</span>
       </span>
       <span className="brand-name">
         <span className="row1">Huellitas</span>

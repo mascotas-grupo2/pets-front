@@ -13,10 +13,14 @@ import { loginValidationSchema } from "@/validation/login";
 import { useFormik } from "formik";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 export default function LoginPage() {
   const router = useRouter();
   const dispatch = useAppDispatch();
+  const [showPassword, setShowPassword] = useState(false);
+  const [keepLogged, setKeepLogged] = useState(true);
+
   const formik = useFormik<LoginForm>({
     initialValues: {
       email: "",
@@ -24,7 +28,6 @@ export default function LoginPage() {
     },
     validationSchema: loginValidationSchema,
     onSubmit: async (values) => {
-      console.log(values);
       try {
         const userData = await login(values.email, values.password);
         if (userData) {
@@ -49,41 +52,109 @@ export default function LoginPage() {
 
   return (
     <main className="auth-wrap">
-      <div className="auth-card">
-        <h1>Ingresar</h1>
-        <p className="sub">Bienvenido de nuevo a Huellitas Unidas</p>
-        <form className="auth-form" onSubmit={formik.handleSubmit}>
-          <div className="field">
-            <label className="field-label">Email</label>
-            <input
-              className="input"
-              type="email"
-              name="email"
-              value={formik.values.email}
-              onChange={(e) => FormikHandleChange(formik, "email", e)}
-              placeholder="tu@email.com"
-            />
-            <ShowError message={FormikHandleError(formik, "email")} />
+      <div className="auth-card auth-card-split auth-card-reverse">
+        <section className="auth-form-panel">
+          <h1>Ingresar a Huellitas Unidas</h1>
+
+          <form className="auth-form" onSubmit={formik.handleSubmit}>
+            <div className="field">
+              <label className="field-label" htmlFor="email">
+                Email
+              </label>
+              <div className="input-icon">
+                <span className="input-icon-leading" aria-hidden>
+                  ✉️
+                </span>
+                <input
+                  id="email"
+                  className="input"
+                  type="email"
+                  name="email"
+                  value={formik.values.email}
+                  onChange={(e) => FormikHandleChange(formik, "email", e)}
+                  placeholder="tu@email.com"
+                />
+              </div>
+              <ShowError message={FormikHandleError(formik, "email")} />
+            </div>
+
+            <div className="field">
+              <label className="field-label" htmlFor="password">
+                Contraseña
+              </label>
+              <div className="input-icon">
+                <span className="input-icon-leading" aria-hidden>
+                  🔑
+                </span>
+                <input
+                  id="password"
+                  className="input"
+                  type={showPassword ? "text" : "password"}
+                  value={formik.values.password}
+                  onChange={(e) => FormikHandleChange(formik, "password", e)}
+                  name="password"
+                  placeholder="••••••••"
+                />
+                <button
+                  type="button"
+                  className="input-icon-trailing"
+                  onClick={() => setShowPassword((v) => !v)}
+                  aria-label={
+                    showPassword ? "Ocultar contraseña" : "Mostrar contraseña"
+                  }
+                >
+                  {showPassword ? "🙈" : "👁️"}
+                </button>
+              </div>
+              <ShowError message={FormikHandleError(formik, "password")} />
+            </div>
+
+            <div className="auth-row">
+              <label className="terms">
+                <input
+                  type="checkbox"
+                  checked={keepLogged}
+                  onChange={(e) => setKeepLogged(e.target.checked)}
+                />
+                <span>Mantener sesión iniciada</span>
+              </label>
+              <Link href="#" className="terms-link">
+                ¿Olvidaste tu contraseña?
+              </Link>
+            </div>
+
+            <button type="submit" className="btn btn-primary btn-lg">
+              Ingresar
+            </button>
+          </form>
+
+          <div className="auth-divider">
+            <span>O ingresá con</span>
           </div>
-          <div className="field">
-            <label className="field-label">Contraseña</label>
-            <input
-              className="input"
-              type="password"
-              value={formik.values.password}
-              onChange={(e) => FormikHandleChange(formik, "password", e)}
-              name="password"
-              placeholder="••••••••"
-            />
-            <ShowError message={FormikHandleError(formik, "password")} />
+
+          <div className="auth-social">
+            <button type="button" className="auth-social-btn" aria-label="Google">
+              <span aria-hidden>G</span>
+            </button>
+            <button type="button" className="auth-social-btn" aria-label="Facebook">
+              <span aria-hidden>f</span>
+            </button>
           </div>
-          <button type="submit" className="btn btn-primary btn-lg">
-            Ingresar
-          </button>
-        </form>
-        <div className="divider">
-          ¿No tenés cuenta? <Link href="/registro">Registrate</Link>
-        </div>
+
+          <div className="divider">
+            ¿No tenés cuenta? <Link href="/registro">Registrate</Link>
+          </div>
+        </section>
+
+        <aside className="auth-visual">
+          <div className="auth-visual-art">
+            <img
+              src="/images/auth-cat.png"
+              alt="Ingresá a Huellitas Unidas"
+              className="auth-visual-img"
+            />
+          </div>
+        </aside>
       </div>
     </main>
   );
