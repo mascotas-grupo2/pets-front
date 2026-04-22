@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Pet, AnimalType } from "@/types/pet";
 import { getPets } from "@/lib/storage";
 import { PetCard } from "@/components/pet-card";
+import { getAllPets } from "@/services/pets";
 
 type Filter = AnimalType | "todos";
 type SortBy = "recientes" | "antiguos" | "nombre";
@@ -63,11 +64,17 @@ export default function LostPetsPage() {
   const [filtersOpen, setFiltersOpen] = useState(false);
 
   useEffect(() => {
-    setPets(getPets());
+    getAllPets()
+      .then((pets) => {
+        setPets(pets);
+      })
+      .catch((error) => console.error(error));
   }, []);
 
   const toggleInArray = <T,>(arr: T[], value: T, setter: (v: T[]) => void) => {
-    setter(arr.includes(value) ? arr.filter((x) => x !== value) : [...arr, value]);
+    setter(
+      arr.includes(value) ? arr.filter((x) => x !== value) : [...arr, value],
+    );
     setPage(1);
   };
 
@@ -75,7 +82,10 @@ export default function LostPetsPage() {
     const now = Date.now();
     const result = pets.filter((p) => {
       if (filter !== "todos" && p.animalType !== filter) return false;
-      if (location && !p.location.toLowerCase().includes(location.toLowerCase())) {
+      if (
+        location &&
+        !p.location.toLowerCase().includes(location.toLowerCase())
+      ) {
         return false;
       }
       if (search) {
@@ -117,7 +127,7 @@ export default function LostPetsPage() {
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
-  const pageItems = filtered.slice(
+  const petsPerPages = filtered.slice(
     (currentPage - 1) * PAGE_SIZE,
     currentPage * PAGE_SIZE,
   );
@@ -360,9 +370,8 @@ export default function LostPetsPage() {
           ) : (
             <>
               <ul className="pet-grid listing-grid">
-                {pageItems.map((pet) => (
-                  <PetCard key={pet.id} pet={pet} />
-                ))}
+                {petsPerPages &&
+                  petsPerPages.map((pet) => <PetCard key={pet.id} pet={pet} />)}
               </ul>
 
               {totalPages > 1 && (
@@ -390,9 +399,7 @@ export default function LostPetsPage() {
                   <button
                     type="button"
                     className="pagination-btn"
-                    onClick={() =>
-                      setPage((p) => Math.min(totalPages, p + 1))
-                    }
+                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                     disabled={currentPage === totalPages}
                   >
                     →

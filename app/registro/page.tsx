@@ -7,7 +7,7 @@ import {
 import ShowError from "@/components/utils/ShowError";
 import handleToast from "@/components/utils/toast";
 import { useAppDispatch } from "@/redux/hooks";
-import { register } from "@/services/service.register";
+import { register } from "@/services/auth.register";
 import { RegisterForm } from "@/types/register";
 import { registerValidationSchema } from "@/validation/register";
 import { useFormik } from "formik";
