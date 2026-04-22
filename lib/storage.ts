@@ -3,7 +3,7 @@ import { seedPets } from "./seed";
 
 const KEY = "pets-lost";
 const VERSION_KEY = "pets-lost-version";
-const SEED_VERSION = "2";
+const SEED_VERSION = "4";
 
 export function getPets(): Pet[] {
   if (typeof window === "undefined") return seedPets;
