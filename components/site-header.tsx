@@ -8,6 +8,7 @@ import { useAppSelector } from "@/redux/hooks";
 const NAV = [
   { href: "/", label: "Inicio" },
   { href: "/mascotas-perdidas", label: "Mascotas perdidas" },
+  { href: "/adoptar", label: "Adoptar" },
   { href: "/care-guides", label: "Guías" },
   { href: "/about", label: "Nosotros" },
   { href: "/faq", label: "FAQ" },
