@@ -1,9 +1,11 @@
 export type AnimalType = "perro" | "gato" | "otro";
+export type PetSex = "macho" | "hembra";
 
 export type Pet = {
   id: string;
   name?: string;
   photo: string;
+  photos?: string[];
   description: string;
   animalType: AnimalType;
   date: string;
@@ -11,4 +13,18 @@ export type Pet = {
   contactPhone: string;
   contactEmail: string;
   createdAt: string;
+  sex?: PetSex;
+  breed?: string;
+  ageMonths?: number;
+  color?: string;
+  weightKg?: number;
+  heightCm?: number;
+  hasCollar?: boolean;
+  hasTag?: boolean;
+  microchipped?: boolean;
+  neutered?: boolean;
+  vaccinated?: boolean;
+  friendlyWithKids?: boolean;
+  trained?: boolean;
+  reward?: string;
 };
