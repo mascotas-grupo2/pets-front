@@ -12,7 +12,7 @@ export function FormStepper({
   steps,
   current,
 }: {
-  steps: StepDef[];
+  steps: readonly StepDef[];
   current: number;
 }) {
   const [walking, setWalking] = useState(false);

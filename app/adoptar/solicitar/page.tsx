@@ -18,8 +18,8 @@ import {
   adoptStartSchema,
 } from "@/validation/adoptar";
 import { useFormik } from "formik";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useState } from "react";
 
 const STEPS: StepDef[] = [
   { key: "start", label: "Inicio", icon: "→" },
@@ -63,7 +63,18 @@ const STEP_FIELDS: (keyof AdoptForm)[][] = [
 ];
 
 export default function AdoptarSolicitarPage() {
+  return (
+    <Suspense fallback={null}>
+      <AdoptarSolicitarContent />
+    </Suspense>
+  );
+}
+
+function AdoptarSolicitarContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const targetPetId = searchParams.get("pet") ?? "";
+  const targetPetName = searchParams.get("name") ?? "";
   const [step, setStep] = useState(0);
   const [submitted, setSubmitted] = useState(false);
 
@@ -71,17 +82,11 @@ export default function AdoptarSolicitarPage() {
     initialValues: adoptInitialValues,
     validationSchema: adoptFullSchema,
     onSubmit: async (values) => {
-      try {
-        await submitAdoption(values);
-        handleToast("success", "¡Solicitud enviada con éxito!");
-        setSubmitted(true);
-      } catch (err) {
-        console.error(err);
-        handleToast(
-          "error",
-          "No pudimos enviar la solicitud. Intentá de nuevo.",
-        );
-      }
+      // Best-effort POST; si el backend está offline devuelve undefined y
+      // mostramos la confirmación igual (MVP sin persistencia local).
+      await submitAdoption(values);
+      handleToast("success", "¡Solicitud enviada con éxito!");
+      setSubmitted(true);
     },
   });
 
@@ -162,12 +167,28 @@ export default function AdoptarSolicitarPage() {
     <main>
       <div className="page-title">
         <div className="container">
-          <h1>Solicitud de adopción</h1>
+          <h1>
+            {targetPetName
+              ? `Solicitud para adoptar a ${targetPetName}`
+              : "Solicitud de adopción"}
+          </h1>
           <p>Contanos un poco sobre vos para poder emparejarte mejor.</p>
         </div>
       </div>
 
       <div className="container">
+        {targetPetId && (
+          <div className="adopt-target-chip">
+            Aplicando a <strong>{targetPetName || targetPetId}</strong>
+            {" · "}
+            <a
+              href={`/mascotas-perdidas/${targetPetId}`}
+              style={{ color: "var(--primary-500)", fontWeight: 600 }}
+            >
+              Ver publicación
+            </a>
+          </div>
+        )}
         <FormStepper steps={STEPS} current={step} />
 
         <form

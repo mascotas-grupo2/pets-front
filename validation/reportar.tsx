@@ -1,6 +1,7 @@
 import * as Yup from "yup";
-const regex_email = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-const regex_number = /^[\d+\-\s()]+$/;
+
+const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+const PHONE_REGEX = /^[\d+\-\s()]+$/;
 
 export const reportDataSchema = Yup.object({
   animalType: Yup.string().required("Requerido"),
@@ -25,14 +26,18 @@ export const reportLocationSchema = Yup.object({
 
 export const reportContactSchema = Yup.object({
   contactPhone: Yup.string()
-    .matches(regex_number, "Teléfono inválido")
+    .matches(PHONE_REGEX, "Teléfono inválido")
     .required("Requerido"),
   contactEmail: Yup.string()
-    .matches(regex_email, "Email inválido")
+    .matches(EMAIL_REGEX, "Email inválido")
     .email("Email inválido")
     .required("Requerido"),
 });
 
+/**
+ * Esquema combinado para el submit final. Los pasos "Características" y
+ * "Detalles" no aportan reglas porque todos sus campos son opcionales.
+ */
 export const reportValidationSchema = reportDataSchema
   .concat(reportPhotoSchema)
   .concat(reportLocationSchema)

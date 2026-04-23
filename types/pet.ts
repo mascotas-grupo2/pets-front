@@ -26,5 +26,4 @@ export type Pet = {
   vaccinated?: boolean;
   friendlyWithKids?: boolean;
   trained?: boolean;
-  reward?: string;
 };
