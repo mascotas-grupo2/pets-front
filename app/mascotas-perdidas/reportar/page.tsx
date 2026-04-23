@@ -12,7 +12,7 @@ import { ReportForm } from "@/types/reportar";
 import { reportValidationSchema } from "@/validation/reportar";
 import { useFormik } from "formik";
 import { useRouter } from "next/navigation";
-import { ChangeEvent } from "react";
+import { ChangeEvent, useState } from "react";
 
 export default function ReportPage() {
   const router = useRouter();
@@ -31,13 +31,15 @@ export default function ReportPage() {
     reader.readAsDataURL(file);
   }
 
+  const [today] = useState(() => new Date().toISOString().split("T")[0]);
+
   const formik = useFormik<ReportForm>({
     enableReinitialize: true,
     initialValues: {
       name: "",
       description: "",
       animalType: "perro",
-      date: new Date().toISOString().split("T")[0] || "",
+      date: today,
       photo: null,
       location: "",
       contactPhone: "",

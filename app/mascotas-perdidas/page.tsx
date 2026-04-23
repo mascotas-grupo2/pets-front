@@ -1,11 +1,11 @@
 "use client";
 
+import { PetCard } from "@/components/pet-card";
+import { RootState } from "@/redux/store";
+import { getAllPets } from "@/services/mascotas.pets";
+import { AnimalType, Pet } from "@/types/pet";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { Pet, AnimalType } from "@/types/pet";
-import { getPets } from "@/lib/storage";
-import { PetCard } from "@/components/pet-card";
-import { getAllPets } from "@/services/mascotas.pets";
 import { useDispatch, useSelector } from "react-redux";
 
 type Filter = AnimalType | "todos";
@@ -14,6 +14,18 @@ type Size = "pequeño" | "mediano" | "grande";
 type Sex = "cualquiera" | "macho" | "hembra";
 type DateFilter = "todos" | "hoy" | "semana" | "mes";
 type Age = "cachorro" | "joven" | "adulto" | "senior";
+
+interface FilterCriteria {
+  type: Filter;
+  search: string;
+  location: string;
+  sortBy: SortBy;
+  sizes: Size[];
+  ages: Age[];
+  sex: Sex;
+  dateFilter: DateFilter;
+  hasCollar: boolean;
+}
 
 const TYPE_FILTERS: { value: Filter; label: string; icon: string }[] = [
   { value: "todos", label: "Todos", icon: "🐾" },
@@ -51,66 +63,74 @@ const DATE_OPTIONS: { value: DateFilter; label: string }[] = [
 const PAGE_SIZE = 9;
 
 export default function LostPetsPage() {
-  const [pets, setPets] = useState<Pet[]>([]);
-  const [filter, setFilter] = useState<Filter>("todos");
-  const [search, setSearch] = useState("");
-  const [location, setLocation] = useState("");
-  const [sortBy, setSortBy] = useState<SortBy>("recientes");
-  const [sizes, setSizes] = useState<Size[]>([]);
-  const [ages, setAges] = useState<Age[]>([]);
-  const [sex, setSex] = useState<Sex>("cualquiera");
-  const [dateFilter, setDateFilter] = useState<DateFilter>("todos");
-  const [hasCollar, setHasCollar] = useState(false);
   const [page, setPage] = useState(1);
+  const [referenceDate] = useState(() => Date.now());
+  const [filters, setFilters] = useState<FilterCriteria>({
+    type: "todos",
+    search: "",
+    location: "",
+    sortBy: "recientes",
+    sizes: [],
+    ages: [],
+    sex: "cualquiera",
+    dateFilter: "todos",
+    hasCollar: false,
+  });
   const [filtersOpen, setFiltersOpen] = useState(false);
 
-  const dispatch = useDispatch()
-  const allPets: Pet[] | null = useSelector((state: any) => state?.allPets );
-  useEffect(() => {
-    
-    if (allPets) return
-    getAllPets()
-      .then((pets: Pet[]) => {
-        setPets(pets);
-        dispatch({ type: "ALL_PETS", payload: pets });
-      })
-      .catch((error: any) => console.error(error));
-  }, []);
+  const dispatch = useDispatch();
+  const allPets = useSelector((state: RootState) => state.allPets);
 
-  const toggleInArray = <T,>(arr: T[], value: T, setter: (v: T[]) => void) => {
-    setter(
-      arr.includes(value) ? arr.filter((x) => x !== value) : [...arr, value],
-    );
+  useEffect(() => {
+    if (allPets) return;
+    getAllPets()
+      .then((data) => {
+        if (data) {
+          dispatch({ type: "ALL_PETS", payload: data });
+        }
+      })
+      .catch((error: unknown) => console.error(error));
+  }, [allPets, dispatch]);
+
+  const updateFilter = (changes: Partial<FilterCriteria>) => {
+    setFilters((prev) => ({ ...prev, ...changes }));
     setPage(1);
   };
 
+  const toggleInArray = <T,>(arr: T[], value: T): T[] => {
+    return arr.includes(value)
+      ? arr.filter((x) => x !== value)
+      : [...arr, value];
+  };
+
   const filtered = useMemo(() => {
-    const now = Date.now();
-    const result = pets.filter((p) => {
-      if (filter !== "todos" && p.animalType !== filter) return false;
+    const basePets = allPets ?? [];
+    const result = basePets.filter((p) => {
+      if (filters.type !== "todos" && p.animalType !== filters.type)
+        return false;
       if (
-        location &&
-        !p.location.toLowerCase().includes(location.toLowerCase())
+        filters.location &&
+        !p.location.toLowerCase().includes(filters.location.toLowerCase())
       ) {
         return false;
       }
-      if (search) {
-        const q = search.toLowerCase();
+      if (filters.search) {
+        const q = filters.search.toLowerCase();
         const matchesSearch =
           p.location.toLowerCase().includes(q) ||
           p.description.toLowerCase().includes(q) ||
           (p.name ?? "").toLowerCase().includes(q);
         if (!matchesSearch) return false;
       }
-      if (dateFilter !== "todos") {
+      if (filters.dateFilter !== "todos") {
         const created = new Date(p.createdAt).getTime();
-        const days = { hoy: 1, semana: 7, mes: 30 }[dateFilter];
-        if (now - created > days * 24 * 60 * 60 * 1000) return false;
+        const days = { hoy: 1, semana: 7, mes: 30 }[filters.dateFilter];
+        if (referenceDate - created > days * 24 * 60 * 60 * 1000) return false;
       }
       return true;
     });
 
-    switch (sortBy) {
+    switch (filters.sortBy) {
       case "recientes":
         result.sort(
           (a, b) =>
@@ -127,9 +147,8 @@ export default function LostPetsPage() {
         result.sort((a, b) => (a.name ?? "").localeCompare(b.name ?? ""));
         break;
     }
-
     return result;
-  }, [pets, filter, search, location, sortBy, dateFilter]);
+  }, [allPets, filters, referenceDate]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
@@ -139,28 +158,30 @@ export default function LostPetsPage() {
   );
 
   const clearFilters = () => {
-    setFilter("todos");
-    setSearch("");
-    setLocation("");
-    setSortBy("recientes");
-    setSizes([]);
-    setAges([]);
-    setSex("cualquiera");
-    setDateFilter("todos");
-    setHasCollar(false);
+    setFilters({
+      type: "todos",
+      search: "",
+      location: "",
+      sortBy: "recientes",
+      sizes: [],
+      ages: [],
+      sex: "cualquiera",
+      dateFilter: "todos",
+      hasCollar: false,
+    });
     setPage(1);
   };
 
   const activeFilters =
-    (filter !== "todos" ? 1 : 0) +
-    (search ? 1 : 0) +
-    (location ? 1 : 0) +
-    (sortBy !== "recientes" ? 1 : 0) +
-    sizes.length +
-    ages.length +
-    (sex !== "cualquiera" ? 1 : 0) +
-    (dateFilter !== "todos" ? 1 : 0) +
-    (hasCollar ? 1 : 0);
+    (filters.type !== "todos" ? 1 : 0) +
+    (filters.search ? 1 : 0) +
+    (filters.location ? 1 : 0) +
+    (filters.sortBy !== "recientes" ? 1 : 0) +
+    filters.sizes.length +
+    filters.ages.length +
+    (filters.sex !== "cualquiera" ? 1 : 0) +
+    (filters.dateFilter !== "todos" ? 1 : 0) +
+    (filters.hasCollar ? 1 : 0);
 
   return (
     <main>
@@ -194,11 +215,8 @@ export default function LostPetsPage() {
               <button
                 key={f.value}
                 type="button"
-                className={`sidebar-type${filter === f.value ? " active" : ""}`}
-                onClick={() => {
-                  setFilter(f.value);
-                  setPage(1);
-                }}
+                className={`sidebar-type${filters.type === f.value ? " active" : ""}`}
+                onClick={() => updateFilter({ type: f.value })}
                 aria-label={f.label}
               >
                 <span className="sidebar-type-icon" aria-hidden>
@@ -218,11 +236,8 @@ export default function LostPetsPage() {
               className="input"
               type="search"
               placeholder="Nombre, descripción…"
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-                setPage(1);
-              }}
+              value={filters.search}
+              onChange={(e) => updateFilter({ search: e.target.value })}
             />
           </div>
 
@@ -235,11 +250,8 @@ export default function LostPetsPage() {
               className="input"
               type="text"
               placeholder="Barrio o ciudad"
-              value={location}
-              onChange={(e) => {
-                setLocation(e.target.value);
-                setPage(1);
-              }}
+              value={filters.location}
+              onChange={(e) => updateFilter({ location: e.target.value })}
             />
           </div>
 
@@ -251,11 +263,8 @@ export default function LostPetsPage() {
                   <input
                     type="radio"
                     name="date-filter"
-                    checked={dateFilter === opt.value}
-                    onChange={() => {
-                      setDateFilter(opt.value);
-                      setPage(1);
-                    }}
+                    checked={filters.dateFilter === opt.value}
+                    onChange={() => updateFilter({ dateFilter: opt.value })}
                   />
                   <span>{opt.label}</span>
                 </label>
@@ -270,8 +279,12 @@ export default function LostPetsPage() {
                 <label key={opt.value} className="sidebar-check">
                   <input
                     type="checkbox"
-                    checked={sizes.includes(opt.value)}
-                    onChange={() => toggleInArray(sizes, opt.value, setSizes)}
+                    checked={filters.sizes.includes(opt.value)}
+                    onChange={() =>
+                      updateFilter({
+                        sizes: toggleInArray(filters.sizes, opt.value),
+                      })
+                    }
                   />
                   <span>{opt.label}</span>
                 </label>
@@ -286,8 +299,12 @@ export default function LostPetsPage() {
                 <label key={opt.value} className="sidebar-check">
                   <input
                     type="checkbox"
-                    checked={ages.includes(opt.value)}
-                    onChange={() => toggleInArray(ages, opt.value, setAges)}
+                    checked={filters.ages.includes(opt.value)}
+                    onChange={() =>
+                      updateFilter({
+                        ages: toggleInArray(filters.ages, opt.value),
+                      })
+                    }
                   />
                   <span>{opt.label}</span>
                 </label>
@@ -303,8 +320,8 @@ export default function LostPetsPage() {
                   <input
                     type="radio"
                     name="sex-filter"
-                    checked={sex === opt.value}
-                    onChange={() => setSex(opt.value)}
+                    checked={filters.sex === opt.value}
+                    onChange={() => updateFilter({ sex: opt.value })}
                   />
                   <span>{opt.label}</span>
                 </label>
@@ -316,8 +333,8 @@ export default function LostPetsPage() {
             <label className="sidebar-check sidebar-check-standalone">
               <input
                 type="checkbox"
-                checked={hasCollar}
-                onChange={(e) => setHasCollar(e.target.checked)}
+                checked={filters.hasCollar}
+                onChange={(e) => updateFilter({ hasCollar: e.target.checked })}
               />
               <span>Con collar o chapa</span>
             </label>
@@ -330,8 +347,10 @@ export default function LostPetsPage() {
             <select
               id="listing-sort"
               className="select"
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as SortBy)}
+              value={filters.sortBy}
+              onChange={(e) =>
+                updateFilter({ sortBy: e.target.value as SortBy })
+              }
             >
               <option value="recientes">Más recientes</option>
               <option value="antiguos">Más antiguos</option>

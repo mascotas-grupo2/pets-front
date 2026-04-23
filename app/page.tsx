@@ -13,6 +13,7 @@ export default function Home() {
   useEffect(() => {
     getAllPets()
       .then((pets) => {
+        if (!pets) return;
         setPets(pets);
         dispatch({ type: "ALL_PETS", payload: pets });
       })

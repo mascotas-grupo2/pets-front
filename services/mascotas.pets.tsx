@@ -3,7 +3,7 @@ import axiosInstance from "./axios";
 
 const axios = axiosInstance;
 
-export const getAllPets: () => Promise<Pet[] | null> = async () => {
+export const getAllPets: () => Promise<Pet[] | undefined> = async () => {
   try {
     const response = await axios.get(`mascotas`);
     return response.data;
@@ -12,7 +12,9 @@ export const getAllPets: () => Promise<Pet[] | null> = async () => {
   }
 };
 
-export const getIdPets: (id: number) => Promise<Pet | null> = async (id: number) => {
+export const getIdPets: (id: number) => Promise<Pet | undefined> = async (
+  id: number,
+) => {
   try {
     const response = await axios.get(`mascotas/${id}`);
     return response.data;
