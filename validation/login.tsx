@@ -7,7 +7,7 @@ export const loginValidationSchema = Yup.object({
     .email("Email inválido")
     .required("Requerido"),
   password: Yup.string()
-    .matches(regex_password, "Contraseña inválida")
+    //.matches(regex_password, "Contraseña inválida")
     .min(8, "Mínimo 8 caracteres")
     .required("Requerido"),
 });

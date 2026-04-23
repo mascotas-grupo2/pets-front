@@ -10,6 +10,7 @@ export const reportPet = async (values: ReportForm) => {
       photo: values.photo?.file || null,
     };
     const response = await axios.post("pet/reportar", submit);
+    
     return response.data;
   } catch (error) {
     console.error(error);

@@ -7,7 +7,7 @@ import {
 import ShowError from "@/components/utils/ShowError";
 import handleToast from "@/components/utils/toast";
 import { useAppDispatch } from "@/redux/hooks";
-import { reportPet } from "@/services/report.pets";
+import { reportPet } from "@/services/mascotas.report";
 import { ReportForm } from "@/types/reportar";
 import { reportValidationSchema } from "@/validation/reportar";
 import { useFormik } from "formik";

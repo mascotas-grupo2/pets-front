@@ -8,9 +8,11 @@ const rootReducer = (state = initialState, action: any) => {
       return { ...state, report_pet: action.payload };
     case "SET_USER":
       return { ...state, user: action.payload };
+    case "ALL_PETS":
+      return { ...state, allPets: action.payload };
     default:
       return state;
   }
 };
 
-export default rootReducer;                                             
+export default rootReducer;

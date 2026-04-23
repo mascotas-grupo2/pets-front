@@ -3,14 +3,20 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Pet } from "@/types/pet";
-import { getPets } from "@/lib/storage";
 import { PetCard } from "@/components/pet-card";
+import { getAllPets } from "@/services/mascotas.pets";
+import { useDispatch } from "react-redux";
 
 export default function Home() {
   const [pets, setPets] = useState<Pet[]>([]);
-
+  const dispatch = useDispatch();
   useEffect(() => {
-    setPets(getPets());
+    getAllPets()
+      .then((pets) => {
+        setPets(pets);
+        dispatch({ type: "ALL_PETS", payload: pets });
+      })
+      .catch((error) => console.error(error));
   }, []);
 
   return (
@@ -44,8 +50,12 @@ export default function Home() {
             </div>
           </div>
           <div className="hero-visual">
-            <span className="hero-paw hero-paw-1" aria-hidden>🐾</span>
-            <span className="hero-paw hero-paw-2" aria-hidden>🐾</span>
+            <span className="hero-paw hero-paw-1" aria-hidden>
+              🐾
+            </span>
+            <span className="hero-paw hero-paw-2" aria-hidden>
+              🐾
+            </span>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/images/hero.svg" alt="Mascotas de Huellitas Unidas" />
           </div>
@@ -95,24 +105,24 @@ export default function Home() {
               <div className="step-icon">📝</div>
               <h3>Reportá</h3>
               <p>
-                Cargá una foto, descripción, ubicación y datos de contacto.
-                Tu publicación queda online en segundos.
+                Cargá una foto, descripción, ubicación y datos de contacto. Tu
+                publicación queda online en segundos.
               </p>
             </div>
             <div className="step">
               <div className="step-icon">🔍</div>
               <h3>Buscá</h3>
               <p>
-                Explorá las mascotas reportadas cerca tuyo. Filtrá por
-                tipo de animal, zona y fecha.
+                Explorá las mascotas reportadas cerca tuyo. Filtrá por tipo de
+                animal, zona y fecha.
               </p>
             </div>
             <div className="step">
               <div className="step-icon">🤝</div>
               <h3>Reuní</h3>
               <p>
-                Si reconocés a una mascota, contactá a su familia por
-                teléfono o mail desde la publicación.
+                Si reconocés a una mascota, contactá a su familia por teléfono o
+                mail desde la publicación.
               </p>
             </div>
           </div>
@@ -124,9 +134,7 @@ export default function Home() {
         <div className="container">
           <div className="section-title">
             <h2>Noticias y guías</h2>
-            <p>
-              Consejos para cuidar a tu mascota y prevenir que se pierda.
-            </p>
+            <p>Consejos para cuidar a tu mascota y prevenir que se pierda.</p>
           </div>
           <div className="guide-grid">
             <article className="guide-card">
@@ -135,8 +143,8 @@ export default function Home() {
               <div className="body">
                 <h3>Razas y comportamiento</h3>
                 <p>
-                  Qué tener en cuenta sobre cada raza para mantenerlas seguras
-                  y felices...
+                  Qué tener en cuenta sobre cada raza para mantenerlas seguras y
+                  felices...
                 </p>
                 <Link href="/care-guides" className="guide-card-link">
                   Leer más
@@ -145,12 +153,16 @@ export default function Home() {
             </article>
             <article className="guide-card">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img className="photo" src="/images/guide-2.jpg" alt="Entrenamiento" />
+              <img
+                className="photo"
+                src="/images/guide-2.jpg"
+                alt="Entrenamiento"
+              />
               <div className="body">
                 <h3>Entrenamiento básico</h3>
                 <p>
-                  Rutinas simples para enseñarle a tu mascota a volver cuando
-                  la llamás...
+                  Rutinas simples para enseñarle a tu mascota a volver cuando la
+                  llamás...
                 </p>
                 <Link href="/care-guides" className="guide-card-link">
                   Leer más
@@ -159,7 +171,11 @@ export default function Home() {
             </article>
             <article className="guide-card">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img className="photo" src="/images/guide-3.jpg" alt="Prevención" />
+              <img
+                className="photo"
+                src="/images/guide-3.jpg"
+                alt="Prevención"
+              />
               <div className="body">
                 <h3>Prevenir pérdidas</h3>
                 <p>
@@ -214,47 +230,63 @@ export default function Home() {
             <div className="coexistence-grid">
               <article className="coex-card">
                 <header>
-                  <span className="coex-paw" aria-hidden>🐾</span>
+                  <span className="coex-paw" aria-hidden>
+                    🐾
+                  </span>
                   <h4>Vínculo emocional</h4>
                 </header>
                 <p>
                   El lazo entre las familias y sus mascotas está hecho de
                   cariño, rutina y compañía incondicional.
                 </p>
-                <span className="coex-silhouette" aria-hidden>🐈</span>
+                <span className="coex-silhouette" aria-hidden>
+                  🐈
+                </span>
               </article>
               <article className="coex-card">
                 <header>
-                  <span className="coex-paw" aria-hidden>🐾</span>
+                  <span className="coex-paw" aria-hidden>
+                    🐾
+                  </span>
                   <h4>Comunicación</h4>
                 </header>
                 <p>
-                  Aprendemos a leer a nuestras mascotas: un ladrido, un
-                  maullido o una mirada pueden decirlo todo.
+                  Aprendemos a leer a nuestras mascotas: un ladrido, un maullido
+                  o una mirada pueden decirlo todo.
                 </p>
-                <span className="coex-silhouette" aria-hidden>🐕</span>
+                <span className="coex-silhouette" aria-hidden>
+                  🐕
+                </span>
               </article>
               <article className="coex-card">
                 <header>
-                  <span className="coex-paw" aria-hidden>🐾</span>
+                  <span className="coex-paw" aria-hidden>
+                    🐾
+                  </span>
                   <h4>Niños y mascotas</h4>
                 </header>
                 <p>
                   Crecer con una mascota fortalece la empatía, el sentido de
                   responsabilidad y los vínculos afectivos.
                 </p>
-                <span className="coex-silhouette" aria-hidden>🐶</span>
+                <span className="coex-silhouette" aria-hidden>
+                  🐶
+                </span>
               </article>
               <article className="coex-card">
                 <header>
-                  <span className="coex-paw" aria-hidden>🐾</span>
+                  <span className="coex-paw" aria-hidden>
+                    🐾
+                  </span>
                   <h4>Salud</h4>
                 </header>
                 <p>
                   Convivir con animales está asociado a menos estrés, mejor
                   estado de ánimo y hábitos más saludables.
                 </p>
-                <span className="coex-silhouette" aria-hidden>🐱</span>
+                <span className="coex-silhouette" aria-hidden>
+                  🐱
+                </span>
               </article>
             </div>
           </div>
@@ -274,8 +306,8 @@ export default function Home() {
               <img className="avatar" src="/images/avatar-1.jpg" alt="María" />
               <div className="stars">★★★★★</div>
               <p>
-                “Perdimos a Rocco en la plaza y lo encontramos al día
-                siguiente gracias a esta comunidad.”
+                “Perdimos a Rocco en la plaza y lo encontramos al día siguiente
+                gracias a esta comunidad.”
               </p>
               <h4>María G.</h4>
             </div>
@@ -284,8 +316,8 @@ export default function Home() {
               <img className="avatar" src="/images/avatar-2.jpg" alt="Juan" />
               <div className="stars">★★★★★</div>
               <p>
-                “Una vecina vio el aviso y nos llamó. Michi volvió sano y
-                salvo después de 3 días.”
+                “Una vecina vio el aviso y nos llamó. Michi volvió sano y salvo
+                después de 3 días.”
               </p>
               <h4>Juan P.</h4>
             </div>
@@ -315,8 +347,8 @@ export default function Home() {
               <div className="faq-card-icon">🐶</div>
               <h3>FAQ para dueños</h3>
               <p>
-                Qué hacer cuando se pierde una mascota, cómo publicar un
-                reporte y qué datos son más útiles.
+                Qué hacer cuando se pierde una mascota, cómo publicar un reporte
+                y qué datos son más útiles.
               </p>
               <span className="faq-card-link">Ver respuestas →</span>
             </Link>

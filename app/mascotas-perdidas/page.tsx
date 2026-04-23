@@ -5,7 +5,8 @@ import { useEffect, useMemo, useState } from "react";
 import { Pet, AnimalType } from "@/types/pet";
 import { getPets } from "@/lib/storage";
 import { PetCard } from "@/components/pet-card";
-import { getAllPets } from "@/services/pets";
+import { getAllPets } from "@/services/mascotas.pets";
+import { useDispatch, useSelector } from "react-redux";
 
 type Filter = AnimalType | "todos";
 type SortBy = "recientes" | "antiguos" | "nombre";
@@ -63,12 +64,17 @@ export default function LostPetsPage() {
   const [page, setPage] = useState(1);
   const [filtersOpen, setFiltersOpen] = useState(false);
 
+  const dispatch = useDispatch()
+  const allPets: Pet[] | null = useSelector((state: any) => state?.allPets );
   useEffect(() => {
+    
+    if (allPets) return
     getAllPets()
-      .then((pets) => {
+      .then((pets: Pet[]) => {
         setPets(pets);
+        dispatch({ type: "ALL_PETS", payload: pets });
       })
-      .catch((error) => console.error(error));
+      .catch((error: any) => console.error(error));
   }, []);
 
   const toggleInArray = <T,>(arr: T[], value: T, setter: (v: T[]) => void) => {
