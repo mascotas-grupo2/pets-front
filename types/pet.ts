@@ -1,10 +1,12 @@
+import { PhotoUpload } from "./reportar";
+
 export type AnimalType = "perro" | "gato" | "otro";
 export type PetSex = "macho" | "hembra";
 
 export type Pet = {
   id: string;
   name?: string;
-  photo: string;
+  photo: string | null;
   photos?: string[];
   description: string;
   animalType: AnimalType;

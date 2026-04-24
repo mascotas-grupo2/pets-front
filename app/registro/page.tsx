@@ -36,10 +36,10 @@ export default function RegisterPage() {
         return;
       }
       try {
-        const userData = await register(values.name, values.email, values.password);
-        if (userData) {
+        const res = await register(values.name, values.email, values.password);
+        if (res && res.ok && res.data) {
           handleToast("success", "Registro exitoso. Redirigiendo...");
-          dispatch({ type: "SET_USER", payload: userData });
+          dispatch({ type: "user/SetUser", payload: res.data });
           router.push("/account");
         } else {
           handleToast("error", "No se pudo crear la cuenta. Intentá de nuevo.");
@@ -171,7 +171,9 @@ export default function RegisterPage() {
                   {showConfirm ? "🙈" : "👁️"}
                 </button>
               </div>
-              <ShowError message={FormikHandleError(formik, "confirmPassword")} />
+              <ShowError
+                message={FormikHandleError(formik, "confirmPassword")}
+              />
             </div>
 
             <label className="terms">
@@ -198,10 +200,18 @@ export default function RegisterPage() {
           </div>
 
           <div className="auth-social">
-            <button type="button" className="auth-social-btn" aria-label="Google">
+            <button
+              type="button"
+              className="auth-social-btn"
+              aria-label="Google"
+            >
               <span aria-hidden>G</span>
             </button>
-            <button type="button" className="auth-social-btn" aria-label="Facebook">
+            <button
+              type="button"
+              className="auth-social-btn"
+              aria-label="Facebook"
+            >
               <span aria-hidden>f</span>
             </button>
           </div>

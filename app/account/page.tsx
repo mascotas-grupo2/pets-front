@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { Pet } from "@/types/pet";
 import { getPets } from "@/lib/storage";
 import { PetCard } from "@/components/pet-card";
+import ImageNext from "@/components/utils/ImageNext";
 
 export default function AccountPage() {
   const [pets, setPets] = useState<Pet[]>([]);

@@ -1,14 +1,20 @@
-import { ReportForm } from "@/types/reportar";
-import axiosInstance from "./axios";
 import { ErrorGeneric } from "@/components/utils/catchErrors";
+import axiosInstance from "./axios";
+import { Pet } from "@/types/pet";
 
 const axios = axiosInstance;
-
-export const reportPet = async (values: ReportForm) => {
+type ResponseAxiosGetAll = {
+  ok: boolean;
+  data: object | null;
+  status: number;
+};
+export const reportPet: (
+  values: Pet,
+) => Promise<ResponseAxiosGetAll | undefined> = async (values: Pet) => {
   try {
     const submit = {
       ...values,
-      photo: values.photo?.file || null,
+      photo: values.photo || null,
     };
     const response = await axios.post("pet/reportar", submit);
     return { ok: true, data: response.data, status: response.status };

@@ -1,10 +1,10 @@
 "use client";
 
+import { useAppDispatch, useAppSelector } from "@/redux/hooks";
+import { getIdPets } from "@/services/mascotas.pets";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import { Pet } from "@/types/pet";
-import { getPets } from "@/lib/storage";
 
 function formatAge(months?: number): string {
   if (!months) return "—";
@@ -16,86 +16,103 @@ function formatAge(months?: number): string {
 }
 
 export default function PetDetailPage() {
-  const params = useParams<{ id: string }>();
-  const [pets, setPets] = useState<Pet[]>([]);
+  const params = useParams();
+  const id = params?.id as string;
+  const dispatch = useAppDispatch();
+
   const [activePhoto, setActivePhoto] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const pet = useAppSelector((state) => state.pet);
+  const pets = useAppSelector((state) => state.allPets);
 
   useEffect(() => {
-    setPets(getPets());
-  }, []);
-
-  const pet = useMemo(
-    () => pets.find((p) => p.id === params.id),
-    [pets, params.id],
-  );
+    if (!id) return;
+    getIdPets(id)
+      .then((res) => {
+        if (res && res.ok && res.data) {
+          dispatch({ type: "pets/pet", payload: res.data });
+        }
+      })
+      .catch((error) => console.error(error))
+      .finally(() => setLoading(false));
+  }, [id, dispatch]);
 
   const similar = useMemo(() => {
-    if (!pet) return [];
+    if (!pet || !pets) return null;
     const others = pets.filter((p) => p.id !== pet.id);
     const sameType = others.filter((p) => p.animalType === pet.animalType);
     const rest = others.filter((p) => p.animalType !== pet.animalType);
     return [...sameType, ...rest].slice(0, 4);
   }, [pets, pet]);
 
-  if (pets.length === 0) {
+  const detail = useMemo(() => {
+    if (!pet) return null;
+    const animalLabel =
+      pet.animalType.charAt(0).toUpperCase() + pet.animalType.slice(1);
+    const photos =
+      pet.photos && pet.photos.length > 0 ? pet.photos : [pet.photo];
+    const mainPhoto = activePhoto ?? photos[0];
+
+    const specs = [
+      {
+        icon: "⚥",
+        label: "Sexo",
+        value: pet.sex ? (pet.sex === "macho" ? "Macho" : "Hembra") : "—",
+      },
+      { icon: "🏷️", label: "Raza", value: pet.breed ?? "—" },
+      { icon: "🎂", label: "Edad", value: formatAge(pet.ageMonths) },
+      { icon: "🎨", label: "Color", value: pet.color ?? "—" },
+      {
+        icon: "⚖️",
+        label: "Peso",
+        value: pet.weightKg ? `${pet.weightKg} kg` : "—",
+      },
+      {
+        icon: "📏",
+        label: "Altura",
+        value: pet.heightCm ? `${pet.heightCm} cm` : "—",
+      },
+    ];
+
+    const checklist = [
+      { label: "Se lleva bien con chicos", value: pet.friendlyWithKids },
+      { label: "Vacunado/a", value: pet.vaccinated },
+      { label: "Entrenado/a", value: pet.trained },
+      { label: "Castrado/a", value: pet.neutered },
+      { label: "Tiene chapita con nombre", value: pet.hasTag },
+      { label: "Tiene microchip", value: pet.microchipped },
+    ];
+    return { animalLabel, photos, mainPhoto, specs, checklist };
+  }, [pet, activePhoto]);
+
+  if (loading) {
     return (
       <main>
-        <div className="container" style={{ padding: "4rem 0", textAlign: "center" }}>
+        <div
+          className="container"
+          style={{ padding: "4rem 0", textAlign: "center" }}
+        >
           <p>Cargando...</p>
         </div>
       </main>
     );
   }
 
-  if (!pet) {
-    return (
-      <main>
-        <div className="container" style={{ padding: "4rem 0", textAlign: "center" }}>
-          <h1>Mascota no encontrada</h1>
-          <p style={{ marginBottom: "2rem" }}>
-            Esta publicación no existe o fue eliminada.
-          </p>
-          <Link href="/mascotas-perdidas" className="btn btn-primary">
-            Volver al listado
-          </Link>
-        </div>
-      </main>
-    );
-  }
-
-  const animalLabel =
-    pet.animalType.charAt(0).toUpperCase() + pet.animalType.slice(1);
-  const photos = pet.photos && pet.photos.length > 0 ? pet.photos : [pet.photo];
-  const mainPhoto = activePhoto ?? photos[0];
-
-  const specs = [
-    { icon: "⚥", label: "Sexo", value: pet.sex ? (pet.sex === "macho" ? "Macho" : "Hembra") : "—" },
-    { icon: "🏷️", label: "Raza", value: pet.breed ?? "—" },
-    { icon: "🎂", label: "Edad", value: formatAge(pet.ageMonths) },
-    { icon: "🎨", label: "Color", value: pet.color ?? "—" },
-    { icon: "⚖️", label: "Peso", value: pet.weightKg ? `${pet.weightKg} kg` : "—" },
-    { icon: "📏", label: "Altura", value: pet.heightCm ? `${pet.heightCm} cm` : "—" },
-  ];
-
-  const checklist = [
-    { label: "Se lleva bien con chicos", value: pet.friendlyWithKids },
-    { label: "Vacunado/a", value: pet.vaccinated },
-    { label: "Entrenado/a", value: pet.trained },
-    { label: "Castrado/a", value: pet.neutered },
-    { label: "Tiene chapita con nombre", value: pet.hasTag },
-    { label: "Tiene microchip", value: pet.microchipped },
-  ];
-
-  return (
+  return pet && detail ? (
     <main>
       <div className="container pet-detail-wrap">
         {/* Breadcrumb */}
         <nav className="pet-breadcrumb" aria-label="Breadcrumb">
           <Link href="/">Inicio</Link>
-          <span className="pet-breadcrumb-sep" aria-hidden>&gt;</span>
+          <span className="pet-breadcrumb-sep" aria-hidden>
+            &gt;
+          </span>
           <Link href="/mascotas-perdidas">Mascotas perdidas</Link>
-          <span className="pet-breadcrumb-sep" aria-hidden>&gt;</span>
-          <span>{pet.name ?? animalLabel}</span>
+          <span className="pet-breadcrumb-sep" aria-hidden>
+            &gt;
+          </span>
+          <span>{pet.name ?? detail.animalLabel}</span>
         </nav>
 
         {/* Header */}
@@ -104,17 +121,19 @@ export default function PetDetailPage() {
           <div className="pet-detail-identity">
             <div className="pet-detail-avatar">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={pet.photo} alt={pet.name ?? animalLabel} />
+              <img src={pet.photo || ""} alt={pet.name ?? detail.animalLabel} />
             </div>
             <div className="pet-detail-identity-body">
               <h2>
-                {pet.name ?? animalLabel}
+                {pet.name ?? detail.animalLabel}
                 <span className="pet-detail-idnum">
                   Pet ID: {pet.id.toUpperCase()}
                 </span>
               </h2>
               <p className="pet-detail-country">
-                <span className="pet-detail-flag" aria-hidden>🇦🇷</span>
+                <span className="pet-detail-flag" aria-hidden>
+                  🇦🇷
+                </span>
                 Argentina
               </p>
               <p className="pet-detail-place">
@@ -131,27 +150,30 @@ export default function PetDetailPage() {
             <div className="pet-detail-hero">
               <span className="pet-badge">En adopción</span>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={mainPhoto} alt={pet.name ?? animalLabel} />
+              <img
+                src={detail.mainPhoto || pet.photo || ""}
+                alt={pet.name ?? detail.animalLabel}
+              />
             </div>
 
-            {photos.length > 1 && (
+            {detail.photos.length > 1 && (
               <div className="pet-detail-thumbs">
-                {photos.map((src) => (
+                {detail.photos.map((src) => (
                   <button
                     key={src}
                     type="button"
-                    className={`pet-detail-thumb${mainPhoto === src ? " active" : ""}`}
+                    className={`pet-detail-thumb${detail.mainPhoto === src ? " active" : ""}`}
                     onClick={() => setActivePhoto(src)}
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={src} alt="" />
+                    <img src={src || ""} alt="" />
                   </button>
                 ))}
               </div>
             )}
 
             <div className="pet-detail-specs">
-              {specs.map((s) => (
+              {detail.specs.map((s) => (
                 <div key={s.label} className="pet-detail-spec">
                   <span className="pet-detail-spec-icon" aria-hidden>
                     {s.icon}
@@ -202,17 +224,21 @@ export default function PetDetailPage() {
 
           <aside className="pet-detail-col-side">
             <section className="pet-detail-story">
-              <h2>Historia de {pet.name ?? animalLabel}</h2>
+              <h2>Historia de {pet.name ?? detail.animalLabel}</h2>
               <p>{pet.description}</p>
 
               <ul className="pet-detail-checklist">
-                {checklist.map((item) => (
+                {detail.checklist.map((item) => (
                   <li key={item.label}>
                     <span
                       className={`pet-detail-check${item.value ? " ok" : item.value === false ? " no" : ""}`}
                       aria-hidden
                     >
-                      {item.value === true ? "✓" : item.value === false ? "✗" : "—"}
+                      {item.value === true
+                        ? "✓"
+                        : item.value === false
+                          ? "✗"
+                          : "—"}
                     </span>
                     <span>{item.label}</span>
                   </li>
@@ -227,7 +253,7 @@ export default function PetDetailPage() {
                   pathname: "/adoptar/solicitar",
                   query: {
                     pet: pet.id,
-                    name: pet.name ?? animalLabel,
+                    name: pet.name ?? detail.animalLabel,
                   },
                 }}
                 className="btn btn-primary"
@@ -238,7 +264,7 @@ export default function PetDetailPage() {
           </aside>
         </div>
 
-        {similar.length > 0 && (
+        {similar && (
           <section className="pet-detail-similar">
             <div className="section-title">
               <h2>Reportes similares</h2>
@@ -249,10 +275,16 @@ export default function PetDetailPage() {
                 <li key={p.id} className="similar-card">
                   <div className="similar-photo">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={p.photo} alt={p.name ?? ""} />
+                    <img src={p.photo || ""} alt={p.name ?? ""} />
                   </div>
                   <h3>{p.name ?? p.animalType}</h3>
-                  <p>{p.sex === "macho" ? "Macho" : p.sex === "hembra" ? "Hembra" : "—"}</p>
+                  <p>
+                    {p.sex === "macho"
+                      ? "Macho"
+                      : p.sex === "hembra"
+                        ? "Hembra"
+                        : "—"}
+                  </p>
                   <p className="similar-breed">{p.breed ?? p.animalType}</p>
                   <Link
                     href={`/mascotas-perdidas/${p.id}`}
@@ -265,6 +297,21 @@ export default function PetDetailPage() {
             </ul>
           </section>
         )}
+      </div>
+    </main>
+  ) : (
+    <main>
+      <div
+        className="container"
+        style={{ padding: "4rem 0", textAlign: "center" }}
+      >
+        <h1>Mascota no encontrada</h1>
+        <p style={{ marginBottom: "2rem" }}>
+          Esta publicación no existe o fue eliminada.
+        </p>
+        <Link href="/mascotas-perdidas" className="btn btn-primary">
+          Volver al listado
+        </Link>
       </div>
     </main>
   );

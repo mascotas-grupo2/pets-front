@@ -2,7 +2,6 @@
 
 import { FormStepper } from "@/components/form-stepper";
 import handleToast from "@/components/utils/toast";
-import { addPet } from "@/lib/storage";
 import { useAppDispatch } from "@/redux/hooks";
 import { reportPet } from "@/services/mascotas.report";
 import { ReportForm } from "@/types/reportar";
@@ -37,18 +36,14 @@ export default function ReportPage() {
 
       try {
         const res = await reportPet(pet);
-        if(res.ok){
-          dispatch({ type: "REPORT_PET", payload: pet });
-
+        if (res && res.ok) {
+          dispatch({ type: "pets/ReportPet", payload: res.data });
+          handleToast("success", "¡Publicación creada con éxito!");
+          setIsDone(true);
         }
-
       } catch (err) {
         console.warn("No se pudo persistir localmente", err);
       }
-
-      
-      handleToast("success", "¡Publicación creada con éxito!");
-      setIsDone(true);
     },
   });
 
@@ -227,7 +222,11 @@ function DoneScreen({
               justifyContent: "center",
             }}
           >
-            <button type="button" className="btn btn-outline" onClick={onGoHome}>
+            <button
+              type="button"
+              className="btn btn-outline"
+              onClick={onGoHome}
+            >
               Ir al inicio
             </button>
             <button

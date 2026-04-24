@@ -64,6 +64,7 @@ const PAGE_SIZE = 9;
 
 export default function LostPetsPage() {
   const [page, setPage] = useState(1);
+  const [pets, setPets] = useState<Pet[]>([]);
   const [referenceDate] = useState(() => Date.now());
   const [filters, setFilters] = useState<FilterCriteria>({
     type: "todos",
@@ -79,18 +80,19 @@ export default function LostPetsPage() {
   const [filtersOpen, setFiltersOpen] = useState(false);
 
   const dispatch = useDispatch();
-  const allPets = useSelector((state: RootState) => state.allPets);
 
   useEffect(() => {
-    if (allPets) return;
+    if (pets.length) return;
     getAllPets()
-      .then((data) => {
-        if (data) {
-          dispatch({ type: "ALL_PETS", payload: data });
+      .then((res) => {
+        if (res && res.ok && res.data) {
+          const pets = res.data;
+          setPets(pets);
+          dispatch({ type: "pets/all_pets", payload: pets });
         }
       })
       .catch((error: unknown) => console.error(error));
-  }, [allPets, dispatch]);
+  }, [pets, dispatch]);
 
   const updateFilter = (changes: Partial<FilterCriteria>) => {
     setFilters((prev) => ({ ...prev, ...changes }));
@@ -104,7 +106,7 @@ export default function LostPetsPage() {
   };
 
   const filtered = useMemo(() => {
-    const basePets = allPets ?? [];
+    const basePets = pets ?? [];
     const result = basePets.filter((p) => {
       if (filters.type !== "todos" && p.animalType !== filters.type)
         return false;
@@ -148,7 +150,7 @@ export default function LostPetsPage() {
         break;
     }
     return result;
-  }, [allPets, filters, referenceDate]);
+  }, [pets, filters, referenceDate]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);

@@ -16,7 +16,7 @@ export function buildPetFromReport(values: ReportForm): Pet {
     description: values.description,
     date: values.date,
 
-    photo: values.photo?.url ?? "",
+    photo: values.photo?.url ?? null,
 
     location: values.location,
     contactPhone: values.contactPhone,

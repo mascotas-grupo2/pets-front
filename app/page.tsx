@@ -10,12 +10,15 @@ import { useDispatch } from "react-redux";
 export default function Home() {
   const [pets, setPets] = useState<Pet[]>([]);
   const dispatch = useDispatch();
+  
   useEffect(() => {
     getAllPets()
-      .then((pets) => {
-        if (!pets) return;
-        setPets(pets);
-        dispatch({ type: "ALL_PETS", payload: pets });
+      .then((res) => {
+        if (res && res.ok && res.data) {
+          const pets = res.data;
+          setPets(pets);
+          dispatch({ type: "pets/all_pets", payload: pets });
+        }
       })
       .catch((error) => console.error(error));
   }, []);

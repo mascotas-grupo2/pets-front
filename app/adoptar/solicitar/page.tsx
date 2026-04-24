@@ -16,6 +16,7 @@ import { adoptFullSchema } from "@/validation/adoptar";
 import { useFormik } from "formik";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
+import { useDispatch } from "react-redux";
 
 const STEPS: StepDef[] = [
   { key: "start", label: "Inicio", icon: "→" },
@@ -59,6 +60,7 @@ export default function AdoptarSolicitarPage() {
 
 function AdoptarSolicitarContent() {
   const router = useRouter();
+  const dispatch = useDispatch();
   const searchParams = useSearchParams();
   const targetPetId = searchParams.get("pet") ?? "";
   const targetPetName = searchParams.get("name") ?? "";
@@ -72,7 +74,9 @@ function AdoptarSolicitarContent() {
     onSubmit: async (values) => {
       try {
         const res = await submitAdoption(values);
+        if (!res) return;
         if (res.ok) {
+          dispatch({ type: "user/setFormAdoption", payload: res.data });
           handleToast("success", "¡Solicitud enviada con éxito!");
           setSubmitted(true);
         } else {
