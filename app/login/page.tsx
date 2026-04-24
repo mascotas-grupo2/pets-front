@@ -30,12 +30,12 @@ export default function LoginPage() {
     onSubmit: async (values) => {
       try {
         const userData = await login(values.email, values.password);
-        if (userData) {
+        if (userData?.ok) {
           handleToast(
             "success",
             "¡Ingreso exitoso! Redirigiendo a tu cuenta...",
           );
-          dispatch({ type: "SET_USER", payload: userData });
+          dispatch({ type: "SET_USER", payload: userData.data });
           router.push("/account");
         } else {
           handleToast(

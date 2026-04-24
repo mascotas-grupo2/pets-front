@@ -1,3 +1,4 @@
+import { ErrorGeneric } from "@/components/utils/catchErrors";
 import { User } from "@/types/login";
 import axiosInstance from "./axios";
 
@@ -12,8 +13,8 @@ export const login: (
       email,
       password,
     });
-    return response.data;
+    return { ok: true, data: response.data, status: response.status };
   } catch (error) {
-    console.error(error);
+    ErrorGeneric(error);
   }
 };

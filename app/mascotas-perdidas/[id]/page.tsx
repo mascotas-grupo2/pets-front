@@ -222,12 +222,18 @@ export default function PetDetailPage() {
 
             <section className="pet-detail-cta">
               <p>¿Te interesa adoptar?</p>
-              <a
-                href={`mailto:${pet.contactEmail}?subject=Quiero adoptar a ${pet.name ?? animalLabel}`}
+              <Link
+                href={{
+                  pathname: "/adoptar/solicitar",
+                  query: {
+                    pet: pet.id,
+                    name: pet.name ?? animalLabel,
+                  },
+                }}
                 className="btn btn-primary"
               >
                 Empezar
-              </a>
+              </Link>
             </section>
           </aside>
         </div>

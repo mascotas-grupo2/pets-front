@@ -50,8 +50,21 @@ async function handleRequest(request: Request) {
       },
     });
   } catch (error) {
-    console.error("Proxy Error:", error);
-    return NextResponse.json({ message: "Error de comunicación proxy" }, { status: 500 });
+    const message = error instanceof Error ? error.message : String(error);
+    const isBackendOffline =
+      (error as { code?: string }).code === "ECONNREFUSED";
+    const level = isBackendOffline ? "warn" : "error";
+    console[level](
+      `Proxy ${request.method} ${cleanPath} → ${isBackendOffline ? "backend offline" : message}`,
+    );
+    return NextResponse.json(
+      {
+        message: isBackendOffline
+          ? "Backend offline"
+          : "Error de comunicación proxy",
+      },
+      { status: isBackendOffline ? 503 : 500 },
+    );
   }
 }
 
