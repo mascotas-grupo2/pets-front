@@ -36,15 +36,17 @@ export default function ReportPage() {
       const pet = buildPetFromReport(values);
 
       try {
-        addPet(pet);
+        const res = await reportPet(pet);
+        if(res.ok){
+          dispatch({ type: "REPORT_PET", payload: pet });
+
+        }
+
       } catch (err) {
         console.warn("No se pudo persistir localmente", err);
       }
-      dispatch({ type: "REPORT_PET", payload: pet });
 
-      // POST best-effort al backend: devuelve undefined si está offline.
-      reportPet(values);
-
+      
       handleToast("success", "¡Publicación creada con éxito!");
       setIsDone(true);
     },

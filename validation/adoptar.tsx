@@ -45,8 +45,14 @@ export const adoptOtherAnimalsSchema = Yup.object({
   vaccinated: Yup.string().required("Requerido"),
 });
 
-export const adoptFullSchema = adoptStartSchema
-  .concat(adoptAddressSchema)
-  .concat(adoptHomeSchema)
-  .concat(adoptRoommateSchema)
-  .concat(adoptOtherAnimalsSchema);
+export const adoptFullSchema = (step: number) => {
+  const schemas = [
+    adoptStartSchema,
+    adoptAddressSchema,
+    adoptHomeSchema,
+    adoptRoommateSchema,
+    adoptOtherAnimalsSchema,
+    null,
+  ];
+  return schemas[step];
+};
