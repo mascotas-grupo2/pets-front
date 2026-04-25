@@ -27,13 +27,35 @@ type ResponseAxiosGetId = {
   ok: boolean;
   data: Pet | null;
   status: number;
-  error?: string;
 };
 export const getIdPets: (id: string) => Promise<ResponseAxiosGetId> = async (
   id: string,
 ) => {
   try {
     const response = await axios.get(`mascotas/${id}`);
+    return { ok: true, data: response.data, status: response.status };
+  } catch (error) {
+    console.error(error);
+    const err = error as AxiosError;
+    return {
+      ok: false,
+      data: null,
+      status: err.response?.status || 500,
+      error: err.message,
+    };
+  }
+};
+
+type ResponseAxiosGetIds = {
+  ok: boolean;
+  data: Pet[] | null;
+  status: number;
+};
+export const getIdsPets: (
+  ids: string[],
+) => Promise<ResponseAxiosGetIds> = async (ids: string[]) => {
+  try {
+    const response = await axios.post(`mascotas/petsByIds`, { ids });
     return { ok: true, data: response.data, status: response.status };
   } catch (error) {
     console.error(error);

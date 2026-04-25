@@ -26,6 +26,17 @@ const redPin = L.divIcon({
   iconAnchor: [16, 42],
 });
 
+// Fix for default marker icons not being found in Next.js environments.
+// This prevents Leaflet from trying to load missing images for the default marker.
+if (typeof window !== "undefined") {
+  delete (L.Icon.Default.prototype as { _getIconUrl?: unknown })._getIconUrl;
+  L.Icon.Default.mergeOptions({
+    iconRetinaUrl: null,
+    iconUrl: null,
+    shadowUrl: null,
+  });
+}
+
 type Props = {
   lat: number | null;
   lng: number | null;

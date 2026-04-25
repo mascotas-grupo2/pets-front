@@ -21,15 +21,20 @@ import {
   StartStep,
 } from "./steps";
 import { INITIAL_VALUES, LAST_STEP_INDEX, STEPS } from "./wizard-config";
+import { useUserContext } from "@/context/UserContext";
 
 export default function ReportPage() {
   const router = useRouter();
+  const { userId } = useUserContext();
   const dispatch = useAppDispatch();
   const [stepIndex, setStepIndex] = useState(0);
   const [isDone, setIsDone] = useState(false);
 
   const formik = useFormik<ReportForm>({
-    initialValues: INITIAL_VALUES,
+    initialValues: {
+      ...INITIAL_VALUES,
+      userId,
+    },
     validationSchema: reportValidationSchema,
     onSubmit: async (values) => {
       const pet = buildPetFromReport(values);

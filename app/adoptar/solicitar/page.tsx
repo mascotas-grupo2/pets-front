@@ -10,6 +10,7 @@ import StepStart from "@/components/stepper-adopcion/StepStart";
 import SubmittedMessage from "@/components/stepper-adopcion/SubmittedMessage";
 import { ErrorGeneric } from "@/components/utils/catchErrors";
 import handleToast from "@/components/utils/toast";
+import { useUserContext } from "@/context/UserContext";
 import { submitAdoption } from "@/services/adopt.pets";
 import { AdoptForm, adoptInitialValues } from "@/types/adoptar";
 import { adoptFullSchema } from "@/validation/adoptar";
@@ -61,6 +62,7 @@ export default function AdoptarSolicitarPage() {
 function AdoptarSolicitarContent() {
   const router = useRouter();
   const dispatch = useDispatch();
+  const { userId } = useUserContext();
   const searchParams = useSearchParams();
   const targetPetId = searchParams.get("pet") ?? "";
   const targetPetName = searchParams.get("name") ?? "";
@@ -69,7 +71,7 @@ function AdoptarSolicitarContent() {
 
   const formik = useFormik<AdoptForm>({
     enableReinitialize: true,
-    initialValues: adoptInitialValues,
+    initialValues: { ...adoptInitialValues, userId },
     validationSchema: adoptFullSchema(step),
     onSubmit: async (values) => {
       try {

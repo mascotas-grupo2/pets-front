@@ -9,6 +9,7 @@ import { AnimalType, PetSex } from "@/types/pet";
  */
 export type ReportForm = {
   // Identidad y descripción (paso: Datos)
+  userId: number;
   name: string;
   animalType: AnimalType;
   description: string;

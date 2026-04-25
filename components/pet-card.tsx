@@ -6,12 +6,13 @@ export function PetCard({ pet }: { pet: Pet }) {
     <li className="pet-card">
       <Link href={`/mascotas-perdidas/${pet.id}`} className="pet-photo-wrap">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={pet.photo} alt={pet.name ?? pet.description} />
+        <img src={pet.photo || ""} alt={pet.name ?? pet.description} />
         <span className="pet-badge">Perdido</span>
       </Link>
       <div className="pet-body">
         <h3 className="pet-title">
-          {pet.name ?? pet.animalType.charAt(0).toUpperCase() + pet.animalType.slice(1)}
+          {pet.name ??
+            pet.animalType.charAt(0).toUpperCase() + pet.animalType.slice(1)}
         </h3>
         <p className="pet-desc">{pet.description}</p>
         <div className="pet-meta">

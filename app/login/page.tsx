@@ -6,6 +6,7 @@ import {
 } from "@/components/utils/FormikHelper";
 import ShowError from "@/components/utils/ShowError";
 import handleToast from "@/components/utils/toast";
+import { useUserContext } from "@/context/UserContext";
 import { useAppDispatch } from "@/redux/hooks";
 import { login } from "@/services/auth.login";
 import { LoginForm } from "@/types/login";
@@ -18,6 +19,7 @@ import { useState } from "react";
 export default function LoginPage() {
   const router = useRouter();
   const dispatch = useAppDispatch();
+  const { saveUser } = useUserContext();
   const [showPassword, setShowPassword] = useState(false);
   const [keepLogged, setKeepLogged] = useState(true);
 
@@ -31,6 +33,7 @@ export default function LoginPage() {
       try {
         const userData = await login(values.email, values.password);
         if (userData?.ok) {
+          saveUser(userData.data);
           handleToast(
             "success",
             "¡Ingreso exitoso! Redirigiendo a tu cuenta...",
@@ -133,10 +136,18 @@ export default function LoginPage() {
           </div>
 
           <div className="auth-social">
-            <button type="button" className="auth-social-btn" aria-label="Google">
+            <button
+              type="button"
+              className="auth-social-btn"
+              aria-label="Google"
+            >
               <span aria-hidden>G</span>
             </button>
-            <button type="button" className="auth-social-btn" aria-label="Facebook">
+            <button
+              type="button"
+              className="auth-social-btn"
+              aria-label="Facebook"
+            >
               <span aria-hidden>f</span>
             </button>
           </div>

@@ -7,5 +7,6 @@ export type User = {
   id: number;
   name: string;
   email: string;
-  createdAt: string;
+  adopter: boolean;
+  role: string;
 };

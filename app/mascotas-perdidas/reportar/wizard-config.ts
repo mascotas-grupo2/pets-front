@@ -61,6 +61,7 @@ export const STEPS: readonly WizardStep[] = [
 export const LAST_STEP_INDEX = STEPS.length - 1;
 
 export const INITIAL_VALUES: ReportForm = {
+  userId: 0,
   name: "",
   animalType: "perro",
   description: "",

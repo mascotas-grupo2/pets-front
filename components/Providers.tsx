@@ -4,19 +4,12 @@ import { Provider } from "react-redux";
 import store from "@/redux/store";
 import React from "react";
 import { Toaster } from "sonner";
-// import { TuContextoProvider } from "@/context/TuContexto"; // Donde iría un futuro Context
+import { UserProvider } from "@/context/UserContext";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <Provider store={store}>
-      {/* 
-        Si en el futuro agregas Context, simplemente envuelve los children aquí.
-        Ejemplo:
-        <TuContextoProvider>
-          {children}
-        </TuContextoProvider>
-      */}
-      {children}
+      <UserProvider>{children}</UserProvider>
       <Toaster richColors position="bottom-right" />
     </Provider>
   );
