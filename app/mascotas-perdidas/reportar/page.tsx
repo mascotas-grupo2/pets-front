@@ -2,6 +2,7 @@
 
 import { FormStepper } from "@/components/form-stepper";
 import handleToast from "@/components/utils/toast";
+import { useUserContext } from "@/context/UserContext";
 import { useAppDispatch } from "@/redux/hooks";
 import { reportPet } from "@/services/mascotas.report";
 import { ReportForm } from "@/types/reportar";
@@ -21,7 +22,6 @@ import {
   StartStep,
 } from "./steps";
 import { INITIAL_VALUES, LAST_STEP_INDEX, STEPS } from "./wizard-config";
-import { useUserContext } from "@/context/UserContext";
 
 export default function ReportPage() {
   const router = useRouter();
@@ -115,8 +115,7 @@ export default function ReportPage() {
           className="wizard-card"
           onSubmit={(e) => {
             e.preventDefault();
-            if (isLastStep) formik.handleSubmit();
-            else goToNextStep();
+            if (!isLastStep) goToNextStep();
           }}
         >
           <CurrentStep
@@ -148,8 +147,9 @@ export default function ReportPage() {
               </button>
             ) : (
               <button
-                type="submit"
+                type="button"
                 className="btn btn-primary"
+                onClick={() => formik.handleSubmit()}
                 disabled={formik.isSubmitting}
               >
                 {formik.isSubmitting ? "Publicando…" : "Publicar"}

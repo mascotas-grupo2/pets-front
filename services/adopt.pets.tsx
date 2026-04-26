@@ -13,7 +13,13 @@ export const submitAdoption: (
   values: AdoptForm,
 ) => Promise<ResponseAxios | undefined> = async (values: AdoptForm) => {
   try {
-    const response = await axios.post("pet/adoptar", values);
+    const response = await axios.post("pet/adoptar", values,
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
     return { ok: true, data: response.data, status: response.status };
   } catch (error) {
     ErrorGeneric(error);

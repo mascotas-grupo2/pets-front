@@ -1,18 +1,17 @@
 "use client";
 
 import { PetCard } from "@/components/pet-card";
+import { convertLocalMonthYear } from "@/components/utils/helpers";
 import { useUserContext } from "@/context/UserContext";
-import { getPets } from "@/lib/storage";
+import { getIdsPets } from "@/services/mascotas.pets";
 import { getUserDetails } from "@/services/user.info";
 import { Pet } from "@/types/pet";
 import Link from "next/link";
-import { use, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { UserDetails } from "../../types/user-details";
-import { getIdsPets } from "@/services/mascotas.pets";
-import { convertLocalMonthYear } from "@/components/utils/helpers";
 
 export default function AccountPage() {
-  const { userId, adopter, role } = useUserContext();
+  const { userId } = useUserContext();
   const [userDetails, setUserDetails] = useState<UserDetails | null>(null);
   const [pets, setPets] = useState<Pet[]>([]);
 

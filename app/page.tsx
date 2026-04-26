@@ -21,7 +21,7 @@ export default function Home() {
         }
       })
       .catch((error) => console.error(error));
-  }, []);
+  }, [dispatch]);
 
   return (
     <main>

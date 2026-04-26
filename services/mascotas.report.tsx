@@ -16,7 +16,13 @@ export const reportPet: (
       ...values,
       photo: values.photo || null,
     };
-    const response = await axios.post("pet/reportar", submit);
+    const response = await axios.post("pet/reportar", submit,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
     return { ok: true, data: response.data, status: response.status };
   } catch (error) {
     ErrorGeneric(error);

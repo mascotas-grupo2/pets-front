@@ -159,6 +159,7 @@ export default function LoginPage() {
 
         <aside className="auth-visual">
           <div className="auth-visual-art">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/images/auth-cat.png"
               alt="Ingresá a Huellitas Unidas"
