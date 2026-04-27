@@ -7,12 +7,14 @@ import {
   useEffect,
   useState,
 } from "react";
+import { useDispatch } from "react-redux";
 type UserContextProps = {
   userId: number;
   name: string;
   adopter: boolean;
   role: string;
   saveUser: (user: User | null) => void;
+  logout: () => void;
 };
 const UserContext = createContext<UserContextProps | undefined>(undefined);
 
@@ -47,6 +49,15 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
   const saveUser = (user: User | null) => {
     if (!user) return;
     if (user.id === 0) {
+      return logout();
+    }
+
+    setUser({ ...user, userId: user.id });
+    localStorage.setItem("userId", user.id.toString());
+  };
+
+  const logout = () => {
+    if (user.userId) {
       localStorage.removeItem("userId");
       setUser({
         userId: 0,
@@ -56,14 +67,12 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
       });
       return;
     }
-
-    setUser({ ...user, userId: user.id });
-    localStorage.setItem("userId", user.id.toString());
   };
 
   const values: UserContextProps = {
     ...user,
     saveUser,
+    logout,
   };
   return <UserContext.Provider value={values}>{children}</UserContext.Provider>;
 };

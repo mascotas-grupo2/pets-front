@@ -6,6 +6,7 @@ import {
 } from "@/components/utils/FormikHelper";
 import ShowError from "@/components/utils/ShowError";
 import handleToast from "@/components/utils/toast";
+import { useUserContext } from "@/context/UserContext";
 import { useAppDispatch } from "@/redux/hooks";
 import { register } from "@/services/auth.register";
 import { RegisterForm } from "@/types/register";
@@ -18,6 +19,7 @@ import { useState } from "react";
 export default function RegisterPage() {
   const router = useRouter();
   const dispatch = useAppDispatch();
+  const { saveUser } = useUserContext()
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [acceptTerms, setAcceptTerms] = useState(false);
@@ -39,7 +41,7 @@ export default function RegisterPage() {
         const res = await register(values.name, values.email, values.password);
         if (res && res.ok && res.data) {
           handleToast("success", "Registro exitoso. Redirigiendo...");
-          dispatch({ type: "user/SetUser", payload: res.data });
+          saveUser(res.data);
           router.push("/account");
         } else {
           handleToast("error", "No se pudo crear la cuenta. Intentá de nuevo.");

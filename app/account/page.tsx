@@ -11,7 +11,7 @@ import { useEffect, useState } from "react";
 import { UserDetails } from "../../types/user-details";
 
 export default function AccountPage() {
-  const { userId } = useUserContext();
+  const { userId, logout } = useUserContext();
   const [userDetails, setUserDetails] = useState<UserDetails | null>(null);
   const [pets, setPets] = useState<Pet[]>([]);
 
@@ -48,13 +48,13 @@ export default function AccountPage() {
             <Link href="/account">Mensajes</Link>
             <Link href="/account">Notificaciones</Link>
             <Link href="/account">Configuración</Link>
-            <Link href="/">Cerrar sesión</Link>
+            <Link href="/" onClick={() => logout()}>Cerrar sesión</Link>
           </aside>
 
           <div className="account-body">
             <div className="account-profile">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={userDetails.photo || ""} alt="User Photo" />
+              <img src={userDetails.photo || "empty"} alt="User Photo" />
               <div>
                 <h2>
                   {userDetails.firstName} {userDetails.lastName}

@@ -1,6 +1,8 @@
+"use client";
+
 import React from "react";
 import { FormStepper, StepDef } from "../form-stepper";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 
 const SubmittedMessage = ({steps}: {steps: StepDef[]}) => {
     const router = useRouter();

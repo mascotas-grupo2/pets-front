@@ -12,11 +12,12 @@ import { ErrorGeneric } from "@/components/utils/catchErrors";
 import handleToast from "@/components/utils/toast";
 import { useUserContext } from "@/context/UserContext";
 import { submitAdoption } from "@/services/adopt.pets";
+import { getUserDetails } from "@/services/user.info";
 import { AdoptForm, adoptInitialValues } from "@/types/adoptar";
 import { adoptFullSchema } from "@/validation/adoptar";
 import { useFormik } from "formik";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 
 const STEPS: StepDef[] = [
@@ -93,6 +94,25 @@ function AdoptarSolicitarContent() {
     },
   });
 
+  useEffect(() => {
+    if (!userId) return;
+    getUserDetails(userId).then((res) => {
+      if (res && res.ok) {
+        const { reports, messages, notifications, created_at, ...rest } =
+          res.data;
+        const data = Object.entries(rest).filter(([_, v]) => {
+          return v != null;
+        });
+        data.forEach(([k, v]) => {
+          formik.setFieldValue(
+            k,
+            k == "userId" && typeof v == "string" ? parseInt(v) : v,
+          );
+        });
+      }
+    });
+  }, [userId]);
+
   async function handleNext() {
     const fields = STEP_FIELDS[step] ?? [];
     fields.forEach((f) => formik.setFieldTouched(f, true, false));
@@ -155,8 +175,7 @@ function AdoptarSolicitarContent() {
           className="wizard-card"
           onSubmit={(e) => {
             e.preventDefault();
-            if (step === STEPS.length - 1) formik.handleSubmit();
-            else handleNext();
+            handleNext();
           }}
         >
           {step === 0 && <StepStart formik={formik} />}
@@ -187,6 +206,7 @@ function AdoptarSolicitarContent() {
               <button
                 type="submit"
                 className="btn btn-primary"
+                onClick={() => formik.handleSubmit()}
                 disabled={formik.isSubmitting}
               >
                 {formik.isSubmitting ? "Enviando…" : "Enviar solicitud"}

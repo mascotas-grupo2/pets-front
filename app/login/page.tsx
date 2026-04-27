@@ -38,7 +38,6 @@ export default function LoginPage() {
             "success",
             "¡Ingreso exitoso! Redirigiendo a tu cuenta...",
           );
-          dispatch({ type: "user/SetUser", payload: userData.data });
           router.push("/account");
         } else {
           handleToast(

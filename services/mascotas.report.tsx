@@ -16,6 +16,7 @@ export const reportPet: (
       ...values,
       photo: values.photo || null,
     };
+    console.log(submit)
     const response = await axios.post("pet/reportar", submit,
       {
         headers: {
