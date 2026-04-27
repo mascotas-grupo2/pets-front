@@ -1688,6 +1688,13 @@ main {
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s;
+  cursor: pointer;
+}
+
+.guide-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-lg);
 }
 
 .guide-card .photo {
@@ -2712,4 +2719,104 @@ main {
   .notfound .code {
     font-size: 6rem;
   }
+}
+
+/* ===== Modal ===== */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(31, 25, 87, 0.4);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+}
+
+.modal-content {
+  position: relative;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+.guide-modal {
+  max-width: 620px;
+  width: 100%;
+}
+
+/* Header */
+.guide-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.25rem;
+}
+
+.guide-modal-header h2 {
+  font-size: 1.35rem;
+  color: var(--primary-600);
+  margin: 0;
+}
+
+.guide-modal-header button {
+  font-size: 1.4rem;
+  color: var(--gray-400);
+}
+
+.guide-modal-header button:hover {
+  color: var(--primary-500);
+}
+
+/* Intro tipo wizard */
+.guide-modal-intro {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  background: var(--surface-alt);
+  padding: 1rem 1.2rem;
+  border-radius: var(--radius-md);
+  margin-bottom: 1.5rem;
+}
+
+.guide-modal-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-full);
+  background: var(--primary-100);
+  display: grid;
+  place-items: center;
+  font-size: 1.3rem;
+}
+
+/* Lista */
+.guide-modal-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  margin: 0;
+  padding: 0;
+}
+
+.guide-modal-list li {
+  display: flex;
+  gap: 0.6rem;
+  font-size: 0.92rem;
+  color: var(--gray-700);
+  line-height: 1.5;
+}
+
+.guide-modal-list .dot {
+  width: 8px;
+  height: 8px;
+  margin-top: 0.5rem;
+  border-radius: 50%;
+  background: var(--primary-500);
+  flex-shrink: 0;
+}
+
+/* Footer */
+.guide-modal-actions {
+  margin-top: 2rem;
+  display: flex;
+  justify-content: flex-end;
 }
