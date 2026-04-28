@@ -104,6 +104,8 @@ function AdoptarSolicitarContent() {
           return v != null;
         });
         data.forEach(([k, v]) => {
+          
+          v = v === null ? "" : v;
           formik.setFieldValue(
             k,
             k == "userId" && typeof v == "string" ? parseInt(v) : v,
