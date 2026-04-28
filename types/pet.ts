@@ -1,6 +1,6 @@
 export type AnimalType = "perro" | "gato" | "otro";
 export type PetSex = "macho" | "hembra";
-export type PetStatus = "perdido" | "para adopcion";
+export type PetStatus = "perdido" | "en adopción";
 
 export type Pet = {
   id: string;
