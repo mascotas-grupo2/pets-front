@@ -40,7 +40,7 @@ export default function ReportPage() {
       const pet = buildPetFromReport(values);
 
       try {
-        const res = await reportPet(pet);
+        const res = await reportPet(values.userId, pet);
         if (res && res.ok) {
           dispatch({ type: "pets/ReportPet", payload: res.data });
           handleToast("success", "¡Publicación creada con éxito!");

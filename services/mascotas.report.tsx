@@ -9,18 +9,19 @@ type ResponseAxiosGetAll = {
   status: number;
 };
 export const reportPet: (
+  userId: number,
   values: Pet,
-) => Promise<ResponseAxiosGetAll | undefined> = async (values: Pet) => {
+) => Promise<ResponseAxiosGetAll | undefined> = async (userId: number, values: Pet) => {
   try {
     const submit = {
       ...values,
+      userId,
       photo: values.photo || null,
     };
-    console.log(submit)
-    const response = await axios.post("pet/reportar", submit,
+    const response = await axios.post("pet/reportar", JSON.stringify(submit),
       {
         headers: {
-          "Content-Type": "multipart/form-data",
+          "Content-Type": "application/json",
         },
       }
     );

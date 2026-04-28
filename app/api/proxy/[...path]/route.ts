@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { NextResponse } from "next/server";
 import axios from "axios";
 
@@ -30,8 +32,8 @@ async function handleRequest(request: Request) {
     if (!["GET", "HEAD"].includes(request.method)) {
       // Leemos el cuerpo como ArrayBuffer para mantener la integridad de cualquier tipo de dato
       body = await request.arrayBuffer();
-    }
 
+    }
     const response = await axios({
       method: request.method,
       url: targetUrl,
@@ -42,7 +44,6 @@ async function handleRequest(request: Request) {
       maxBodyLength: Infinity,
       validateStatus: () => true,  
     });
-
     return new NextResponse(response.data, {
       status: response.status,
       headers: {

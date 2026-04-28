@@ -2,8 +2,10 @@
 
 import Link from "next/link";
 import { Brand } from "./brand";
+import { useUserContext } from "@/context/UserContext";
 
 export function SiteFooter() {
+  const { userId } = useUserContext();
   return (
     <footer className="site-footer">
       <div className="container footer-main">
@@ -21,9 +23,12 @@ export function SiteFooter() {
             <li>
               <Link href="/mascotas-perdidas">Mascotas perdidas</Link>
             </li>
-            <li>
-              <Link href="/mascotas-perdidas/reportar">Reportar</Link>
-            </li>
+            {userId ? (
+              <li>
+                <Link href="/mascotas-perdidas/reportar">Reportar</Link>
+              </li>
+            ) : null}
+
             <li>
               <Link href="/care-guides">Guías de cuidado</Link>
             </li>
@@ -66,10 +71,18 @@ export function SiteFooter() {
         <div className="container">
           <span>©2026 Huellitas Unidas. Todos los derechos reservados.</span>
           <div className="footer-social" aria-label="Redes sociales">
-            <a href="#" aria-label="Facebook">f</a>
-            <a href="#" aria-label="Instagram">ig</a>
-            <a href="#" aria-label="Twitter">x</a>
-            <a href="#" aria-label="YouTube">yt</a>
+            <a href="#" aria-label="Facebook">
+              f
+            </a>
+            <a href="#" aria-label="Instagram">
+              ig
+            </a>
+            <a href="#" aria-label="Twitter">
+              x
+            </a>
+            <a href="#" aria-label="YouTube">
+              yt
+            </a>
           </div>
         </div>
       </div>

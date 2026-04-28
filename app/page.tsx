@@ -6,11 +6,13 @@ import { Pet } from "@/types/pet";
 import { PetCard } from "@/components/pet-card";
 import { getAllPets } from "@/services/mascotas.pets";
 import { useDispatch } from "react-redux";
+import { useUserContext } from "@/context/UserContext";
 
 export default function Home() {
   const [pets, setPets] = useState<Pet[]>([]);
+  const { userId } = useUserContext();
   const dispatch = useDispatch();
-  
+
   useEffect(() => {
     getAllPets()
       .then((res) => {
@@ -39,12 +41,27 @@ export default function Home() {
               ayudá a que vuelvan a casa.
             </p>
             <div className="hero-actions">
-              <Link
-                href="/mascotas-perdidas/reportar"
-                className="btn btn-primary btn-lg"
-              >
-                Reportar ahora
-              </Link>
+              {userId ? (
+                <Link
+                  href="/mascotas-perdidas/reportar"
+                  className="btn btn-primary btn-lg"
+                >
+                  Reportar ahora
+                </Link>
+              ) : (
+                <div className="tooltip-container">
+                  <button
+                    type="button"
+                    className="btn btn-primary btn-lg"
+                    style={{ opacity: 0.5, cursor: "not-allowed" }}
+                  >
+                    Reportar ahora
+                  </button>
+                  <span className="tooltip-content">
+                    Necesitás iniciar sesión
+                  </span>
+                </div>
+              )}
               <Link
                 href="/mascotas-perdidas"
                 className="btn btn-outline btn-lg"

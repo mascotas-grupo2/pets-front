@@ -17,7 +17,7 @@ const NAV = [
 
 export function SiteHeader() {
   const pathname = usePathname();
-  const {userId} = useUserContext()
+  const { userId } = useUserContext();
 
   return (
     <header className="site-header">
@@ -43,9 +43,25 @@ export function SiteHeader() {
         </nav>
 
         <div className="header-actions">
-          <Link href="/mascotas-perdidas/reportar" className="btn btn-primary btn-sm">
-            Reportar
-          </Link>
+          {userId ? (
+            <Link
+              href="/mascotas-perdidas/reportar"
+              className="btn btn-primary btn-sm"
+            >
+              Reportar
+            </Link>
+          ) : (
+            <div className="tooltip-container">
+              <button
+                type="button"
+                className="btn btn-primary btn-sm"
+                style={{ opacity: 0.5, cursor: "not-allowed" }}
+              >
+                Reportar
+              </button>
+              <span className="tooltip-content">Necesitás iniciar sesión</span>
+            </div>
+          )}
           {userId ? (
             <Link href="/account" className="btn btn-outline btn-sm">
               Mi Cuenta

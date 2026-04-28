@@ -9,6 +9,8 @@ import { ReportForm } from "@/types/reportar";
 export function buildPetFromReport(values: ReportForm): Pet {
   return {
     id: `local-${Date.now()}`,
+    status: "perdido",
+    photos: [],
     createdAt: new Date().toISOString(),
 
     name: values.name || undefined,
@@ -16,7 +18,7 @@ export function buildPetFromReport(values: ReportForm): Pet {
     description: values.description,
     date: values.date,
 
-    photo: values.photo?.url ?? null,
+    photo: typeof values.photo === 'string' ? values.photo : (values.photo?.url ?? null),
 
     location: values.location,
     contactPhone: values.contactPhone,
