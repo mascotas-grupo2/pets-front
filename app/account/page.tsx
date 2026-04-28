@@ -5,24 +5,32 @@ import { convertLocalMonthYear } from "@/components/utils/helpers";
 import { useUserContext } from "@/context/UserContext";
 import { getIdsPets } from "@/services/mascotas.pets";
 import { getUserDetails } from "@/services/user.info";
-import { Pet } from "@/types/pet";
+import { Pet, PetStatus, AnimalType } from "@/types/pet";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { UserDetails } from "../../types/user-details";
+import AccountSettingsForm from "../../components/nav-account/account-settings-form";
+import MyReportsView from "@/components/nav-account/account-report";
+import ProfileView from "@/components/nav-account/account-main";
 
 export default function AccountPage() {
   const { userId, logout } = useUserContext();
   const [userDetails, setUserDetails] = useState<UserDetails | null>(null);
   const [pets, setPets] = useState<Pet[]>([]);
+  const [activeSection, setActiveSection] = useState<
+    "profile" | "reports" | "messages" | "notifications" | "settings"
+  >("profile");
 
   useEffect(() => {
+    // Fetch user details
     if (!userId) return;
     getUserDetails(userId).then((res) => {
       if (res && res.ok) {
         setUserDetails(res.data);
       }
     });
-  }, [userId]);
+  }, [userId, activeSection]);
+
   useEffect(() => {
     if (userDetails) {
       const ids = userDetails.reports.map((p) => p.id);
@@ -34,53 +42,81 @@ export default function AccountPage() {
     }
   }, [userDetails]);
 
-  const statusReports =
+  const activeReports =
     userDetails?.reports.filter((r) => r.status == "perdido").length || 0;
+
+  const getTabClass = (tab: string) => {
+    const outline = "btn-link btn-ghost-link btn-sm tab-nav-item";
+    const solid = "btn btn-primary btn-sm tab-nav-item";
+    return activeSection === tab ? solid : outline;
+  };
+
   return (
     userDetails && (
       <main>
         <div className="container account-layout">
-          <aside className="account-nav">
-            <Link href="/account" className="active">
-              Perfil
+          <aside
+            className="account-nav"
+            style={{ display: "flex", flexDirection: "column", gap: "1rem" }}
+          >
+            <button
+              style={{ justifyContent: "flex-start" }}
+              className={getTabClass("profile")}
+              onClick={() => setActiveSection("profile")}
+            >
+              🐾 Perfil
+            </button>
+            <button
+              style={{ justifyContent: "flex-start" }}
+              className={getTabClass("reports")}
+              onClick={() => setActiveSection("reports")}
+            >
+              📋 Mis reportes
+            </button>
+            <button
+              style={{ justifyContent: "flex-start" }}
+              className={getTabClass("messages")}
+              onClick={() => setActiveSection("messages")}
+            >
+              ✉️ Mensajes
+            </button>
+            <button
+              style={{ justifyContent: "flex-start" }}
+              className={getTabClass("notifications")}
+              onClick={() => setActiveSection("notifications")}
+            >
+              🔔 Notificaciones
+            </button>
+            <button
+              style={{ justifyContent: "flex-start" }}
+              className={getTabClass("settings")}
+              onClick={() => setActiveSection("settings")}
+            >
+              ⚙️ Configuración
+            </button>
+            <Link
+              href="/"
+              onClick={() => logout()}
+              className="btn-link btn-ghost-link btn-sm"
+              style={{ marginTop: "1rem", color: "var(--error)" }}
+            >
+              Cerrar sesión
             </Link>
-            <Link href="/account">Mis reportes</Link>
-            <Link href="/account">Mensajes</Link>
-            <Link href="/account">Notificaciones</Link>
-            <Link href="/account">Configuración</Link>
-            <Link href="/" onClick={() => logout()}>Cerrar sesión</Link>
           </aside>
 
           <div className="account-body">
-            <div className="account-profile">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={userDetails.photo || "empty"} alt="User Photo" />
-              <div>
-                <h2>
-                  {userDetails.firstName} {userDetails.lastName}
-                </h2>
-                <p>
-                  {userDetails.email || ""} · {userDetails.addressLine1}{" "}
-                  {userDetails.addressLine2
-                    ? `, ${userDetails.addressLine2}`
-                    : ""}
-                </p>
-                <p style={{ marginTop: "0.5rem" }}>
-                  Miembro desde {convertLocalMonthYear(userDetails.created_at)}{" "}
-                  · {statusReports} publicaciones activas
-                </p>
-              </div>
-            </div>
-
-            <h3 style={{ marginBottom: "1rem" }}>Mis reportes recientes</h3>
-            {pets.length === 0 ? (
-              <p>Todavía no publicaste ninguna mascota.</p>
-            ) : (
-              <ul className="pet-grid">
-                {pets.slice(0, 4).map((p) => (
-                  <PetCard key={p.id} pet={p} />
-                ))}
-              </ul>
+            {activeSection === "profile" && (
+              <>
+                <ProfileView
+                  userDetails={userDetails}
+                  activeReports={activeReports}
+                  pets={pets}
+                />
+              </>
+            )}
+            {activeSection === "reports" && <MyReportsView pets={pets} />}
+            {activeSection === "settings" && (
+              <AccountSettingsForm userDetails={userDetails} />
             )}
           </div>
         </div>

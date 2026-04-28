@@ -1,5 +1,6 @@
 "use client";
 
+import { useUserContext } from "@/context/UserContext";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import { getIdPets } from "@/services/mascotas.pets";
 import Link from "next/link";
@@ -19,7 +20,7 @@ export default function PetDetailPage() {
   const params = useParams();
   const id = params?.id as string;
   const dispatch = useAppDispatch();
-
+  const { adopter } = useUserContext();
   const [activePhoto, setActivePhoto] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -148,7 +149,9 @@ export default function PetDetailPage() {
         <div className="pet-detail-grid">
           <div className="pet-detail-col-main">
             <div className="pet-detail-hero">
-              <span className="pet-badge">En adopción</span>
+              <span className="pet-badge">
+                {pet.status === "en adopción" ? "Adoptar" : "Perdido"}
+              </span>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={detail.mainPhoto || pet.photo || ""}
@@ -246,21 +249,40 @@ export default function PetDetailPage() {
               </ul>
             </section>
 
-            <section className="pet-detail-cta">
-              <p>¿Te interesa adoptar?</p>
-              <Link
-                href={{
-                  pathname: "/adoptar/solicitar",
-                  query: {
-                    pet: pet.id,
-                    name: pet.name ?? detail.animalLabel,
-                  },
-                }}
-                className="btn btn-primary"
-              >
-                Empezar
-              </Link>
-            </section>
+            {adopter && pet.status === "en adopción" && (
+              <section className="pet-detail-cta">
+                <p>¿Me querés adoptar?</p>
+                <Link
+                  href={{
+                    pathname: "/adoptar/emparejar",
+                    query: {
+                      pet: pet.id,
+                      name: pet.name ?? detail.animalLabel,
+                    },
+                  }}
+                  className="btn btn-primary"
+                >
+                  Empezar
+                </Link>
+              </section>
+            )}
+             {!adopter && (
+              <section className="pet-detail-cta">
+                <p>¿Te interesa adoptar?</p>
+                <Link
+                  href={{
+                    pathname: "/adoptar/solicitar",
+                    query: {
+                      pet: pet.id,
+                      name: pet.name ?? detail.animalLabel,
+                    },
+                  }}
+                  className="btn btn-primary"
+                >
+                  Empezar
+                </Link>
+              </section>
+            )}
           </aside>
         </div>
 

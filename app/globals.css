@@ -188,6 +188,24 @@ main {
   white-space: nowrap;
 }
 
+.btn-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  font-weight: 500;
+  font-size: 0.9rem;
+  padding: 0.6rem 0.9rem;
+  border-radius: var(--radius-sm);
+  border: 1px transparent;
+  transition:
+    background 0.15s,
+    border-color 0.15s,
+    color 0.15s,
+    transform 0.1s;
+  white-space: nowrap;
+}
+
 .btn:active {
   transform: translateY(1px);
 }
@@ -211,8 +229,18 @@ main {
   background: var(--primary-500);
   color: #fff;
 }
+
 .btn-primary:hover {
   background: var(--primary-600);
+}
+
+.btn-ghost-link {
+  background: transparent;
+  color: var(--gray-700);
+}
+.btn-ghost-link:hover {
+  background: var(--primary-50);
+  color: var(--primary-500);
 }
 
 .btn-outline {
@@ -226,11 +254,17 @@ main {
 
 .btn-ghost {
   background: transparent;
-  color: var(--primary-500);
+  color: var(--gray-500);
 }
 .btn-ghost:hover {
   background: var(--primary-50);
 }
+
+.btn-link:active {
+  background: var(--primary-500);
+  transform: translateY(1px);
+}
+
 
 .btn-dark {
   background: var(--primary-900);

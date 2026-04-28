@@ -150,9 +150,7 @@ function AdoptarSolicitarContent() {
       <div className="page-title">
         <div className="container">
           <h1>
-            {targetPetName
-              ? `Solicitud para adoptar a ${targetPetName}`
-              : "Solicitud de adopción"}
+            Solicitud de adopción
           </h1>
           <p>Contanos un poco sobre vos para poder emparejarte mejor.</p>
         </div>
@@ -161,7 +159,7 @@ function AdoptarSolicitarContent() {
       <div className="container">
         {targetPetId && (
           <div className="adopt-target-chip">
-            Aplicando a <strong>{targetPetName || targetPetId}</strong>
+            Completa el formulario y volve con <strong>{targetPetName || targetPetId}</strong>
             {" · "}
             <a
               href={`/mascotas-perdidas/${targetPetId}`}

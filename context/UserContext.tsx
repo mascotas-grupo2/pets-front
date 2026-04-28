@@ -7,7 +7,6 @@ import {
   useEffect,
   useState,
 } from "react";
-import { useDispatch } from "react-redux";
 type UserContextProps = {
   userId: number;
   name: string;
@@ -47,6 +46,16 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
   }, []);
 
   const saveUser = (user: User | null) => {
+    if (!user) return;
+    if (user.id === 0) {
+      return logout();
+    }
+
+    setUser({ ...user, userId: user.id });
+    localStorage.setItem("userId", user.id.toString());
+  };
+
+  const update = (user: User | null) => {
     if (!user) return;
     if (user.id === 0) {
       return logout();

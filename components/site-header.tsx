@@ -17,7 +17,7 @@ const NAV = [
 
 export function SiteHeader() {
   const pathname = usePathname();
-  const { userId } = useUserContext();
+  const { userId, adopter } = useUserContext();
 
   return (
     <header className="site-header">
@@ -25,7 +25,7 @@ export function SiteHeader() {
         <Brand />
 
         <nav className="nav" aria-label="Navegación principal">
-          {NAV.map((item) => {
+          {NAV.filter(item => adopter ? item.label != "Adoptar" : item.label).map((item) => {
             const active =
               item.href === "/"
                 ? pathname === "/"

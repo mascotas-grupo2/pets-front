@@ -52,3 +52,25 @@ export const getUserPets: (
     ErrorGeneric(error);
   }
 };
+
+type ResponseAxiosDetailUserUpdate = {
+  ok: boolean;
+  data: UserDetails;
+  status: number;
+};
+export const putUserDetails: (
+  data: UserDetails,
+) => Promise<ResponseAxiosDetailUserUpdate | undefined> = async (
+  data: UserDetails,
+) => {
+  try {
+    const response = await axios.put(`user/update`, data, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    return { ok: true, data: response.data, status: response.status };
+  } catch (error) {
+    ErrorGeneric(error);
+  }
+};
