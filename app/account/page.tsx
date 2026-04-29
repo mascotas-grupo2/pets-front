@@ -14,7 +14,7 @@ import MyReportsView from "@/components/nav-account/account-report";
 import ProfileView from "@/components/nav-account/account-main";
 
 export default function AccountPage() {
-  const { userId, logout } = useUserContext();
+  const { userId, logout, adopter } = useUserContext();
   const [userDetails, setUserDetails] = useState<UserDetails | null>(null);
   const [pets, setPets] = useState<Pet[]>([]);
   const [activeSection, setActiveSection] = useState<
@@ -87,13 +87,15 @@ export default function AccountPage() {
             >
               🔔 Notificaciones
             </button>
-            <button
-              style={{ justifyContent: "flex-start" }}
-              className={getTabClass("settings")}
-              onClick={() => setActiveSection("settings")}
-            >
-              ⚙️ Configuración
-            </button>
+            {adopter && (
+              <button
+                style={{ justifyContent: "flex-start" }}
+                className={getTabClass("settings")}
+                onClick={() => setActiveSection("settings")}
+              >
+                ⚙️ Configuración
+              </button>
+            )}
             <Link
               href="/"
               onClick={() => logout()}
@@ -115,7 +117,7 @@ export default function AccountPage() {
               </>
             )}
             {activeSection === "reports" && <MyReportsView pets={pets} />}
-            {activeSection === "settings" && (
+            {adopter && activeSection === "settings" && (
               <AccountSettingsForm userDetails={userDetails} />
             )}
           </div>
