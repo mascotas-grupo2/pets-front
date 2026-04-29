@@ -3,8 +3,12 @@ import Link from "next/link";
 export function Brand() {
   return (
     <Link href="/" className="brand" aria-label="Huellitas Unidas">
-      <span className="brand-mark" aria-hidden>
-        <span className="brand-paw">🐾</span>
+      <span>
+        <img
+          src="favicon.ico"
+          alt=""
+          className="brand-paw"
+        />
       </span>
       <span className="brand-name">
         <span className="row1">Huellitas</span>
