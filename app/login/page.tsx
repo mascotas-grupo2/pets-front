@@ -18,7 +18,6 @@ import { useState } from "react";
 
 export default function LoginPage() {
   const router = useRouter();
-  const dispatch = useAppDispatch();
   const { saveUser } = useUserContext();
   const [showPassword, setShowPassword] = useState(false);
   const [keepLogged, setKeepLogged] = useState(true);

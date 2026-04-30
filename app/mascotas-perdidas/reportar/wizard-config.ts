@@ -64,6 +64,7 @@ export const INITIAL_VALUES: ReportForm = {
   userId: 0,
   name: "",
   animalType: "perro",
+  isOwner: false,
   description: "",
   date: new Date().toISOString().split("T")[0] || "",
 

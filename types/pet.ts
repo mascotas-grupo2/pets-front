@@ -1,9 +1,10 @@
 export type AnimalType = "perro" | "gato" | "otro";
 export type PetSex = "macho" | "hembra";
-export type PetStatus = "perdido" | "en adopción";
+export type PetStatus = "perdido" | "en adopción" | "encontrado";
 
 export type Pet = {
   id: string;
+  ownerId?: number;
   name?: string;
   status: PetStatus;
   photo: string | null;
@@ -26,6 +27,11 @@ export type Pet = {
   microchipped?: boolean;
   neutered?: boolean;
   vaccinated?: boolean;
+  vaccineType?: {
+    8: string[];
+    14: string[];
+    22: string[];
+  };
   friendlyWithKids?: boolean;
   trained?: boolean;
 };

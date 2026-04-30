@@ -1,17 +1,15 @@
 "use client";
 
-import { PetCard } from "@/components/pet-card";
-import { convertLocalMonthYear } from "@/components/utils/helpers";
+import ProfileView from "@/components/nav-account/account-main";
+import MyReportsView from "@/components/nav-account/account-report";
 import { useUserContext } from "@/context/UserContext";
 import { getIdsPets } from "@/services/mascotas.pets";
 import { getUserDetails } from "@/services/user.info";
-import { Pet, PetStatus, AnimalType } from "@/types/pet";
+import { Pet } from "@/types/pet";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { UserDetails } from "../../types/user-details";
 import AccountSettingsForm from "../../components/nav-account/account-settings-form";
-import MyReportsView from "@/components/nav-account/account-report";
-import ProfileView from "@/components/nav-account/account-main";
+import { UserDetails } from "../../types/user-details";
 
 export default function AccountPage() {
   const { userId, logout, adopter } = useUserContext();
@@ -22,7 +20,6 @@ export default function AccountPage() {
   >("profile");
 
   useEffect(() => {
-    // Fetch user details
     if (!userId) return;
     getUserDetails(userId).then((res) => {
       if (res && res.ok) {
@@ -87,15 +84,13 @@ export default function AccountPage() {
             >
               🔔 Notificaciones
             </button>
-            {adopter && (
-              <button
-                style={{ justifyContent: "flex-start" }}
-                className={getTabClass("settings")}
-                onClick={() => setActiveSection("settings")}
-              >
-                ⚙️ Configuración
-              </button>
-            )}
+            <button
+              style={{ justifyContent: "flex-start" }}
+              className={getTabClass("settings")}
+              onClick={() => setActiveSection("settings")}
+            >
+              ⚙️ Configuración
+            </button>
             <Link
               href="/"
               onClick={() => logout()}
@@ -117,7 +112,7 @@ export default function AccountPage() {
               </>
             )}
             {activeSection === "reports" && <MyReportsView pets={pets} />}
-            {adopter && activeSection === "settings" && (
+            {activeSection === "settings" && (
               <AccountSettingsForm userDetails={userDetails} />
             )}
           </div>

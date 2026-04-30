@@ -14,6 +14,7 @@ export type ReportForm = {
   animalType: AnimalType;
   description: string;
   date: string;
+  isOwner: boolean;
 
   // Características (paso: Características) — todos opcionales
   sex: PetSex | "";

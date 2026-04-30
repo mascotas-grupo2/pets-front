@@ -22,9 +22,9 @@ export function StartStep() {
       <div className="wizard-intro">
         <div className="wizard-intro-avatar">🐾</div>
         <p>
-          Para <strong>reportar una mascota perdida</strong> vas a necesitar
-          una foto clara, una descripción detallada, dónde se perdió y datos
-          de contacto. Te guiamos paso a paso.
+          Para <strong>reportar una mascota perdida</strong> vas a necesitar una
+          foto clara, una descripción detallada, dónde se perdió y datos de
+          contacto. Te guiamos paso a paso.
         </p>
       </div>
       <p style={{ fontSize: "0.9rem" }}>
@@ -92,6 +92,17 @@ export function DataStep({ formik }: StepProps) {
           />
           <ShowError message={FormikHandleError(formik, "date")} />
         </div>
+        <label className="checkbox-card">
+          <input
+            type="checkbox"
+            checked={formik.values.isOwner}
+            onChange={(e) => FormikHandleChange(formik, "isOwner", e)}
+          />
+          <span className="checkbox-card-icon" aria-hidden>
+            😭
+          </span>
+          <span>Soy dueño de la mascota</span>
+        </label>
       </div>
     </>
   );
@@ -261,16 +272,15 @@ type BooleanField =
   | "friendlyWithKids"
   | "trained";
 
-const DETAIL_TOGGLES: { field: BooleanField; label: string; icon: string }[] =
-  [
-    { field: "hasCollar", label: "Tiene collar", icon: "🦮" },
-    { field: "hasTag", label: "Tiene chapita con nombre", icon: "🏷️" },
-    { field: "microchipped", label: "Tiene microchip", icon: "💾" },
-    { field: "vaccinated", label: "Está vacunado/a", icon: "💉" },
-    { field: "neutered", label: "Está castrado/a", icon: "✂️" },
-    { field: "friendlyWithKids", label: "Se lleva bien con chicos", icon: "🧒" },
-    { field: "trained", label: "Está entrenado/a", icon: "🎓" },
-  ];
+const DETAIL_TOGGLES: { field: BooleanField; label: string; icon: string }[] = [
+  { field: "hasCollar", label: "Tiene collar", icon: "🦮" },
+  { field: "hasTag", label: "Tiene chapita con nombre", icon: "🏷️" },
+  { field: "microchipped", label: "Tiene microchip", icon: "💾" },
+  { field: "vaccinated", label: "Está vacunado/a", icon: "💉" },
+  { field: "neutered", label: "Está castrado/a", icon: "✂️" },
+  { field: "friendlyWithKids", label: "Se lleva bien con chicos", icon: "🧒" },
+  { field: "trained", label: "Está entrenado/a", icon: "🎓" },
+];
 
 export function DetailsStep({ formik }: StepProps) {
   return (
@@ -380,11 +390,7 @@ export function ConfirmStep({ values }: { values: ReportForm }) {
         <ReviewItem label="Ubicación" value={values.location} />
         <ReviewItem label="Teléfono" value={values.contactPhone} />
         <ReviewItem label="Email" value={values.contactEmail} />
-        <ReviewItem
-          label="Descripción"
-          value={values.description}
-          full
-        />
+        <ReviewItem label="Descripción" value={values.description} full />
         {hasCharacteristics && (
           <ReviewItem
             label="Características"

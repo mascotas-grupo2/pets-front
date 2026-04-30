@@ -19,10 +19,20 @@ import { useState } from "react";
 export default function RegisterPage() {
   const router = useRouter();
   const dispatch = useAppDispatch();
-  const { saveUser } = useUserContext()
+  const { saveUser } = useUserContext();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [acceptTerms, setAcceptTerms] = useState(false);
+
+  const getPasswordStrength = (pass: string) => {
+    if (!pass) return 0;
+    let score = 0;
+    if (pass.length >= 8) score++;
+    if (/[a-z]/.test(pass)) score++;
+    if (/[A-Z]/.test(pass)) score++;
+    if (/\d/.test(pass)) score++;
+    return score;
+  };
 
   const formik = useFormik<RegisterForm>({
     initialValues: {
@@ -53,11 +63,16 @@ export default function RegisterPage() {
     },
   });
 
+  const strength = getPasswordStrength(formik.values.password);
+  const strengthColors = ["#e0e0e0", "#ff4d4f", "#ffa940", "#faad14", "#52c41a"];
+  const strengthLabels = ["", "Muy débil", "Débil", "Segura", "Muy segura"];
+
   return (
     <main className="auth-wrap">
       <div className="auth-card auth-card-split">
         <aside className="auth-visual">
           <div className="auth-visual-art">
+            
             <img
               src="/images/auth-dog.png"
               alt="Registrate ahora en Huellitas Unidas"
@@ -140,6 +155,31 @@ export default function RegisterPage() {
                   {showPassword ? "🙈" : "👁️"}
                 </button>
               </div>
+              {formik.values.password && (
+                <div style={{ marginTop: "0.5rem" }}>
+                  <div
+                    style={{
+                      height: "4px",
+                      width: "100%",
+                      backgroundColor: "#f0f0f0",
+                      borderRadius: "2px",
+                      overflow: "hidden",
+                    }}
+                  >
+                    <div
+                      style={{
+                        height: "100%",
+                        width: `${(strength / 4) * 100}%`,
+                        backgroundColor: strengthColors[strength],
+                        transition: "width 0.3s ease, background-color 0.3s ease",
+                      }}
+                    />
+                  </div>
+                  <small style={{ fontSize: "0.75rem", color: "var(--gray-600)", marginTop: "4px", display: "block" }}>
+                    Seguridad de contraseña: <strong>{strengthLabels[strength]}</strong>
+                  </small>
+                </div>
+              )}
               <ShowError message={FormikHandleError(formik, "password")} />
             </div>
 

@@ -38,7 +38,6 @@ export default function ReportPage() {
     validationSchema: reportValidationSchema,
     onSubmit: async (values) => {
       const pet = buildPetFromReport(values);
-
       try {
         const res = await reportPet(values.userId, pet);
         if (res && res.ok) {
