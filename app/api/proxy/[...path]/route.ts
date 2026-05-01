@@ -13,7 +13,7 @@ async function handleRequest(request: Request) {
   const search = url.search;
 
   // Limpiamos el BACKEND_URL de barras al final y el path de barras al inicio
-  const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:3001/api"
+  const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:3001/api";
   const cleanPath = path.replace(/^\//, "");
   const targetUrl = `${BACKEND_URL}/${cleanPath}${search}`;
 
@@ -26,28 +26,27 @@ async function handleRequest(request: Request) {
     }
   });
 
-
   try {
     let body = null;
     if (!["GET", "HEAD"].includes(request.method)) {
       // Leemos el cuerpo como ArrayBuffer para mantener la integridad de cualquier tipo de dato
       body = await request.arrayBuffer();
-
     }
     const response = await axios({
       method: request.method,
       url: targetUrl,
       data: body,
       headers: headers,
-      responseType: "arraybuffer", 
+      responseType: "arraybuffer",
       maxContentLength: Infinity,
       maxBodyLength: Infinity,
-      validateStatus: () => true,  
+      validateStatus: () => true,
     });
     return new NextResponse(response.data, {
       status: response.status,
       headers: {
-        "Content-Type": (response.headers["content-type"] as string) || "application/json",
+        "Content-Type":
+          (response.headers["content-type"] as string) || "application/json",
       },
     });
   } catch (error) {

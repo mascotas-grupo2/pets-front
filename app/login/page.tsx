@@ -51,6 +51,10 @@ export default function LoginPage() {
     },
   });
 
+  const handleSocialLogin = (provider: string) => {
+    window.location.href = `/api/auth/sso?provider=${provider}`;
+  };
+
   return (
     <main className="auth-wrap">
       <div className="auth-card auth-card-split auth-card-reverse">
@@ -138,6 +142,7 @@ export default function LoginPage() {
               type="button"
               className="auth-social-btn"
               aria-label="Google"
+              onClick={() => handleSocialLogin("google")}
             >
               <span aria-hidden>G</span>
             </button>
@@ -145,6 +150,7 @@ export default function LoginPage() {
               type="button"
               className="auth-social-btn"
               aria-label="Facebook"
+              onClick={() => handleSocialLogin("facebook")}
             >
               <span aria-hidden>f</span>
             </button>

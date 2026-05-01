@@ -63,6 +63,10 @@ export default function RegisterPage() {
     },
   });
 
+  const handleSocialLogin = (provider: string) => {
+    window.location.href = `/api/auth/sso?provider=${provider}`;
+  };
+
   const strength = getPasswordStrength(formik.values.password);
   const strengthColors = ["#e0e0e0", "#ff4d4f", "#ffa940", "#faad14", "#52c41a"];
   const strengthLabels = ["", "Muy débil", "Débil", "Segura", "Muy segura"];
@@ -246,6 +250,7 @@ export default function RegisterPage() {
               type="button"
               className="auth-social-btn"
               aria-label="Google"
+              onClick={() => handleSocialLogin("google")}
             >
               <span aria-hidden>G</span>
             </button>
@@ -253,6 +258,7 @@ export default function RegisterPage() {
               type="button"
               className="auth-social-btn"
               aria-label="Facebook"
+              onClick={() => handleSocialLogin("facebook")}
             >
               <span aria-hidden>f</span>
             </button>
