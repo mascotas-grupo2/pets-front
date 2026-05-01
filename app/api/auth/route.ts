@@ -7,8 +7,6 @@ export async function GET(request: NextRequest) {
   const errorKeycloak = searchParams.get("error");
   const errorDescription = searchParams.get("error_description");
 
-  console.log("--- SSO Callback Debug ---", searchParams);
-  console.log("Full URL:", request.url);
 
   if (errorKeycloak) {
     console.error("Keycloak returned an error:", errorKeycloak, "-", errorDescription);
@@ -20,18 +18,12 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(new URL("/login?error=no_code", request.url));
   }
 
-  // Priorizamos KEYCLOAK_CLIENT_ID, luego KEYCLOAK_AUDIENCE
-  const issuer = process.env.KEYCLOAK_ISSUER; // http://localhost:8080/realms/pets
+  const issuer = process.env.KEYCLOAK_ISSUER; 
   const clientId = process.env.KEYCLOAK_CLIENT_ID || process.env.KEYCLOAK_AUDIENCE; 
-  const clientSecret = process.env.KEYCLOAK_CLIENT_SECRET; // Si el cliente es "confidential"
+  const clientSecret = process.env.KEYCLOAK_CLIENT_SECRET; 
   const backendUrl = process.env.BACKEND_URL || "http://localhost:3001/api";
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
-  const redirectUri = `${baseUrl}/api/auth`; // Debe coincidir exactamente con el enviado en sso/route.ts
-
-  console.log("Environment Variables:");
-  console.log("- KEYCLOAK_ISSUER:", issuer);
-  console.log("- CLIENT_ID:", clientId);
-  console.log("- REDIRECT_URI:", redirectUri);
+  const redirectUri = `${baseUrl}/api/auth`; 
 
   if (!issuer) throw new Error("KEYCLOAK_ISSUER is not defined in .env");
 
@@ -51,7 +43,7 @@ export async function GET(request: NextRequest) {
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
     });
 
-    const { access_token, id_token } = tokenResponse.data;
+    const { access_token, id_token, refresh_token } = tokenResponse.data;
     console.log("Token exchange successful!");
 
     // 1.5. Sincronizar con el Backend (Just-in-Time Provisioning)
@@ -66,10 +58,9 @@ export async function GET(request: NextRequest) {
       });
       console.log("User synchronization successful");
     } catch (syncError) {
-      // Si falla la sincronización, podrías decidir si dejarlo pasar o no.
-      // Aquí lo logueamos pero permitimos continuar, aunque lo ideal es que el backend responda OK.
-      console.error("Backend Sync failed. Is the sync endpoint implemented?");
-      // return NextResponse.redirect(new URL("/login?error=sync_failed", request.url));
+      console.error("Backend Sync failed. User not persisted in DB:", syncError);
+      // Si el back falla, es mejor no dejarlo entrar porque no podrá realizar acciones
+      return NextResponse.redirect(new URL("/login?error=db_sync_error", request.url));
     }
 
     // 2. Redirigimos al usuario a la app con el token
@@ -84,6 +75,14 @@ export async function GET(request: NextRequest) {
       secure: process.env.NODE_ENV === "production",
     });
     
+    // Guardamos el refresh_token en una cookie HttpOnly para que el interceptor pueda usarla
+    response.cookies.set("refresh_token", refresh_token, {
+      path: "/",
+      maxAge: 3600 * 24 * 7, // 7 días (ajustar según configuración de Keycloak)
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+    });
+
     // Guardamos el id_token (contiene info de perfil) para que el cliente lo lea
     response.cookies.set("id_token_hint", id_token, {
       path: "/",

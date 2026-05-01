@@ -30,9 +30,9 @@ interface UserProviderProps {
 }
 
 export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
-  const dispatch = useAppDispatch(); // Keep dispatch for Redux actions
-  const user = useAppSelector((state) => state.user); // Get user state from Redux
-
+  const dispatch = useAppDispatch();
+  const user = useAppSelector((state) => state.user); 
+  
   const logout = useCallback(() => {
     localStorage.removeItem("userId");
     document.cookie =
@@ -59,11 +59,13 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     const hydrate = async () => {
       if (idFromStorage) {
         const response = await getUser(idFromStorage);
-        if (response && response.ok && response.data) {
+        if (response?.ok && response.data) {
           dispatch({ type: "user/SetUser", payload: response.data });
         }
-      } else if (document.cookie.includes("auth_token")) {
-        // Si no hay ID en storage pero hay cookie de sesión (SSO)
+      } else if (
+        document.cookie.includes("auth_token") ||
+        document.cookie.includes("id_token_hint")
+      ) {
         const response = await getUserAuthToken();
         if (response?.ok && response.data) {
           saveUser(response.data);
