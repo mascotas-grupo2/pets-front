@@ -1,6 +1,6 @@
 import { ErrorGeneric } from "@/components/utils/catchErrors";
 import axiosInstance from "./axios";
-import { User } from "@/types/login";
+import { User } from "@/types/user"; // Ensure this type is correct
 
 const axios = axiosInstance;
 type ResponseAxios = {

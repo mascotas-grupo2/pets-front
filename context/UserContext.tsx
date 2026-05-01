@@ -1,82 +1,78 @@
-import { getUser } from "@/services/user.info";
-import { User } from "@/types/login";
+import {
+  getUser,
+  getUserAuthToken,
+  getUserDetails,
+} from "@/services/user.info";
+import { useAppDispatch, useAppSelector } from "@/redux/hooks";
+import { User } from "@/types/user";
 import {
   createContext,
+  useCallback,
   ReactNode,
   useContext,
   useEffect,
-  useState,
+  // useState, // No longer needed
 } from "react";
+
 type UserContextProps = {
-  userId: number;
+  userId: number | string;
   name: string;
   adopter: boolean;
   role: string;
   saveUser: (user: User | null) => void;
   logout: () => void;
 };
+
 const UserContext = createContext<UserContextProps | undefined>(undefined);
 
 interface UserProviderProps {
   children: ReactNode;
 }
+
 export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
-  const [user, setUser] = useState({
-    userId: 0,
-    name: "",
-    adopter: false,
-    role: "",
-  });
+  const dispatch = useAppDispatch(); // Keep dispatch for Redux actions
+  const user = useAppSelector((state) => state.user); // Get user state from Redux
+
+  const logout = useCallback(() => {
+    localStorage.removeItem("userId");
+    document.cookie =
+      "auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;";
+    document.cookie =
+      "id_token_hint=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;";
+    dispatch({ type: "user/Logout" });
+    window.location.href = "/"; // Redirect al home tras logout
+  }, [dispatch]);
+
+  const saveUser = useCallback(
+    (user: User | null) => {
+      if (!user) return;
+      if (user.id === 0) return logout();
+      dispatch({ type: "user/SetUser", payload: user });
+      localStorage.setItem("userId", user.id.toString());
+    },
+    [dispatch, logout],
+  );
 
   useEffect(() => {
     const idFromStorage = localStorage.getItem("userId");
-    if (idFromStorage) {
-      getUser(idFromStorage).then((response) => {
-        if (response && response.ok) {
-          const userData = response.data;
-          setUser({
-            userId: userData.id,
-            name: userData.name,
-            adopter: userData.adopter,
-            role: userData.role,
-          });
+
+    const hydrate = async () => {
+      if (idFromStorage) {
+        const response = await getUser(idFromStorage);
+        if (response && response.ok && response.data) {
+          dispatch({ type: "user/SetUser", payload: response.data });
         }
-      });
-    }
-  }, []);
+      } else if (document.cookie.includes("auth_token")) {
+        // Si no hay ID en storage pero hay cookie de sesión (SSO)
+        const response = await getUserAuthToken();
+        if (response?.ok && response.data) {
+          saveUser(response.data);
+        }
+      }
+    };
 
-  const saveUser = (user: User | null) => {
-    if (!user) return;
-    if (user.id === 0) {
-      return logout();
-    }
-
-    setUser({ ...user, userId: user.id });
-    localStorage.setItem("userId", user.id.toString());
-  };
-
-  const update = (user: User | null) => {
-    if (!user) return;
-    if (user.id === 0) {
-      return logout();
-    }
-
-    setUser({ ...user, userId: user.id });
-    localStorage.setItem("userId", user.id.toString());
-  };
-
-  const logout = () => {
-    if (user.userId) {
-      localStorage.removeItem("userId");
-      setUser({
-        userId: 0,
-        name: "",
-        adopter: false,
-        role: "",
-      });
-      return;
-    }
-  };
+    hydrate();
+  }, [dispatch, saveUser]); // Add saveUser to dependencies
 
   const values: UserContextProps = {
     ...user,

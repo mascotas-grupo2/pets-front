@@ -5,20 +5,20 @@ import {
   FormikHandleError,
 } from "@/components/utils/FormikHelper";
 import ShowError from "@/components/utils/ShowError";
-import handleToast from "@/components/utils/toast";
 import { useUserContext } from "@/context/UserContext";
 import { useAppDispatch } from "@/redux/hooks";
 import { register } from "@/services/auth.register";
+import { User } from "@/types/user";
 import { RegisterForm } from "@/types/register";
 import { registerValidationSchema } from "@/validation/register";
 import { useFormik } from "formik";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner"; // Importar toast de sonner
 
 export default function RegisterPage() {
   const router = useRouter();
-  const dispatch = useAppDispatch();
   const { saveUser } = useUserContext();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -44,24 +44,35 @@ export default function RegisterPage() {
     validationSchema: registerValidationSchema,
     onSubmit: async (values) => {
       if (!acceptTerms) {
-        handleToast("error", "Tenés que aceptar los términos y condiciones.");
+        toast.error("Tenés que aceptar los términos y condiciones.");
         return;
       }
       try {
         const res = await register(values.name, values.email, values.password);
         if (res && res.ok && res.data) {
-          handleToast("success", "Registro exitoso. Redirigiendo...");
-          saveUser(res.data);
+          // Mapear res.data a tipo User si es necesario, asumiendo que register devuelve User
+          saveUser(res.data as User); 
+          toast.success("Registro exitoso. Redirigiendo...");
           router.push("/account");
         } else {
-          handleToast("error", "No se pudo crear la cuenta. Intentá de nuevo.");
+          toast.error("No se pudo crear la cuenta. Intentá de nuevo.");
         }
       } catch (error) {
         console.error(error);
-        handleToast("error", "Ocurrió un error al intentar registrarte.");
+        toast.error("Ocurrió un error al intentar registrarte.");
       }
     },
   });
+
+  // Manejar errores de SSO desde la URL (similar a login)
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const ssoError = urlParams.get("error");
+    if (ssoError) {
+      toast.error(`Error de autenticación: ${ssoError.replace(/_/g, ' ')}`);
+      router.replace("/registro"); // Limpiar la URL
+    }
+  }, [router]);
 
   const handleSocialLogin = (provider: string) => {
     window.location.href = `/api/auth/sso?provider=${provider}`;

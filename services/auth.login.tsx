@@ -1,6 +1,6 @@
 import { ErrorGeneric } from "@/components/utils/catchErrors";
-import { User } from "@/types/login";
-import axiosInstance from "./axios";
+import { User } from "@/types/user";
+import axiosInstance from "./axios"; // Assuming this is configured to send cookies
 
 const axios = axiosInstance;
 

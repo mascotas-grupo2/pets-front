@@ -51,7 +51,7 @@ export async function GET(request: NextRequest) {
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
     });
 
-    const { access_token } = tokenResponse.data;
+    const { access_token, id_token } = tokenResponse.data;
     console.log("Token exchange successful!");
 
     // 1.5. Sincronizar con el Backend (Just-in-Time Provisioning)
@@ -81,6 +81,14 @@ export async function GET(request: NextRequest) {
     response.cookies.set("auth_token", access_token, {
       path: "/",
       maxAge: 3600, // 1 hora
+      secure: process.env.NODE_ENV === "production",
+    });
+    
+    // Guardamos el id_token (contiene info de perfil) para que el cliente lo lea
+    response.cookies.set("id_token_hint", id_token, {
+      path: "/",
+      maxAge: 3600,
+      httpOnly: false, // Permitimos que JS lo lea para hidratar el estado inicial
       secure: process.env.NODE_ENV === "production",
     });
 

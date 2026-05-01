@@ -12,7 +12,7 @@ import AccountSettingsForm from "../../components/nav-account/account-settings-f
 import { UserDetails } from "../../types/user-details";
 
 export default function AccountPage() {
-  const { userId, logout, adopter } = useUserContext();
+  const { userId, logout } = useUserContext();
   const [userDetails, setUserDetails] = useState<UserDetails | null>(null);
   const [pets, setPets] = useState<Pet[]>([]);
   const [activeSection, setActiveSection] = useState<
@@ -20,8 +20,15 @@ export default function AccountPage() {
   >("profile");
 
   useEffect(() => {
-    if (!userId) return;
-    getUserDetails(userId).then((res) => {
+    // Si no tenemos userId en el context (estado global),
+    // pero acabamos de volver de un SSO exitoso,
+    // deberíamos llamar a un endpoint "/me" o similar.
+
+    if (userId === 0 && !document.cookie.includes("auth_token")) return;
+
+    const identifier = userId === 0 ? "me" : userId;
+
+    getUserDetails(identifier).then((res) => {
       if (res && res.ok) {
         setUserDetails(res.data);
       }

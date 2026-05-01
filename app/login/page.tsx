@@ -5,7 +5,6 @@ import {
   FormikHandleError,
 } from "@/components/utils/FormikHelper";
 import ShowError from "@/components/utils/ShowError";
-import handleToast from "@/components/utils/toast";
 import { useUserContext } from "@/context/UserContext";
 import { useAppDispatch } from "@/redux/hooks";
 import { login } from "@/services/auth.login";
@@ -14,7 +13,8 @@ import { loginValidationSchema } from "@/validation/login";
 import { useFormik } from "formik";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner"; // Importar toast de sonner
 
 export default function LoginPage() {
   const router = useRouter();
@@ -32,24 +32,29 @@ export default function LoginPage() {
       try {
         const userData = await login(values.email, values.password);
         if (userData?.ok) {
-          saveUser(userData.data);
-          handleToast(
-            "success",
-            "¡Ingreso exitoso! Redirigiendo a tu cuenta...",
-          );
+          // Mapear userData.data a tipo User si es necesario, asumiendo que login devuelve User
+          saveUser(userData.data); 
+          toast.success("¡Ingreso exitoso! Redirigiendo a tu cuenta...");
           router.push("/account");
         } else {
-          handleToast(
-            "error",
-            "Credenciales inválidas. Por favor, intentá de nuevo.",
-          );
+          toast.error("Credenciales inválidas. Por favor, intentá de nuevo.");
         }
       } catch (error) {
         console.error(error);
-        handleToast("error", "Ocurrió un error al intentar ingresar.");
+        toast.error("Ocurrió un error al intentar ingresar.");
       }
     },
   });
+
+  // Manejar errores de SSO desde la URL
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const ssoError = urlParams.get("error");
+    if (ssoError) {
+      toast.error(`Error de autenticación: ${ssoError.replace(/_/g, ' ')}`);
+      router.replace("/login"); // Limpiar la URL
+    }
+  }, [router]);
 
   const handleSocialLogin = (provider: string) => {
     window.location.href = `/api/auth/sso?provider=${provider}`;

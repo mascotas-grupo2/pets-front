@@ -9,9 +9,9 @@ type ResponseAxiosGetAll = {
   status: number;
 };
 export const reportPet: (
-  userId: number,
+  userId: number | string,
   values: Pet,
-) => Promise<ResponseAxiosGetAll | undefined> = async (userId: number, values: Pet) => {
+) => Promise<ResponseAxiosGetAll | undefined> = async (userId: number | string, values: Pet) => {
   try {
     const submit = {
       ...values,

@@ -1,8 +1,8 @@
 import { ErrorGeneric } from "@/components/utils/catchErrors";
 import axiosInstance from "./axios";
-import { User } from "@/types/login";
 import { Pet } from "@/types/pet";
 import { UserDetails } from "../types/user-details";
+import { User } from "@/types/user";
 
 const axios = axiosInstance;
 type ResponseAxios = {
@@ -11,8 +11,8 @@ type ResponseAxios = {
   status: number;
 };
 export const getUser: (
-  id: string,
-) => Promise<ResponseAxios | undefined> = async (id: string) => {
+  id: string | number,
+) => Promise<ResponseAxios | undefined> = async (id) => {
   try {
     const response = await axios.get(`user/commonInfo/${id}`);
     return { ok: true, data: response.data, status: response.status };
@@ -27,8 +27,8 @@ type ResponseAxiosDetailUser = {
   status: number;
 };
 export const getUserDetails: (
-  id: number,
-) => Promise<ResponseAxiosDetailUser | undefined> = async (id: number) => {
+  id: string | number,
+) => Promise<ResponseAxiosDetailUser | undefined> = async (id) => {
   try {
     const response = await axios.get(`user/detailsUser?id=${id}`);
     return { ok: true, data: response.data, status: response.status };
@@ -36,6 +36,22 @@ export const getUserDetails: (
     ErrorGeneric(error);
   }
 };
+
+type ResponseAxiosAuthToken = {
+  ok: boolean;
+  data: User;
+  status: number;
+};
+export const getUserAuthToken: ( 
+) => Promise<ResponseAxiosAuthToken | undefined> = async () => {
+  try {
+    const response = await axios.get(`user/me`);
+    return { ok: true, data: response.data, status: response.status };
+  } catch (error) {
+    ErrorGeneric(error);
+  }
+};
+
 
 type ResponseAxiosPets = {
   ok: boolean;
