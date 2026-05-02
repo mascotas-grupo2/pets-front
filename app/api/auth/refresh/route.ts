@@ -1,15 +1,19 @@
-import { NextRequest, NextResponse } from "next/server";
 import axios from "axios";
+import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
   const refreshToken = request.cookies.get("refresh_token")?.value;
 
   if (!refreshToken) {
-    return NextResponse.json({ error: "No refresh token found" }, { status: 401 });
+    return NextResponse.json(
+      { error: "No refresh token found" },
+      { status: 401 },
+    );
   }
 
   const issuer = process.env.KEYCLOAK_ISSUER;
-  const clientId = process.env.KEYCLOAK_CLIENT_ID || process.env.KEYCLOAK_AUDIENCE;
+  const clientId =
+    process.env.KEYCLOAK_CLIENT_ID || process.env.KEYCLOAK_AUDIENCE;
   const clientSecret = process.env.KEYCLOAK_CLIENT_SECRET;
 
   try {
@@ -24,7 +28,8 @@ export async function POST(request: NextRequest) {
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
     });
 
-    const { access_token, refresh_token: new_refresh_token, id_token } = tokenResponse.data;
+    const { access_token, refresh_token: new_refresh_token } =
+      tokenResponse.data;
 
     const response = NextResponse.json({ ok: true });
 
@@ -47,7 +52,10 @@ export async function POST(request: NextRequest) {
     return response;
   } catch (error) {
     console.error("Token refresh failed:", error);
-    const response = NextResponse.json({ error: "Refresh failed" }, { status: 401 });
+    const response = NextResponse.json(
+      { error: "Refresh failed" },
+      { status: 401 },
+    );
     // Si el refresh falla, limpiamos las cookies para forzar re-login
     response.cookies.delete("auth_token");
     response.cookies.delete("refresh_token");

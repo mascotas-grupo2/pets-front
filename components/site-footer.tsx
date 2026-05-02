@@ -1,9 +1,8 @@
 "use client";
 
+import { useUserContext } from "@/context/UserContext"; // Mantenemos para logout si es necesario
 import Link from "next/link";
 import { Brand } from "./brand";
-import { useUserContext } from "@/context/UserContext"; // Mantenemos para logout si es necesario
-import { useAppSelector } from "@/redux/hooks"; // Importamos useAppSelector
 
 export function SiteFooter() {
   const { isLoggedIn } = useUserContext(); // Usamos isLoggedIn del contexto

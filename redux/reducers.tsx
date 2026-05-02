@@ -71,7 +71,7 @@ const petReducer = (state = initialPetState, action: AppAction): Pet | null => {
 const rootReducer = combineReducers({
   user: userReducer,
   report_pet: reportReducer,
-  all_pets: allPetsReducer,
+  allPets: allPetsReducer,
   pet: petReducer,
 });
 

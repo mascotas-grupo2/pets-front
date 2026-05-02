@@ -2,7 +2,6 @@
 
 import { FormStepper } from "@/components/form-stepper";
 import handleToast from "@/components/utils/toast";
-import { useUserContext } from "@/context/UserContext";
 import { useAppDispatch } from "@/redux/hooks";
 import { reportPet } from "@/services/mascotas.report";
 import { ReportForm } from "@/types/reportar";

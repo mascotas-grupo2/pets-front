@@ -1,10 +1,9 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { Brand } from "./brand";
-import { useAppSelector } from "@/redux/hooks";
 import { useUserContext } from "@/context/UserContext";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { Brand } from "./brand";
 
 const NAV = [
   { href: "/", label: "Inicio" },

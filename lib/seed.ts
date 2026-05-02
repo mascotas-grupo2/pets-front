@@ -2,6 +2,7 @@ import { Pet } from "@/types/pet";
 
 export const seedPets: Pet[] = [
   {
+    status: "perdido",
     id: "seed-1",
     name: "Toby",
     photo: "/images/pet-dog.jpg",
@@ -35,6 +36,7 @@ export const seedPets: Pet[] = [
   },
   {
     id: "seed-2",
+    status: "perdido",
     name: "Luna",
     photo: "/images/pet-cat.jpg",
     photos: [
@@ -67,6 +69,7 @@ export const seedPets: Pet[] = [
   },
   {
     id: "seed-3",
+    status: "perdido",
     name: "Bella",
     photo: "/images/guide-1.jpg",
     photos: ["/images/guide-1.jpg", "/images/pet-dog.jpg"],
@@ -94,6 +97,7 @@ export const seedPets: Pet[] = [
   },
   {
     id: "seed-4",
+    status: "en adopción",
     name: "Simba",
     photo: "/images/guide-4.jpg",
     photos: ["/images/guide-4.jpg", "/images/pet-cat.jpg"],
@@ -121,6 +125,7 @@ export const seedPets: Pet[] = [
   },
   {
     id: "seed-5",
+    status: "encontrado",
     name: "Rocco",
     photo: "/images/guide-2.jpg",
     photos: ["/images/guide-2.jpg", "/images/pet-dog.jpg"],
@@ -148,6 +153,7 @@ export const seedPets: Pet[] = [
   },
   {
     id: "seed-6",
+    status: "perdido",
     name: "Mía",
     photo: "/images/guide-5.jpg",
     photos: ["/images/guide-5.jpg", "/images/pet-cat.jpg"],
