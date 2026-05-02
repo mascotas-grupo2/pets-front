@@ -25,21 +25,17 @@ import { INITIAL_VALUES, LAST_STEP_INDEX, STEPS } from "./wizard-config";
 
 export default function ReportPage() {
   const router = useRouter();
-  const { userId } = useUserContext();
   const dispatch = useAppDispatch();
   const [stepIndex, setStepIndex] = useState(0);
   const [isDone, setIsDone] = useState(false);
 
   const formik = useFormik<ReportForm>({
-    initialValues: {
-      ...INITIAL_VALUES,
-      userId,
-    },
+    initialValues: INITIAL_VALUES,
     validationSchema: reportValidationSchema,
     onSubmit: async (values) => {
       const pet = buildPetFromReport(values);
       try {
-        const res = await reportPet(values.userId, pet);
+        const res = await reportPet(pet);
         if (res && res.ok) {
           dispatch({ type: "pets/ReportPet", payload: res.data });
           handleToast("success", "¡Publicación creada con éxito!");

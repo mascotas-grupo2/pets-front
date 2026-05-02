@@ -63,7 +63,7 @@ export default function AdoptarSolicitarPage() {
 function AdoptarSolicitarContent() {
   const router = useRouter();
   const dispatch = useDispatch();
-  const { userId } = useUserContext();
+  const { isLoggedIn } = useUserContext();
   const searchParams = useSearchParams();
   const targetPetId = searchParams.get("pet") ?? "";
   const targetPetName = searchParams.get("name") ?? "";
@@ -72,7 +72,7 @@ function AdoptarSolicitarContent() {
 
   const formik = useFormik<AdoptForm>({
     enableReinitialize: true,
-    initialValues: { ...adoptInitialValues, userId },
+    initialValues: adoptInitialValues,
     validationSchema: adoptFullSchema(step),
     onSubmit: async (values) => {
       try {
@@ -95,8 +95,8 @@ function AdoptarSolicitarContent() {
   });
 
   useEffect(() => {
-    if (!userId) return;
-    getUserDetails(userId).then((res) => {
+    if (!isLoggedIn) return;
+    getUserDetails().then((res) => {
       if (res && res.ok) {
         const { reports, messages, notifications, created_at, ...rest } =
           res.data;
@@ -104,16 +104,12 @@ function AdoptarSolicitarContent() {
           return v != null;
         });
         data.forEach(([k, v]) => {
-          
           v = v === null ? "" : v;
-          formik.setFieldValue(
-            k,
-            k == "userId" && typeof v == "string" ? parseInt(v) : v,
-          );
+          formik.setFieldValue(k, v);
         });
       }
     });
-  }, [userId]);
+  }, [isLoggedIn]);
 
   async function handleNext() {
     const fields = STEP_FIELDS[step] ?? [];
@@ -149,9 +145,7 @@ function AdoptarSolicitarContent() {
     <main>
       <div className="page-title">
         <div className="container">
-          <h1>
-            Solicitud de adopción
-          </h1>
+          <h1>Solicitud de adopción</h1>
           <p>Contanos un poco sobre vos para poder emparejarte mejor.</p>
         </div>
       </div>
@@ -159,7 +153,8 @@ function AdoptarSolicitarContent() {
       <div className="container">
         {targetPetId && (
           <div className="adopt-target-chip">
-            Completa el formulario y volve con <strong>{targetPetName || targetPetId}</strong>
+            Completa el formulario y volve con{" "}
+            <strong>{targetPetName || targetPetId}</strong>
             {" · "}
             <a
               href={`/mascotas-perdidas/${targetPetId}`}

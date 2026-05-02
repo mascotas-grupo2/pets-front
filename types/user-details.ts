@@ -1,5 +1,4 @@
 export type UserDetails = {
-  userId: string;
   reports: UserReports[];
   photo: string | null;
   email: string;

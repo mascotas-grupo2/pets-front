@@ -1,16 +1,16 @@
 "use client";
 
+import { PetCard } from "@/components/pet-card";
+import { useUserContext } from "@/context/UserContext";
+import { getAllPets } from "@/services/mascotas.pets";
+import { Pet } from "@/types/pet";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Pet } from "@/types/pet";
-import { PetCard } from "@/components/pet-card";
-import { getAllPets } from "@/services/mascotas.pets";
 import { useDispatch } from "react-redux";
-import { useUserContext } from "@/context/UserContext";
 
 export default function Home() {
   const [pets, setPets] = useState<Pet[]>([]);
-  const { userId } = useUserContext();
+  const { isLoggedIn } = useUserContext(); // Obtenemos isLoggedIn del contexto
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -41,7 +41,7 @@ export default function Home() {
               ayudá a que vuelvan a casa.
             </p>
             <div className="hero-actions">
-              {userId ? (
+              {isLoggedIn ? ( // Usamos isLoggedIn
                 <Link
                   href="/mascotas-perdidas/reportar"
                   className="btn btn-primary btn-lg"

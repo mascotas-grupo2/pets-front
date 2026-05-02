@@ -10,11 +10,9 @@ type ResponseAxios = {
   data: User;
   status: number;
 };
-export const getUser: (
-  id: string | number,
-) => Promise<ResponseAxios | undefined> = async (id) => {
+export const getUser: () => Promise<ResponseAxios | undefined> = async () => {
   try {
-    const response = await axios.get(`user/commonInfo/${id}`);
+    const response = await axios.get(`user/commonInfo`);
     return { ok: true, data: response.data, status: response.status };
   } catch (error) {
     ErrorGeneric(error);
@@ -26,43 +24,27 @@ type ResponseAxiosDetailUser = {
   data: UserDetails;
   status: number;
 };
-export const getUserDetails: (
-  id: string | number,
-) => Promise<ResponseAxiosDetailUser | undefined> = async (id) => {
+export const getUserDetails: () => Promise<
+  ResponseAxiosDetailUser | undefined
+> = async () => {
   try {
-    const response = await axios.get(`user/detailsUser?id=${id}`);
+    const response = await axios.get(`user/detailsUser`);
     return { ok: true, data: response.data, status: response.status };
   } catch (error) {
     ErrorGeneric(error);
   }
 };
-
-type ResponseAxiosAuthToken = {
-  ok: boolean;
-  data: User;
-  status: number;
-};
-export const getUserAuthToken: ( 
-) => Promise<ResponseAxiosAuthToken | undefined> = async () => {
-  try {
-    const response = await axios.get(`user/me`);
-    return { ok: true, data: response.data, status: response.status };
-  } catch (error) {
-    ErrorGeneric(error);
-  }
-};
-
 
 type ResponseAxiosPets = {
   ok: boolean;
   data: Pet[] | null;
   status: number;
 };
-export const getUserPets: (
-  id: number,
-) => Promise<ResponseAxiosPets | undefined> = async (id: number) => {
+export const getUserPets: () => Promise<
+  ResponseAxiosPets | undefined
+> = async () => {
   try {
-    const response = await axios.get(`pets/userPetsById?id=${id}`);
+    const response = await axios.get(`pets/userPetsById`);
     return { ok: true, data: response.data, status: response.status };
   } catch (error) {
     ErrorGeneric(error);

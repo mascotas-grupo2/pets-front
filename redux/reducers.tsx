@@ -1,6 +1,6 @@
 import { combineReducers } from "@reduxjs/toolkit";
-import { UserState, User } from "@/types/user";
 import { Pet } from "@/types/pet";
+import { User } from "@/types/user";
 
 // Define a union type for all possible actions
 export type AppAction =
@@ -10,22 +10,18 @@ export type AppAction =
   | { type: "pets/pet"; payload: Pet }
   | { type: "user/setFormAdoption"; payload: Record<string, unknown> }
   | { type: "user/Logout" };
-const initialUserState: UserState = {
-  userId: 0,
+const initialUserState: User = {
+  isLoggedIn: false,
   name: "",
   adopter: false,
   role: "",
 };
 
-const userReducer = (
-  state = initialUserState,
-  action: AppAction,
-): UserState => {
+const userReducer = (state = initialUserState, action: AppAction): User => {
   switch (action.type) {
     case "user/SetUser": // Use the specific action type
       return {
-        ...state,
-        userId: action.payload.id,
+        isLoggedIn: true,
         name: action.payload.name,
         adopter: action.payload.adopter,
         role: action.payload.role,
@@ -37,7 +33,6 @@ const userReducer = (
   }
 };
 
-// Placeholder reducers for other actions
 const initialReportState: object = {};
 const reportReducer = (state = initialReportState, action: AppAction) => {
   switch (action.type) {
@@ -77,7 +72,7 @@ const rootReducer = combineReducers({
   user: userReducer,
   report_pet: reportReducer,
   all_pets: allPetsReducer,
-  petReducer,
+  pet: petReducer,
 });
 
 export default rootReducer;

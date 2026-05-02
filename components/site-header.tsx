@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Brand } from "./brand";
 import { useAppSelector } from "@/redux/hooks";
 import { useUserContext } from "@/context/UserContext";
@@ -17,7 +17,7 @@ const NAV = [
 
 export function SiteHeader() {
   const pathname = usePathname();
-  const { userId, adopter } = useUserContext();
+  const { isLoggedIn, adopter } = useUserContext(); // Obtenemos isLoggedIn del contexto
 
   return (
     <header className="site-header">
@@ -25,7 +25,9 @@ export function SiteHeader() {
         <Brand />
 
         <nav className="nav" aria-label="Navegación principal">
-          {NAV.filter(item => adopter ? item.label != "Adoptar" : item.label).map((item) => {
+          {NAV.filter((item) =>
+            adopter ? item.label != "Adoptar" : item.label,
+          ).map((item) => {
             const active =
               item.href === "/"
                 ? pathname === "/"
@@ -43,7 +45,7 @@ export function SiteHeader() {
         </nav>
 
         <div className="header-actions">
-          {userId ? (
+          {isLoggedIn ? ( // Usamos isLoggedIn para la renderización condicional
             <Link
               href="/mascotas-perdidas/reportar"
               className="btn btn-primary btn-sm"
@@ -62,7 +64,7 @@ export function SiteHeader() {
               <span className="tooltip-content">Necesitás iniciar sesión</span>
             </div>
           )}
-          {userId ? (
+          {isLoggedIn ? (
             <Link href="/account" className="btn btn-outline btn-sm">
               Mi Cuenta
             </Link>

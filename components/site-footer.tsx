@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { Brand } from "./brand";
-import { useUserContext } from "@/context/UserContext";
+import { useUserContext } from "@/context/UserContext"; // Mantenemos para logout si es necesario
+import { useAppSelector } from "@/redux/hooks"; // Importamos useAppSelector
 
 export function SiteFooter() {
-  const { userId } = useUserContext();
+  const { isLoggedIn } = useUserContext(); // Usamos isLoggedIn del contexto
   return (
     <footer className="site-footer">
       <div className="container footer-main">
@@ -23,7 +24,7 @@ export function SiteFooter() {
             <li>
               <Link href="/mascotas-perdidas">Mascotas perdidas</Link>
             </li>
-            {userId ? (
+            {isLoggedIn ? ( // Usamos isLoggedIn
               <li>
                 <Link href="/mascotas-perdidas/reportar">Reportar</Link>
               </li>

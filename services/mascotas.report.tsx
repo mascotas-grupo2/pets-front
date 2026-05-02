@@ -9,22 +9,18 @@ type ResponseAxiosGetAll = {
   status: number;
 };
 export const reportPet: (
-  userId: number | string,
   values: Pet,
-) => Promise<ResponseAxiosGetAll | undefined> = async (userId: number | string, values: Pet) => {
+) => Promise<ResponseAxiosGetAll | undefined> = async (values: Pet) => {
   try {
     const submit = {
       ...values,
-      userId,
       photo: values.photo || null,
     };
-    const response = await axios.post("pet/reportar", JSON.stringify(submit),
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    const response = await axios.post("pet/reportar", JSON.stringify(submit), {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
     return { ok: true, data: response.data, status: response.status };
   } catch (error) {
     ErrorGeneric(error);

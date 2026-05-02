@@ -1,24 +1,17 @@
-import {
-  getUser,
-  getUserAuthToken,
-  getUserDetails,
-} from "@/services/user.info";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
+import { getUser } from "@/services/user.info";
 import { User } from "@/types/user";
 import {
   createContext,
-  useCallback,
   ReactNode,
+  useCallback,
   useContext,
   useEffect,
-  // useState, // No longer needed
 } from "react";
 
 type UserContextProps = {
-  userId: number | string;
-  name: string;
+  isLoggedIn: boolean;
   adopter: boolean;
-  role: string;
   saveUser: (user: User | null) => void;
   logout: () => void;
 };
@@ -31,10 +24,9 @@ interface UserProviderProps {
 
 export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
   const dispatch = useAppDispatch();
-  const user = useAppSelector((state) => state.user); 
-  
+  const user = useAppSelector((state) => state.user);
+
   const logout = useCallback(() => {
-    localStorage.removeItem("userId");
     document.cookie =
       "auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;";
     document.cookie =
@@ -46,38 +38,33 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
   const saveUser = useCallback(
     (user: User | null) => {
       if (!user) return;
-      if (user.id === 0) return logout();
       dispatch({ type: "user/SetUser", payload: user });
-      localStorage.setItem("userId", user.id.toString());
     },
-    [dispatch, logout],
+    [dispatch],
   );
 
   useEffect(() => {
-    const idFromStorage = localStorage.getItem("userId");
-
     const hydrate = async () => {
-      if (idFromStorage) {
-        const response = await getUser(idFromStorage);
-        if (response?.ok && response.data) {
-          dispatch({ type: "user/SetUser", payload: response.data });
-        }
-      } else if (
+      // Hidratamos si existe el token de acceso (manual/sso) o el hint de SSO
+      if (
         document.cookie.includes("auth_token") ||
         document.cookie.includes("id_token_hint")
       ) {
-        const response = await getUserAuthToken();
+        const response = await getUser();
         if (response?.ok && response.data) {
           saveUser(response.data);
+        } else {
+          logout(); // Si hay cookies pero el token no es válido, limpiamos
         }
       }
     };
 
     hydrate();
-  }, [dispatch, saveUser]); // Add saveUser to dependencies
+  }, [dispatch, saveUser]);
 
   const values: UserContextProps = {
-    ...user,
+    isLoggedIn: user.isLoggedIn,
+    adopter: user.adopter,
     saveUser,
     logout,
   };

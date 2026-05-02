@@ -1,6 +1,7 @@
 export const dynamic = "force-dynamic";
 
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import axios from "axios";
 
 /**
@@ -8,31 +9,39 @@ import axios from "axios";
  */
 async function handleRequest(request: Request) {
   const url = new URL(request.url);
+  const cookieStore = await cookies();
 
   const path = url.pathname.split("/api/proxy/")[1] || "";
   const search = url.search;
 
-  // Limpiamos el BACKEND_URL de barras al final y el path de barras al inicio
   const BACKEND_URL = process.env.BACKEND_URL || "http://localhost:3001/api";
   const cleanPath = path.replace(/^\//, "");
   const targetUrl = `${BACKEND_URL}/${cleanPath}${search}`;
 
-  // Convertimos los headers de la Request a un objeto plano para Axios
-  const headers: Record<string, string> = {};
-  request.headers.forEach((value, key) => {
-    // El header 'host' debe ser omitido para que Axios/Servidor use el correcto
-    if (key.toLowerCase() !== "host" && key.toLowerCase() !== "connection") {
-      headers[key] = value;
-    }
-  });
+  // Helper para realizar la petición al backend (permite reintentos)
+  const forwardRequest = async (tokenOverride?: string) => {
+    const headers: Record<string, string> = {};
+    request.headers.forEach((value, key) => {
+      if (
+        !["host", "connection", "content-length"].includes(key.toLowerCase())
+      ) {
+        headers[key] = value;
+      }
+    });
 
-  try {
+    // Usamos el token de reintento o el que está en las cookies
+    const token = tokenOverride || cookieStore.get("auth_token")?.value;
+    if (token) {
+      headers["authorization"] = `Bearer ${token}`;
+    }
+
     let body = null;
     if (!["GET", "HEAD"].includes(request.method)) {
-      // Leemos el cuerpo como ArrayBuffer para mantener la integridad de cualquier tipo de dato
-      body = await request.arrayBuffer();
+      // Clonamos para que el body se pueda leer de nuevo si hay reintento
+      body = await request.clone().arrayBuffer();
     }
-    const response = await axios({
+
+    return axios({
       method: request.method,
       url: targetUrl,
       data: body,
@@ -42,13 +51,104 @@ async function handleRequest(request: Request) {
       maxBodyLength: Infinity,
       validateStatus: () => true,
     });
-    return new NextResponse(response.data, {
+  };
+
+  try {
+    let response = await forwardRequest();
+    let refreshedTokens: { access: string; refresh?: string } | null = null;
+
+    // 1. Manejo automático de Refresh en caso de 401
+    if (response.status === 401) {
+      const refreshToken = cookieStore.get("refresh_token")?.value;
+      if (refreshToken) {
+        try {
+          // Si existe 'id_token_hint', es un usuario de Keycloak
+          if (cookieStore.has("id_token_hint")) {
+            const issuer = process.env.KEYCLOAK_ISSUER;
+            const clientId =
+              process.env.KEYCLOAK_CLIENT_ID || process.env.KEYCLOAK_AUDIENCE;
+            const clientSecret = process.env.KEYCLOAK_CLIENT_SECRET;
+
+            const kcRes = await axios.post(
+              `${issuer}/protocol/openid-connect/token`,
+              new URLSearchParams({
+                grant_type: "refresh_token",
+                client_id: clientId!,
+                refresh_token: refreshToken,
+                ...(clientSecret ? { client_secret: clientSecret } : {}),
+              }),
+            );
+            refreshedTokens = {
+              access: kcRes.data.access_token,
+              refresh: kcRes.data.refresh_token,
+            };
+          } else {
+            // Usuario manual: Llamada al endpoint de refresh de tu backend propio
+            const manualRes = await axios.post(
+              `${BACKEND_URL}/auth/refresh-token`,
+              { refreshToken },
+            );
+            refreshedTokens = {
+              access: manualRes.data.access_token,
+              refresh: manualRes.data.refresh_token,
+            };
+          }
+
+          if (refreshedTokens?.access) {
+            response = await forwardRequest(refreshedTokens.access);
+          }
+        } catch (e) {
+          console.error("Proxy: Refresh falló definitivamente");
+        }
+      }
+    }
+
+    const nextResponse = new NextResponse(response.data, {
       status: response.status,
       headers: {
         "Content-Type":
           (response.headers["content-type"] as string) || "application/json",
       },
     });
+
+    // 2. Interceptar Login/Register para guardar cookies de usuario manual
+    const pathLower = cleanPath.toLowerCase();
+    const isAuthAction =
+      pathLower.includes("auth/login") || pathLower.includes("auth/register");
+
+    let accessToSet = refreshedTokens?.access;
+    let refreshToSet = refreshedTokens?.refresh;
+
+    if (isAuthAction && response.status >= 200 && response.status < 300) {
+      try {
+        const data = JSON.parse(new TextDecoder().decode(response.data));
+        accessToSet =
+          data.access_token || data.data?.access_token || data.token;
+        refreshToSet =
+          data.refresh_token || data.data?.refresh_token || data.refreshToken;
+      } catch (e) {
+        /* no json */
+      }
+    }
+
+    // 3. Seteo de Cookies (Persistencia)
+    if (accessToSet) {
+      nextResponse.cookies.set("auth_token", accessToSet, {
+        path: "/",
+        maxAge: 3600,
+        secure: process.env.NODE_ENV === "production",
+      });
+    }
+    if (refreshToSet) {
+      nextResponse.cookies.set("refresh_token", refreshToSet, {
+        path: "/",
+        maxAge: 3600 * 24 * 7,
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+      });
+    }
+
+    return nextResponse;
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     const isBackendOffline =

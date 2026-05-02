@@ -10,7 +10,7 @@ import { putUserDetails } from "@/services/user.info";
 import { useDispatch } from "react-redux";
 import handleToast from "../utils/toast";
 import { ErrorGeneric } from "../utils/catchErrors";
-import { useUserContext } from "@/context/UserContext";
+import { useAppSelector } from "@/redux/hooks"; // Importamos useAppSelector
 
 interface AccountSettingsFormProps {
   userDetails: UserDetails;
@@ -20,7 +20,7 @@ export default function AccountSettingsForm({
   userDetails,
 }: AccountSettingsFormProps) {
   const dispatch = useDispatch();
-  const { adopter } = useUserContext();
+  const { adopter } = useAppSelector((state) => state.user);
   const formik = useFormik({
     initialValues: {
       ...userDetails,

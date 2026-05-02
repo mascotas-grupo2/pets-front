@@ -1,14 +1,13 @@
 export interface User {
-  id: string | number;
+  isLoggedIn: boolean;
   name: string;
-  email: string;
   role: string;
   adopter: boolean;
 }
 
-export interface UserState {
-  userId: string | number;
-  name: string;
-  adopter: boolean;
-  role: string;
-}
+// export interface UserState {
+//   isLoggedIn: boolean;
+//   name: string;
+//   adopter: boolean;
+//   role: string;
+// }
