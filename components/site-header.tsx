@@ -16,7 +16,7 @@ const NAV = [
 
 export function SiteHeader() {
   const pathname = usePathname();
-  const { isLoggedIn, adopter } = useUserContext(); // Obtenemos isLoggedIn del contexto
+  const { isLoggedIn, adopter } = useUserContext();
 
   return (
     <header className="site-header">
@@ -44,7 +44,7 @@ export function SiteHeader() {
         </nav>
 
         <div className="header-actions">
-          {isLoggedIn ? ( // Usamos isLoggedIn para la renderización condicional
+          {isLoggedIn ? ( 
             <Link
               href="/mascotas-perdidas/reportar"
               className="btn btn-primary btn-sm"

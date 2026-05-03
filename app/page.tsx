@@ -10,7 +10,7 @@ import { useDispatch } from "react-redux";
 
 export default function Home() {
   const [pets, setPets] = useState<Pet[]>([]);
-  const { isLoggedIn } = useUserContext(); // Obtenemos isLoggedIn del contexto
+  const { isLoggedIn } = useUserContext(); 
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -41,7 +41,7 @@ export default function Home() {
               ayudá a que vuelvan a casa.
             </p>
             <div className="hero-actions">
-              {isLoggedIn ? ( // Usamos isLoggedIn
+              {isLoggedIn ? (
                 <Link
                   href="/mascotas-perdidas/reportar"
                   className="btn btn-primary btn-lg"

@@ -1,0 +1,37 @@
+h1,
+h2,
+h3,
+h4 {
+  font-weight: 600;
+  color: var(--primary-900);
+  line-height: 1.15;
+}
+
+h1 { font-size: 3.5rem; }
+h2 { font-size: 2.5rem; }
+h3 { font-size: 1.5rem; }
+h4 { font-size: 1.25rem; }
+
+/* ===== Layout primitives ===== */
+.container {
+  width: 100%;
+  max-width: var(--container-max);
+  margin: 0 auto;
+  padding-left: var(--container-pad);
+  padding-right: var(--container-pad);
+}
+
+.section {
+  padding: 5rem 0;
+}
+
+.section-tight {
+  padding: 3rem 0;
+}
+
+.page-title {
+  padding: 3rem 0 2rem;
+  text-align: center;
+}
+
+main { flex: 1; }

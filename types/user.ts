@@ -4,10 +4,3 @@ export interface User {
   role: string;
   adopter: boolean;
 }
-
-// export interface UserState {
-//   isLoggedIn: boolean;
-//   name: string;
-//   adopter: boolean;
-//   role: string;
-// }
