@@ -7,23 +7,23 @@ export async function GET(request: NextRequest) {
   const errorKeycloak = searchParams.get("error");
   const errorDescription = searchParams.get("error_description");
 
+  const issuer = process.env.KEYCLOAK_ISSUER;
+  const clientId = process.env.KEYCLOAK_CLIENT_ID || process.env.KEYCLOAK_AUDIENCE;
+  const clientSecret = process.env.KEYCLOAK_CLIENT_SECRET;
+  const backendUrl = process.env.BACKEND_URL || "http://localhost:3001/api";
+  const baseUrl = process.env.BASE_URL || "http://localhost:3000";
+  const redirectUri = `${baseUrl}/api/auth`;
 
   if (errorKeycloak) {
     console.error("Keycloak returned an error:", errorKeycloak, "-", errorDescription);
-    return NextResponse.redirect(new URL(`/login?error=${errorKeycloak}`, request.url));
+    return NextResponse.redirect(new URL(`/login?error=${errorKeycloak}`, baseUrl));
   }
 
   if (!code) {
     console.error("Error: No auth code or error found in searchParams");
-    return NextResponse.redirect(new URL("/login?error=no_code", request.url));
+    return NextResponse.redirect(new URL("/login?error=no_code", baseUrl));
   }
 
-  const issuer = process.env.KEYCLOAK_ISSUER; 
-  const clientId = process.env.KEYCLOAK_CLIENT_ID || process.env.KEYCLOAK_AUDIENCE; 
-  const clientSecret = process.env.KEYCLOAK_CLIENT_SECRET; 
-  const backendUrl = process.env.BACKEND_URL || "http://localhost:3001/api";
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
-  const redirectUri = `${baseUrl}/api/auth`; 
 
   if (!issuer) throw new Error("KEYCLOAK_ISSUER is not defined in .env");
 
@@ -51,7 +51,7 @@ export async function GET(request: NextRequest) {
     try {
       console.log("Syncing user with backend...");
       await axios.post(`${backendUrl}/auth/sso-sync`, {}, {
-        headers: { 
+        headers: {
           "Authorization": `Bearer ${access_token}`,
           "Content-Type": "application/json"
         },
@@ -60,7 +60,7 @@ export async function GET(request: NextRequest) {
     } catch (syncError) {
       console.error("Backend Sync failed. User not persisted in DB:", syncError);
       // Si el back falla, es mejor no dejarlo entrar porque no podrá realizar acciones
-      return NextResponse.redirect(new URL("/login?error=db_sync_error", request.url));
+      return NextResponse.redirect(new URL("/login?error=db_sync_error", baseUrl));
     }
 
     // 2. Redirigimos al usuario a la app con el token
@@ -74,7 +74,7 @@ export async function GET(request: NextRequest) {
       maxAge: 3600, // 1 hora
       secure: process.env.NODE_ENV === "production",
     });
-    
+
     // Guardamos el refresh_token en una cookie HttpOnly para que el interceptor pueda usarla
     response.cookies.set("refresh_token", refresh_token, {
       path: "/",
@@ -103,6 +103,6 @@ export async function GET(request: NextRequest) {
     } else {
       console.error("SSO Callback Error (Unknown):", error);
     }
-    return NextResponse.redirect(new URL("/login?error=sso_failed", request.url));
+    return NextResponse.redirect(new URL("/login?error=sso_failed", baseUrl));
   }
 }

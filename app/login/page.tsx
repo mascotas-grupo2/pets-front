@@ -5,6 +5,7 @@ import {
   FormikHandleError,
 } from "@/components/utils/FormikHelper";
 import ShowError from "@/components/utils/ShowError";
+import handleToast from "@/components/utils/toast";
 import { useUserContext } from "@/context/UserContext";
 import { login } from "@/services/auth.login";
 import { LoginForm } from "@/types/login";
@@ -32,11 +33,17 @@ export default function LoginPage() {
         const userData = await login(values.email, values.password);
         if (userData?.ok) {
           // Mapear userData.data a tipo User si es necesario, asumiendo que login devuelve User
-          saveUser(userData.data); 
-          toast.success("¡Ingreso exitoso! Redirigiendo a tu cuenta...");
+          saveUser(userData.data);
+          handleToast(
+            "success",
+            "¡Ingreso exitoso! Redirigiendo a tu cuenta...",
+          );
           router.push("/account");
         } else {
-          toast.error("Credenciales inválidas. Por favor, intentá de nuevo.");
+          handleToast(
+            "error",
+            "Credenciales inválidas. Por favor, intentá de nuevo.",
+          );
         }
       } catch (error) {
         console.error(error);
@@ -50,7 +57,7 @@ export default function LoginPage() {
     const urlParams = new URLSearchParams(window.location.search);
     const ssoError = urlParams.get("error");
     if (ssoError) {
-      toast.error(`Error de autenticación: ${ssoError.replace(/_/g, ' ')}`);
+      toast.error(`Error de autenticación: ${ssoError.replace(/_/g, " ")}`);
       router.replace("/login"); // Limpiar la URL
     }
   }, [router]);

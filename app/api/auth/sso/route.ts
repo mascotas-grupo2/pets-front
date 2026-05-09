@@ -14,10 +14,10 @@ export async function GET(request: NextRequest) {
   }
 
   // Obtenemos las credenciales desde variables de entorno (SOLO SERVIDOR)
-  const issuer = process.env.KEYCLOAK_ISSUER; 
+  const issuer = process.env.KEYCLOAK_ISSUER;
   const clientId = process.env.KEYCLOAK_CLIENT_ID || process.env.KEYCLOAK_AUDIENCE;
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
-  const redirectUri = `${baseUrl}/api/auth`; 
+  const baseUrl = process.env.BASE_URL || "http://localhost:3000";
+  const redirectUri = `${baseUrl}/api/auth`;
 
   if (!issuer || !clientId) {
     console.error("SSO Error: Faltan variables de entorno en el servidor");

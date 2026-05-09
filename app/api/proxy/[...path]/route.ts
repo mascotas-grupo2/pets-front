@@ -113,8 +113,11 @@ async function handleRequest(request: Request) {
 
     // 2. Interceptar Login/Register para guardar cookies de usuario manual
     const pathLower = cleanPath.toLowerCase();
+
     const isAuthAction =
-      pathLower.includes("auth/login") || pathLower.includes("auth/register");
+      pathLower.includes("auth/login") ||
+      pathLower.includes("auth/register") ||
+      pathLower.includes("auth/verify-email");
 
     let accessToSet = refreshedTokens?.access;
     let refreshToSet = refreshedTokens?.refresh;

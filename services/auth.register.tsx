@@ -28,3 +28,15 @@ export const register: (
     ErrorGeneric(error);
   }
 };
+
+export const confirmEmailVerification = async (
+  token: string,
+): Promise<ResponseAxios | undefined> => {
+  try {
+    const response = await axios.post(`/auth/verify-email`, { token });
+    return { ok: true, data: response.data, status: response.status };
+  } catch (error) {
+    ErrorGeneric(error);
+    return undefined;
+  }
+};

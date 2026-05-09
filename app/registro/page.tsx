@@ -5,10 +5,9 @@ import {
   FormikHandleError,
 } from "@/components/utils/FormikHelper";
 import ShowError from "@/components/utils/ShowError";
+import handleToast from "@/components/utils/toast";
 import { useUserContext } from "@/context/UserContext";
-import { useAppDispatch } from "@/redux/hooks";
 import { register } from "@/services/auth.register";
-import { User } from "@/types/user";
 import { RegisterForm } from "@/types/register";
 import { registerValidationSchema } from "@/validation/register";
 import { useFormik } from "formik";
@@ -51,11 +50,15 @@ export default function RegisterPage() {
         const res = await register(values.name, values.email, values.password);
         if (res && res.ok && res.data) {
           // Mapear res.data a tipo User si es necesario, asumiendo que register devuelve User
-          saveUser(res.data as User); 
-          toast.success("Registro exitoso. Redirigiendo...");
-          router.push("/account");
+          // saveUser(res.data as User);
+          handleToast(
+            "success",
+            "¡Ingreso exitoso! Verifique su casilla de correo electrónico.",
+          );
+          //router.push("/account");
         } else {
-          toast.error("No se pudo crear la cuenta. Intentá de nuevo.");
+          handleToast("error", "¡Error al registrarse!");
+          router.push("/account");
         }
       } catch (error) {
         console.error(error);
@@ -69,7 +72,7 @@ export default function RegisterPage() {
     const urlParams = new URLSearchParams(window.location.search);
     const ssoError = urlParams.get("error");
     if (ssoError) {
-      toast.error(`Error de autenticación: ${ssoError.replace(/_/g, ' ')}`);
+      toast.error(`Error de autenticación: ${ssoError.replace(/_/g, " ")}`);
       router.replace("/registro"); // Limpiar la URL
     }
   }, [router]);
@@ -79,7 +82,13 @@ export default function RegisterPage() {
   };
 
   const strength = getPasswordStrength(formik.values.password);
-  const strengthColors = ["#e0e0e0", "#ff4d4f", "#ffa940", "#faad14", "#52c41a"];
+  const strengthColors = [
+    "#e0e0e0",
+    "#ff4d4f",
+    "#ffa940",
+    "#faad14",
+    "#52c41a",
+  ];
   const strengthLabels = ["", "Muy débil", "Débil", "Segura", "Muy segura"];
 
   return (
@@ -87,7 +96,6 @@ export default function RegisterPage() {
       <div className="auth-card auth-card-split">
         <aside className="auth-visual">
           <div className="auth-visual-art">
-            
             <img
               src="/images/auth-dog.png"
               alt="Registrate ahora en Huellitas Unidas"
@@ -186,12 +194,21 @@ export default function RegisterPage() {
                         height: "100%",
                         width: `${(strength / 4) * 100}%`,
                         backgroundColor: strengthColors[strength],
-                        transition: "width 0.3s ease, background-color 0.3s ease",
+                        transition:
+                          "width 0.3s ease, background-color 0.3s ease",
                       }}
                     />
                   </div>
-                  <small style={{ fontSize: "0.75rem", color: "var(--gray-600)", marginTop: "4px", display: "block" }}>
-                    Seguridad de contraseña: <strong>{strengthLabels[strength]}</strong>
+                  <small
+                    style={{
+                      fontSize: "0.75rem",
+                      color: "var(--gray-600)",
+                      marginTop: "4px",
+                      display: "block",
+                    }}
+                  >
+                    Seguridad de contraseña:{" "}
+                    <strong>{strengthLabels[strength]}</strong>
                   </small>
                 </div>
               )}
