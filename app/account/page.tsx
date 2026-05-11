@@ -94,7 +94,7 @@ export default function AccountPage() {
             </button>
             <Link
               href="/"
-              onClick={() => logout()}
+              onClick={async () => await logout()}
               className="btn-link btn-ghost-link btn-sm"
               style={{ marginTop: "1rem", color: "var(--error)" }}
             >

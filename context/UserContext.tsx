@@ -11,12 +11,14 @@ import {
   useContext,
   useEffect,
 } from "react";
+import { logout } from "@/services/auth.login";
+import { ErrorGeneric } from "@/components/utils/catchErrors";
 
 type UserContextProps = {
   isLoggedIn: boolean;
   adopter: boolean;
   saveUser: (user: User | null) => void;
-  logout: () => void;
+  logout: () => Promise<void>;
 };
 
 const UserContext = createContext<UserContextProps | undefined>(undefined);
@@ -29,14 +31,19 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
   const dispatch = useAppDispatch();
   const user = useAppSelector((state) => state.user);
 
-  const logout = useCallback(() => {
-    document.cookie =
-      "auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;";
-    document.cookie =
-      "id_token_hint=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;";
-    dispatch({ type: "user/Logout" });
-    localStorage.removeItem("user_persistence");
-    window.location.href = "/"; // Redirect al home tras logout
+  const logoutSession = useCallback(async () => {
+    try {
+      document.cookie =
+        "auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;";
+      document.cookie =
+        "id_token_hint=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;";
+      await logout();
+      dispatch({ type: "user/Logout" });
+      localStorage.removeItem("user_persistence");
+      window.location.href = "/";
+    } catch (error) {
+      ErrorGeneric(error);
+    }
   }, [dispatch]);
 
   const saveUser = useCallback(
@@ -49,10 +56,6 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     [dispatch],
   );
 
-  /**
-   * Valida la integridad de los datos locales sin necesidad de consultar
-   * el perfil completo al backend (JIT verification).
-   */
   const hydrate = useCallback(async () => {
     if (typeof window !== "undefined") {
       const saved = localStorage.getItem("user_persistence");
@@ -65,7 +68,6 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
         }
       }
 
-      // 3. Verificación de Seguridad
       if (
         typeof document !== "undefined" &&
         (document.cookie.includes("auth_token") ||
@@ -77,23 +79,21 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
             const check = await verifyUserSignature(localUser);
             if (!check.valid) {
               console.error("Firma inválida o datos manipulados.");
-              logout();
+              await logoutSession();
               return;
             }
             return;
           }
         }
 
-        // Si no había datos guardados pero hay cookies, pedimos el usuario por primera vez
         const response = await getUser();
         if (response?.ok && response.data) saveUser(response.data);
-        else logout();
-
+        else await logoutSession();
       } else if (saved) {
-        logout();
+        await logoutSession();
       }
     }
-  }, [dispatch, saveUser, logout]);
+  }, [dispatch, saveUser, logoutSession]);
 
   useEffect(() => {
     // Hidratación inicial al cargar la página
@@ -114,7 +114,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     isLoggedIn: user.isLoggedIn,
     adopter: user.adopter,
     saveUser,
-    logout,
+    logout: logoutSession,
   };
   return <UserContext.Provider value={values}>{children}</UserContext.Provider>;
 };
