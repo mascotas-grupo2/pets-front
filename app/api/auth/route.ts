@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import axios from "axios";
+import { signUserData } from "@/lib/auth-signature";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -48,15 +49,30 @@ export async function GET(request: NextRequest) {
 
     // 1.5. Sincronizar con el Backend (Just-in-Time Provisioning)
     // Enviamos el token al backend para que cree el usuario en su DB local si no existe
+    let ssoUser = null;
     try {
       console.log("Syncing user with backend...");
-      await axios.post(`${backendUrl}/auth/sso-sync`, {}, {
+      const syncRes = await axios.post(`${backendUrl}/auth/sso-sync`, {}, {
         headers: {
           "Authorization": `Bearer ${access_token}`,
           "Content-Type": "application/json"
         },
       });
-      console.log("User synchronization successful");
+
+      // Extraemos el usuario que devuelve el backend para procesarlo
+      const rawUser = syncRes.data?.user || syncRes.data?.data || syncRes.data;
+      if (rawUser) {
+        const cleanUser = {
+          isLoggedIn: true,
+          name: rawUser.name || "",
+          role: rawUser.role || "user",
+          adopter: !!rawUser.adopter,
+        };
+        // Aplicamos la firma digital para proteger la integridad en el cliente
+        const signature = signUserData(cleanUser);
+        ssoUser = { ...cleanUser, signature };
+        console.log("User synchronization and local signature successful");
+      }
     } catch (syncError) {
       console.error("Backend Sync failed. User not persisted in DB:", syncError);
       // Si el back falla, es mejor no dejarlo entrar porque no podrá realizar acciones
@@ -90,6 +106,17 @@ export async function GET(request: NextRequest) {
       httpOnly: false, // Permitimos que JS lo lea para hidratar el estado inicial
       secure: process.env.NODE_ENV === "production",
     });
+
+    // Entregamos el objeto de usuario ya filtrado y firmado en una cookie temporal.
+    // El UserContext podrá leer esto para una hidratación ultra rápida.
+    if (ssoUser) {
+      response.cookies.set("sso_user_data", JSON.stringify(ssoUser), {
+        path: "/",
+        maxAge: 60, // Corta duración, solo para la hidratación inicial tras el redirect
+        httpOnly: false,
+        secure: process.env.NODE_ENV === "production",
+      });
+    }
 
     return response;
   } catch (error) {

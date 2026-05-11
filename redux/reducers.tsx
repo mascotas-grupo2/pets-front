@@ -15,6 +15,7 @@ const initialUserState: User = {
   name: "",
   adopter: false,
   role: "",
+  signature: "",
 };
 
 const userReducer = (state = initialUserState, action: AppAction): User => {
@@ -25,6 +26,7 @@ const userReducer = (state = initialUserState, action: AppAction): User => {
         name: action.payload.name,
         adopter: action.payload.adopter,
         role: action.payload.role,
+        signature: action.payload.signature,
       };
     case "user/Logout":
       return initialUserState;

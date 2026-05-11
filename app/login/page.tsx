@@ -31,6 +31,7 @@ export default function LoginPage() {
     onSubmit: async (values) => {
       try {
         const userData = await login(values.email, values.password);
+        console.log(userData)
         if (userData?.ok) {
           // Mapear userData.data a tipo User si es necesario, asumiendo que login devuelve User
           saveUser(userData.data);
