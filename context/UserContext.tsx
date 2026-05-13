@@ -49,7 +49,6 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
   const saveUser = useCallback(
     (user: User | null) => {
       if (!user) return;
-
       localStorage.setItem("user_persistence", JSON.stringify(user));
       dispatch({ type: "user/SetUser", payload: user });
     },

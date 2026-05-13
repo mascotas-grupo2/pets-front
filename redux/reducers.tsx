@@ -5,10 +5,10 @@ import { User } from "@/types/user";
 // Define a union type for all possible actions
 export type AppAction =
   | { type: "pets/ReportPet"; payload: object }
+  | { type: "user/setFormAdoption"; payload: User }
   | { type: "user/SetUser"; payload: User }
   | { type: "pets/all_pets"; payload: Pet[] }
   | { type: "pets/pet"; payload: Pet }
-  | { type: "user/setFormAdoption"; payload: Record<string, unknown> }
   | { type: "user/Logout" };
 const initialUserState: User = {
   isLoggedIn: false,
@@ -28,6 +28,14 @@ const userReducer = (state = initialUserState, action: AppAction): User => {
         role: action.payload.role,
         signature: action.payload.signature,
       };
+    case "user/setFormAdoption":
+      return {
+        isLoggedIn: true,
+        name: action.payload.name,
+        adopter: action.payload.adopter,
+        role: action.payload.role,
+        signature: action.payload.signature,
+      };
     case "user/Logout":
       return initialUserState;
     default:
@@ -39,8 +47,6 @@ const initialReportState: object = {};
 const reportReducer = (state = initialReportState, action: AppAction) => {
   switch (action.type) {
     case "pets/ReportPet":
-      return action.payload;
-    case "user/setFormAdoption":
       return action.payload;
     default:
       return state;

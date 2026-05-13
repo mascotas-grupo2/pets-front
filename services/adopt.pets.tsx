@@ -1,12 +1,13 @@
 import { ErrorGeneric } from "@/components/utils/catchErrors";
 import { AdoptForm } from "@/types/adoptar";
 import axiosInstance from "./axios";
+import { User } from "@/types/user";
 
 const axios = axiosInstance;
 
 type ResponseAxios = {
   ok: boolean;
-  data: Record<string, unknown> | null;
+  data: User | null;
   status: number;
 };
 export const submitAdoption: (

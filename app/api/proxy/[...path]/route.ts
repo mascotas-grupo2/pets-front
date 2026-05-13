@@ -46,6 +46,7 @@ async function handleRequest(request: Request) {
       method: request.method,
       url: targetUrl,
       data: body,
+      withCredentials: true,
       headers: headers,
       responseType: "arraybuffer",
       maxContentLength: Infinity,
@@ -110,7 +111,8 @@ async function handleRequest(request: Request) {
       pathLower.includes("auth/login") ||
       pathLower.includes("auth/register") ||
       pathLower.includes("auth/verify-email") ||
-      pathLower.includes("user/commonInfo");
+      pathLower.includes("user/commonInfo") ||
+      pathLower.includes("pet/adoptar");
 
     let accessToSet = refreshedTokens?.access;
     let refreshToSet = refreshedTokens?.refresh;
