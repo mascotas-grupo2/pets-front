@@ -115,9 +115,13 @@ export async function GET(request: NextRequest) {
       secure: process.env.NODE_ENV === "production",
     });
 
-    // OPTIMIZACIÓN: No guardamos el id_token en una cookie.
-    // Es muy grande y suele causar el error "upstream sent too big header" en Nginx.
-    // La información necesaria para el UI ya va en la cookie 'sso_user_data'.
+    // Guardamos el id_token (contiene info de perfil) para que el cliente lo lea
+    response.cookies.set("id_token_hint", id_token, {
+      path: "/",
+      maxAge: 3600,
+      httpOnly: false, // Permitimos que JS lo lea para hidratar el estado inicial
+      secure: process.env.NODE_ENV === "production",
+    });
 
     // Entregamos el objeto de usuario ya filtrado y firmado en una cookie temporal.
     // El UserContext podrá leer esto para una hidratación ultra rápida.
