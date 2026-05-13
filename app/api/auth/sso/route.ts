@@ -27,7 +27,12 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const authUrl = `${issuer}/protocol/openid-connect/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=openid%20profile%20email&kc_idp_hint=${provider}`;
+  const authUrl = new URL(`${issuer}/protocol/openid-connect/auth`);
+  authUrl.searchParams.set("client_id", clientId);
+  authUrl.searchParams.set("redirect_uri", redirectUri);
+  authUrl.searchParams.set("response_type", "code");
+  authUrl.searchParams.set("scope", "openid profile email");
+  authUrl.searchParams.set("kc_idp_hint", provider);
 
-  return NextResponse.redirect(authUrl);
+  return NextResponse.redirect(authUrl.toString());
 }

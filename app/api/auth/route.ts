@@ -15,6 +15,13 @@ export async function GET(request: NextRequest) {
   const baseUrl = process.env.BASE_URL || "http://localhost:3000";
   const redirectUri = `${baseUrl}/api/auth`;
 
+  // Si ya tenemos un token activo, ignoramos el proceso de intercambio
+  // Esto evita errores de "code already used" si el navegador reintenta la petición
+  const existingToken = request.cookies.get("auth_token");
+  if (existingToken && !errorKeycloak && code) {
+    return NextResponse.redirect(new URL("/account", baseUrl));
+  }
+
   if (errorKeycloak) {
     console.error("Keycloak returned an error:", errorKeycloak, "-", errorDescription);
     return NextResponse.redirect(new URL(`/login?error=${errorKeycloak}`, baseUrl));
@@ -46,6 +53,15 @@ export async function GET(request: NextRequest) {
 
     const { access_token, id_token, refresh_token } = tokenResponse.data;
     console.log("Token exchange successful!");
+
+    const idTokenPayload = JSON.parse(
+      Buffer.from(id_token.split(".")[1], "base64").toString()
+    );
+
+    if (idTokenPayload.email_verified !== true) {
+      console.warn("User email is not verified in Keycloak:", idTokenPayload.email);
+      return NextResponse.redirect(new URL("/login?error=email_unverified", baseUrl));
+    }
 
     // 1.5. Sincronizar con el Backend (Just-in-Time Provisioning)
     // Enviamos el token al backend para que cree el usuario en su DB local si no existe
@@ -81,8 +97,8 @@ export async function GET(request: NextRequest) {
 
     // 2. Redirigimos al usuario a la app con el token
     // Lo más común es ponerlo en una cookie para que Redux lo lea al cargar
-    const response = NextResponse.redirect(new URL("/account", request.url));
-    console.log("Redirecting to /account", tokenResponse);
+    const response = NextResponse.redirect(new URL("/account", baseUrl));
+    console.log("Redirecting to /account - Session established");
 
     // Guardamos el token en una cookie (puedes ponerla HttpOnly si tenés un endpoint /api/me)
     response.cookies.set("auth_token", access_token, {
@@ -99,13 +115,9 @@ export async function GET(request: NextRequest) {
       secure: process.env.NODE_ENV === "production",
     });
 
-    // Guardamos el id_token (contiene info de perfil) para que el cliente lo lea
-    response.cookies.set("id_token_hint", id_token, {
-      path: "/",
-      maxAge: 3600,
-      httpOnly: false, // Permitimos que JS lo lea para hidratar el estado inicial
-      secure: process.env.NODE_ENV === "production",
-    });
+    // OPTIMIZACIÓN: No guardamos el id_token en una cookie.
+    // Es muy grande y suele causar el error "upstream sent too big header" en Nginx.
+    // La información necesaria para el UI ya va en la cookie 'sso_user_data'.
 
     // Entregamos el objeto de usuario ya filtrado y firmado en una cookie temporal.
     // El UserContext podrá leer esto para una hidratación ultra rápida.
