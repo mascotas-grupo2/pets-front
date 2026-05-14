@@ -8,7 +8,7 @@ import {
 import ShowError from "@/components/utils/ShowError";
 import { ReportForm } from "@/types/reportar";
 import { FormikProps } from "formik";
-import { ChangeEvent } from "react";
+import { ChangeEvent, useState } from "react";
 
 /** Alias para los props de un paso típico que sólo necesita el formik bag. */
 type StepProps = { formik: FormikProps<ReportForm> };
@@ -237,6 +237,41 @@ type PhotoStepProps = StepProps & {
 
 export function PhotoStep({ formik, onSelectFile }: PhotoStepProps) {
   const { photo } = formik.values;
+  const photosArray = Array.isArray(photo) ? photo : photo ? [photo] : [];
+  const [draggingIndex, setDraggingIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+
+  function handleDragStart(e: any, idx: number) {
+    setDraggingIndex(idx);
+    e.dataTransfer.effectAllowed = "move";
+    try {
+      e.dataTransfer.setData("text/plain", String(idx));
+    } catch {}
+  }
+
+  function handleDragEnd() {
+    setDraggingIndex(null);
+    setDragOverIndex(null);
+  }
+
+  function handleDragOver(e: any, idx: number) {
+    e.preventDefault();
+    if (dragOverIndex !== idx) setDragOverIndex(idx);
+  }
+
+  function handleDrop(e: any, idx: number) {
+    e.preventDefault();
+    const srcStr = e.dataTransfer.getData("text/plain");
+    const src = Number(srcStr);
+    const dest = idx;
+    if (!Number.isNaN(src) && src !== dest) {
+      const newArr = [...photosArray];
+      const [moved] = newArr.splice(src, 1);
+      newArr.splice(dest, 0, moved);
+      formik.setFieldValue("photo", newArr.length > 0 ? newArr : null);
+    }
+    handleDragEnd();
+  }
   return (
     <>
       <h2 className="wizard-heading">Foto de la mascota</h2>
@@ -245,15 +280,61 @@ export function PhotoStep({ formik, onSelectFile }: PhotoStepProps) {
           <label className="file-drop">
             <div className="icon">📷</div>
             <div>
-              <strong>{photo?.name || "Click para subir una imagen"}</strong>
+              <strong>{photosArray.length > 0 ? `${photosArray.length} imagen(es) seleccionadas` : "Click para subir una o más imágenes"}</strong>
             </div>
-            <div className="hint">PNG, JPG hasta ~5 MB</div>
-            <input type="file" accept="image/*" onChange={onSelectFile} />
+            <div className="hint">PNG, JPG hasta ~5 MB cada una. Podés seleccionar varias.</div>
+            <input type="file" accept="image/*" onChange={onSelectFile} multiple />
           </label>
           <ShowError message={FormikHandleError(formik, "photo")} />
-          {photo?.url && (
-            /* eslint-disable-next-line @next/next/no-img-element */
-            <img src={photo.url} alt="Vista previa" className="preview" />
+          {photosArray.length > 0 && (
+            <div style={{ display: "flex", gap: "0.5rem", marginTop: "0.5rem", flexWrap: "wrap" }}>
+              {photosArray.map((p, i) => {
+                const isDragging = draggingIndex === i;
+                const isDragOver = dragOverIndex === i;
+                return (
+                  <div
+                    key={i}
+                    style={{
+                      position: "relative",
+                      opacity: isDragging ? 0.5 : 1,
+                      transform: isDragOver ? "scale(1.03)" : "none",
+                      transition: "transform 120ms ease, opacity 120ms ease",
+                      cursor: "grab",
+                    }}
+                    draggable
+                    onDragStart={(e) => handleDragStart(e, i)}
+                    onDragOver={(e) => handleDragOver(e, i)}
+                    onDrop={(e) => handleDrop(e, i)}
+                    onDragEnd={handleDragEnd}
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={p.url} alt={`Vista previa ${i + 1}`} className="preview" style={{ width: 120, height: 120, objectFit: "cover" }} />
+                    <button
+                      type="button"
+                      aria-label={`Eliminar imagen ${i + 1}`}
+                      onClick={() => {
+                        const newArr = [...photosArray];
+                        newArr.splice(i, 1);
+                        formik.setFieldValue("photo", newArr.length > 0 ? newArr : null);
+                      }}
+                      style={{
+                        position: "absolute",
+                        top: 6,
+                        right: 6,
+                        background: "rgba(0,0,0,0.6)",
+                        color: "white",
+                        border: "none",
+                        borderRadius: 4,
+                        padding: "2px 6px",
+                        cursor: "pointer",
+                      }}
+                    >
+                      ✕
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
           )}
         </div>
       </div>

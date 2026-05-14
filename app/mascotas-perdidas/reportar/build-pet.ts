@@ -18,7 +18,12 @@ export function buildPetFromReport(values: ReportForm): Pet {
     description: values.description,
     date: values.date,
 
-    photo: typeof values.photo === 'string' ? values.photo : (values.photo?.url ?? null),
+    photo: Array.isArray(values.photo)
+      ? values.photo[0]?.url ?? null
+      : typeof values.photo === "string"
+      ? values.photo
+      : values.photo?.url ?? null,
+    photos: Array.isArray(values.photo) ? values.photo.map((p) => p.url) : [],
 
     location: values.location,
     contactPhone: values.contactPhone,

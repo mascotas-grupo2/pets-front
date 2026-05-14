@@ -34,29 +34,38 @@ export default function ReportPage() {
     onSubmit: async (values) => {
       const pet = buildPetFromReport(values);
       try {
-        const res = await reportPet(pet);
+        // optimista: mostrar localmente
+        dispatch({ type: "pets/ReportPet", payload: pet });
+        const res = await reportPet(values);
         if (res && res.ok) {
           dispatch({ type: "pets/ReportPet", payload: res.data });
           handleToast("success", "¡Publicación creada con éxito!");
           setIsDone(true);
         }
       } catch (err) {
-        console.warn("No se pudo persistir localmente", err);
+        console.warn("Error enviando reporte", err);
+        handleToast("error", "No se pudo crear la publicación");
       }
     },
   });
 
-  function handleSelectFile(e: ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () =>
-      formik.setFieldValue("photo", {
-        file,
-        name: file.name,
-        url: reader.result as string,
+  async function handleSelectFile(e: ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+
+    function readFile(file: File) {
+      return new Promise<{ file: File; name: string; url: string }>((resolve) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve({ file, name: file.name, url: reader.result as string });
+        reader.readAsDataURL(file);
       });
-    reader.readAsDataURL(file);
+    }
+
+    const reads = files.map((f) => readFile(f));
+    const uploads = await Promise.all(reads);
+
+    const existing = Array.isArray(formik.values.photo) ? formik.values.photo : formik.values.photo ? [formik.values.photo] : [];
+    formik.setFieldValue("photo", [...existing, ...uploads]);
   }
 
   async function goToNextStep() {
