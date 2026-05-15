@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { convertLocalMonthYear } from "../utils/helpers";
 import { PetCard } from "../pet-card";
 import { UserDetails } from "@/types/user-details";
@@ -20,12 +20,21 @@ export default function ProfileView({
 }: ProfileViewProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+    };
+  }, [previewUrl]);
 
   const handlePhotoClick = () => {
-    if (!isUpdating) fileInputRef.current?.click();
+    // abrir selector solo si no estamos en proceso y no hay una vista previa activa
+    if (!isUpdating && !previewUrl) fileInputRef.current?.click();
   };
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -34,12 +43,28 @@ export default function ProfileView({
       handleToast("error", "La imagen es muy pesada (máximo 2MB)");
       return;
     }
+
+    // Preparar vista previa y guardar selección (no subimos aún)
+    const url = URL.createObjectURL(file);
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    setSelectedFile(file);
+    setPreviewUrl(url);
+  };
+
+  const handleCancelSelection = () => {
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    setPreviewUrl(null);
+    setSelectedFile(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const handleConfirmUpload = async () => {
+    if (!selectedFile) return;
     setIsUpdating(true);
     try {
-      const res = await uploadUserPhoto(file);
+      const res = await uploadUserPhoto(selectedFile);
       if (res && res.ok) {
         handleToast("success", "Foto de perfil actualizada");
-        // recargar para que el contexto de usuario tome la nueva URL
         window.location.reload();
       } else {
         handleToast("error", "No se pudo actualizar la foto");
@@ -48,6 +73,7 @@ export default function ProfileView({
       ErrorGeneric(error);
     } finally {
       setIsUpdating(false);
+      handleCancelSelection();
     }
   };
 
@@ -62,14 +88,20 @@ export default function ProfileView({
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={userDetails.photo || "/images/avatar-placeholder.jpg"}
+              src={previewUrl ?? userDetails.photo ?? "/images/avatar-placeholder.jpg"}
               alt="User Photo"
               style={{
                 opacity: isUpdating ? 0.5 : 1,
                 transition: "all 0.3s ease",
+                display: "block",
+                width: "96px",
+                height: "96px",
+                objectFit: "cover",
+                borderRadius: "50%",
               }}
             />
-            {!isUpdating && (
+
+            {!isUpdating && !previewUrl && (
               <div
                 className="photo-edit-badge"
                 style={{
@@ -91,6 +123,58 @@ export default function ProfileView({
                 📷
               </div>
             )}
+
+            {previewUrl && (
+              <div style={{ position: "absolute", left: "8px", bottom: "8px", display: "flex", gap: "8px" }} onClick={(e) => e.stopPropagation()}>
+                <button
+                  aria-label="Cancelar selección"
+                  title="Cancelar"
+                  onClick={handleCancelSelection}
+                  disabled={isUpdating}
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: "50%",
+                    border: "1px solid rgba(0,0,0,0.08)",
+                    background: "white",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    padding: 0,
+                    cursor: isUpdating ? "not-allowed" : "pointer",
+                  }}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M18 6L6 18" stroke="#333" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d="M6 6L18 18" stroke="#333" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </button>
+
+                <button
+                  aria-label="Confirmar y subir"
+                  title="Confirmar y subir"
+                  onClick={handleConfirmUpload}
+                  disabled={isUpdating}
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: "50%",
+                    border: "none",
+                    background: isUpdating ? "rgba(34,197,94,0.6)" : "#22c55e",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    padding: 0,
+                    cursor: isUpdating ? "not-allowed" : "pointer",
+                  }}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M20 6L9 17l-5-5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </button>
+              </div>
+            )}
+
             <input
               type="file"
               ref={fileInputRef}
@@ -108,11 +192,11 @@ export default function ProfileView({
             {userDetails.firstName} {userDetails.lastName}
           </h2>
           <p>
-            {userDetails.email || ""} · {userDetails.addressLine1}{" "}
+            {userDetails.email || ""} · {userDetails.addressLine1} {" "}
             {userDetails.addressLine2 ? `, ${userDetails.addressLine2}` : ""}
           </p>
           <p style={{ marginTop: "0.5rem" }}>
-            Miembro desde {convertLocalMonthYear(userDetails.created_at)} ·{" "}
+            Miembro desde {convertLocalMonthYear(userDetails.created_at)} · {" "}
             {activeReports} publicaciones activas
           </p>
         </div>
