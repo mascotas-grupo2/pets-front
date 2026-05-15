@@ -3,7 +3,10 @@
 import { UserDetails } from "@/types/user-details";
 import React from "react";
 import { useFormik } from "formik";
-import { FormikHandleError } from "@/components/utils/FormikHelper";
+import {
+  FormikHandleChange,
+  FormikHandleError,
+} from "@/components/utils/FormikHelper";
 import ShowError from "@/components/utils/ShowError";
 import { validationSchemaUpdateUserDetails } from "@/validation/update-user";
 import { putUserDetails } from "@/services/user.info";
@@ -78,12 +81,22 @@ export default function AccountSettingsForm({
         >
           <div className="field">
             <label>Nombre</label>
-            <input {...formik.getFieldProps("firstName")} className="input" />
+            <input
+              type="text"
+              name="firstName"
+              value={formik.values.firstName}
+              onChange={(e) => FormikHandleChange(formik, "firstName", e)}
+            />
             <ShowError message={FormikHandleError(formik, "firstName")} />
           </div>
           <div className="field">
             <label>Apellido</label>
-            <input {...formik.getFieldProps("lastName")} className="input" />
+            <input
+              name="lastName"
+              value={formik.values.lastName}
+              onChange={(e) => FormikHandleChange(formik, "lastName", e)}
+              className="input"
+            />
             <ShowError message={FormikHandleError(formik, "lastName")} />
           </div>
         </div>
@@ -96,7 +109,9 @@ export default function AccountSettingsForm({
         <div className="field">
           <label>Teléfono</label>
           <input
-            {...formik.getFieldProps("phone")}
+            name="phone"
+            value={formik.values.phone}
+            onChange={(e) => FormikHandleChange(formik, "phone", e)}
             className="input"
             placeholder="+54..."
           />
@@ -106,12 +121,22 @@ export default function AccountSettingsForm({
         <h3 style={{ margin: "1.5rem 0 1rem" }}>Ubicación</h3>
         <div className="field">
           <label>Dirección Línea 1</label>
-          <input {...formik.getFieldProps("addressLine1")} className="input" />
-          {FormikHandleError(formik, "addressLine1")}
+          <input
+            name="addressLine1"
+            value={formik.values.addressLine1}
+            onChange={(e) => FormikHandleChange(formik, "addressLine1", e)}
+            className="input"
+          />
+          <ShowError message={FormikHandleError(formik, "addressLine1")} />
         </div>
         <div className="field">
           <label>Dirección Línea 2</label>
-          <input {...formik.getFieldProps("addressLine2")} className="input" />
+          <input
+            name="addressLine2"
+            value={formik.values.addressLine2}
+            onChange={(e) => FormikHandleChange(formik, "addressLine2", e)}
+            className="input"
+          />
           <ShowError message={FormikHandleError(formik, "addressLine2")} />
         </div>
         <div
@@ -124,13 +149,23 @@ export default function AccountSettingsForm({
         >
           <div className="field">
             <label>Ciudad</label>
-            <input {...formik.getFieldProps("town")} className="input" />
+            <input
+              name="town"
+              value={formik.values.town}
+              onChange={(e) => FormikHandleChange(formik, "town", e)}
+              className="input"
+            />
             <ShowError message={FormikHandleError(formik, "town")} />
           </div>
           {adopter && (
             <div className="field">
               <label>Código Postal</label>
-              <input {...formik.getFieldProps("postcode")} className="input" />
+              <input
+                name="postcode"
+                value={formik.values.postcode}
+                onChange={(e) => FormikHandleChange(formik, "postcode", e)}
+                className="input"
+              />
               <ShowError message={FormikHandleError(formik, "postcode")} />
             </div>
           )}
@@ -149,7 +184,11 @@ export default function AccountSettingsForm({
               <div className="field">
                 <label>Situación habitacional</label>
                 <select
-                  {...formik.getFieldProps("livingSituation")}
+                  name="livingSituation"
+                  value={formik.values.livingSituation}
+                  onChange={(e) =>
+                    FormikHandleChange(formik, "livingSituation", e)
+                  }
                   className="input"
                 >
                   <option value="">Seleccionar…</option>
@@ -166,6 +205,7 @@ export default function AccountSettingsForm({
               <div className="field">
                 <label>¿Tiene Jardín?</label>
                 <select
+                  name="hasGarden"
                   className="input"
                   value={formik.values.hasGarden ? "true" : "false"}
                   onChange={(e) =>
@@ -190,7 +230,9 @@ export default function AccountSettingsForm({
                 <label>Adultos en el hogar</label>
                 <input
                   type="number"
-                  {...formik.getFieldProps("adults")}
+                  name="adults"
+                  value={formik.values.adults?.toString()}
+                  onChange={(e) => FormikHandleChange(formik, "adults", e)}
                   className="input"
                 />
                 <ShowError message={FormikHandleError(formik, "adults")} />
@@ -199,7 +241,9 @@ export default function AccountSettingsForm({
                 <label>Niños en el hogar</label>
                 <input
                   type="number"
-                  {...formik.getFieldProps("children")}
+                  name="children"
+                  value={formik.values.children?.toString()}
+                  onChange={(e) => FormikHandleChange(formik, "children", e)}
                   className="input"
                 />
                 <ShowError message={FormikHandleError(formik, "children")} />
@@ -209,7 +253,9 @@ export default function AccountSettingsForm({
             <div className="field">
               <label>¿Hay alergias en la familia?</label>
               <input
-                {...formik.getFieldProps("allergies")}
+                name="allergies"
+                value={formik.values.allergies?.toString()}
+                onChange={(e) => FormikHandleChange(formik, "allergies", e)}
                 className="input"
                 placeholder="Ninguna / Describir..."
               />
@@ -219,7 +265,11 @@ export default function AccountSettingsForm({
             <div className="field">
               <label>Detalle de otras mascotas</label>
               <textarea
-                {...formik.getFieldProps("otherAnimalsDetail")}
+                name="otherAnimalsDetail"
+                value={formik.values.otherAnimalsDetail?.toString()}
+                onChange={(e) =>
+                  FormikHandleChange(formik, "otherAnimalsDetail", e)
+                }
                 className="input"
                 style={{ minHeight: "80px", paddingTop: "0.5rem" }}
               />

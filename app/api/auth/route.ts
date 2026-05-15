@@ -18,14 +18,13 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(new URL("/login?error=no_code", request.url));
   }
 
-  const issuer = process.env.KEYCLOAK_ISSUER; 
-  const clientId = process.env.KEYCLOAK_CLIENT_ID || process.env.KEYCLOAK_AUDIENCE; 
-  const clientSecret = process.env.KEYCLOAK_CLIENT_SECRET; 
+  const issuer = process.env.KEYCLOAK_ISSUER;
+  const clientId = process.env.KEYCLOAK_CLIENT_ID || process.env.KEYCLOAK_AUDIENCE;
+  const clientSecret = process.env.KEYCLOAK_CLIENT_SECRET;
   const backendUrl = process.env.BACKEND_URL || "http://localhost:3001/api";
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
-  const redirectUri = `${baseUrl}/api/auth`; 
+  const redirectUri = `${baseUrl}/api/auth`;
 
-  if (!issuer) throw new Error("KEYCLOAK_ISSUER is not defined in .env");
 
   try {
     // 1. Intercambiamos el código por tokens (Server to Server)
@@ -51,7 +50,7 @@ export async function GET(request: NextRequest) {
     try {
       console.log("Syncing user with backend...");
       await axios.post(`${backendUrl}/auth/sso-sync`, {}, {
-        headers: { 
+        headers: {
           "Authorization": `Bearer ${access_token}`,
           "Content-Type": "application/json"
         },
@@ -74,7 +73,7 @@ export async function GET(request: NextRequest) {
       maxAge: 3600, // 1 hora
       secure: process.env.NODE_ENV === "production",
     });
-    
+
     // Guardamos el refresh_token en una cookie HttpOnly para que el interceptor pueda usarla
     response.cookies.set("refresh_token", refresh_token, {
       path: "/",
