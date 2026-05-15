@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import axios from "axios";
+import { signUserData } from "@/lib/auth-signature";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -7,23 +8,30 @@ export async function GET(request: NextRequest) {
   const errorKeycloak = searchParams.get("error");
   const errorDescription = searchParams.get("error_description");
 
-
-  if (errorKeycloak) {
-    console.error("Keycloak returned an error:", errorKeycloak, "-", errorDescription);
-    return NextResponse.redirect(new URL(`/login?error=${errorKeycloak}`, request.url));
-  }
-
-  if (!code) {
-    console.error("Error: No auth code or error found in searchParams");
-    return NextResponse.redirect(new URL("/login?error=no_code", request.url));
-  }
-
   const issuer = process.env.KEYCLOAK_ISSUER;
   const clientId = process.env.KEYCLOAK_CLIENT_ID || process.env.KEYCLOAK_AUDIENCE;
   const clientSecret = process.env.KEYCLOAK_CLIENT_SECRET;
   const backendUrl = process.env.BACKEND_URL || "http://localhost:3001/api";
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+  const baseUrl = process.env.BASE_URL || "http://localhost:3000";
   const redirectUri = `${baseUrl}/api/auth`;
+
+  // Si ya tenemos un token activo, ignoramos el proceso de intercambio
+  // Esto evita errores de "code already used" si el navegador reintenta la petición
+  const existingToken = request.cookies.get("auth_token");
+  if (existingToken && !errorKeycloak && code) {
+    return NextResponse.redirect(new URL("/account", baseUrl));
+  }
+
+  if (errorKeycloak) {
+    console.error("Keycloak returned an error:", errorKeycloak, "-", errorDescription);
+    return NextResponse.redirect(new URL(`/login?error=${errorKeycloak}`, baseUrl));
+  }
+
+  if (!code) {
+    console.error("Error: No auth code or error found in searchParams");
+    return NextResponse.redirect(new URL("/login?error=no_code", baseUrl));
+  }
+
 
 
   try {
@@ -45,27 +53,50 @@ export async function GET(request: NextRequest) {
     const { access_token, id_token, refresh_token } = tokenResponse.data;
     console.log("Token exchange successful!");
 
+    const idTokenPayload = JSON.parse(
+      Buffer.from(id_token.split(".")[1], "base64").toString()
+    );
+
+    if (idTokenPayload.email_verified !== true) {
+      console.warn("User email is not verified in Keycloak:", idTokenPayload.email);
+      return NextResponse.redirect(new URL("/login?error=email_unverified", baseUrl));
+    }
+
     // 1.5. Sincronizar con el Backend (Just-in-Time Provisioning)
     // Enviamos el token al backend para que cree el usuario en su DB local si no existe
+    let ssoUser = null;
     try {
-      console.log("Syncing user with backend...");
-      await axios.post(`${backendUrl}/auth/sso-sync`, {}, {
+      const syncRes = await axios.post(`${backendUrl}/auth/sso-sync`, {}, {
         headers: {
           "Authorization": `Bearer ${access_token}`,
           "Content-Type": "application/json"
         },
       });
-      console.log("User synchronization successful");
+
+      // Extraemos el usuario que devuelve el backend para procesarlo
+      const rawUser = syncRes.data?.user || syncRes.data?.data || syncRes.data;
+      if (rawUser) {
+        const cleanUser = {
+          isLoggedIn: true,
+          name: rawUser.name || "",
+          role: rawUser.role || "user",
+          adopter: !!rawUser.adopter,
+        };
+        // Aplicamos la firma digital para proteger la integridad en el cliente
+        const signature = signUserData(cleanUser);
+        ssoUser = { ...cleanUser, signature };
+        console.log("User synchronization and local signature successful");
+      }
     } catch (syncError) {
       console.error("Backend Sync failed. User not persisted in DB:", syncError);
       // Si el back falla, es mejor no dejarlo entrar porque no podrá realizar acciones
-      return NextResponse.redirect(new URL("/login?error=db_sync_error", request.url));
+      return NextResponse.redirect(new URL("/login?error=db_sync_error", baseUrl));
     }
 
     // 2. Redirigimos al usuario a la app con el token
     // Lo más común es ponerlo en una cookie para que Redux lo lea al cargar
-    const response = NextResponse.redirect(new URL("/account", request.url));
-    console.log("Redirecting to /account", tokenResponse);
+    const response = NextResponse.redirect(new URL("/account", baseUrl));
+    console.log("Redirecting to /account - Session established");
 
     // Guardamos el token en una cookie (puedes ponerla HttpOnly si tenés un endpoint /api/me)
     response.cookies.set("auth_token", access_token, {
@@ -90,6 +121,17 @@ export async function GET(request: NextRequest) {
       secure: process.env.NODE_ENV === "production",
     });
 
+    // Entregamos el objeto de usuario ya filtrado y firmado en una cookie temporal.
+    // El UserContext podrá leer esto para una hidratación ultra rápida.
+    if (ssoUser) {
+      response.cookies.set("sso_user_data", JSON.stringify(ssoUser), {
+        path: "/",
+        maxAge: 60, // Corta duración, solo para la hidratación inicial tras el redirect
+        httpOnly: false,
+        secure: process.env.NODE_ENV === "production",
+      });
+    }
+
     return response;
   } catch (error) {
     if (axios.isAxiosError(error)) {
@@ -102,6 +144,6 @@ export async function GET(request: NextRequest) {
     } else {
       console.error("SSO Callback Error (Unknown):", error);
     }
-    return NextResponse.redirect(new URL("/login?error=sso_failed", request.url));
+    return NextResponse.redirect(new URL("/login?error=sso_failed", baseUrl));
   }
 }

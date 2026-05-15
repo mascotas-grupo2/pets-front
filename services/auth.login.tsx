@@ -26,3 +26,19 @@ export const login: (
     ErrorGeneric(error);
   }
 };
+
+type ResponseAxiosLogout = {
+  ok: boolean;
+  data: null;
+  status: number;
+};
+export const logout: () => Promise<
+  ResponseAxiosLogout | undefined
+> = async () => {
+  try {
+    const response = await axios.post("auth/logout");
+    return { ok: true, data: null, status: response.status };
+  } catch (error) {
+    ErrorGeneric(error);
+  }
+};

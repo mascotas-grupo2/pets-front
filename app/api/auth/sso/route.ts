@@ -14,10 +14,10 @@ export async function GET(request: NextRequest) {
   }
 
   // Obtenemos las credenciales desde variables de entorno (SOLO SERVIDOR)
-  const issuer = process.env.KEYCLOAK_ISSUER; 
+  const issuer = process.env.KEYCLOAK_ISSUER;
   const clientId = process.env.KEYCLOAK_CLIENT_ID || process.env.KEYCLOAK_AUDIENCE;
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
-  const redirectUri = `${baseUrl}/api/auth`; 
+  const baseUrl = process.env.BASE_URL || "http://localhost:3000";
+  const redirectUri = `${baseUrl}/api/auth`;
 
   if (!issuer || !clientId) {
     console.error("SSO Error: Faltan variables de entorno en el servidor");
@@ -27,7 +27,12 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const authUrl = `${issuer}/protocol/openid-connect/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=openid%20profile%20email&kc_idp_hint=${provider}`;
+  const authUrl = new URL(`${issuer}/protocol/openid-connect/auth`);
+  authUrl.searchParams.set("client_id", clientId);
+  authUrl.searchParams.set("redirect_uri", redirectUri);
+  authUrl.searchParams.set("response_type", "code");
+  authUrl.searchParams.set("scope", "openid profile email");
+  authUrl.searchParams.set("kc_idp_hint", provider);
 
-  return NextResponse.redirect(authUrl);
+  return NextResponse.redirect(authUrl.toString());
 }

@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic";
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import axios from "axios";
+import { signUserData } from "@/lib/auth-signature";
 
 /**
  * Handler genérico para actuar como proxy transparente
@@ -45,6 +46,7 @@ async function handleRequest(request: Request) {
       method: request.method,
       url: targetUrl,
       data: body,
+      withCredentials: true,
       headers: headers,
       responseType: "arraybuffer",
       maxContentLength: Infinity,
@@ -103,33 +105,57 @@ async function handleRequest(request: Request) {
       }
     }
 
-    const nextResponse = new NextResponse(response.data, {
+    // 2. Interceptar endpoints de Auth/Perfil para filtrar y firmar datos
+    const pathLower = cleanPath.toLowerCase();
+    const isAuthAction =
+      pathLower.includes("auth/login") ||
+      pathLower.includes("auth/register") ||
+      pathLower.includes("auth/verify-email") ||
+      pathLower.includes("user/commonInfo") ||
+      pathLower.includes("pet/adoptar");
+
+    let accessToSet = refreshedTokens?.access;
+    let refreshToSet = refreshedTokens?.refresh;
+    let filteredData = response.data;
+
+    if (isAuthAction && response.status >= 200 && response.status < 300) {
+      try {
+        const rawJson = JSON.parse(new TextDecoder().decode(response.data));
+        const userObj = rawJson.user || rawJson.data || rawJson;
+
+        // Mapeamos solo los campos esenciales definidos en la interfaz User (types/user.ts)
+        // Esto evita exponer datos sensibles o innecesarios en el cliente
+        const cleanUser = {
+          isLoggedIn: true,
+          name: userObj.name || "",
+          role: userObj.role || "user",
+          adopter: !!userObj.adopter,
+        };
+
+        // Generamos la firma digital para proteger la integridad de los datos en el cliente
+        const signature = signUserData(cleanUser);
+        const finalResponse = { ...cleanUser, signature };
+
+        // Re-empaquetamos los datos filtrados para el cliente
+        filteredData = Buffer.from(JSON.stringify(finalResponse));
+
+        // Extraemos tokens para las cookies si no fueron refrescados arriba
+        accessToSet =
+          rawJson.access_token || rawJson.data?.access_token || rawJson.token || accessToSet;
+        refreshToSet =
+          rawJson.refresh_token || rawJson.data?.refresh_token || rawJson.refreshToken || refreshToSet;
+      } catch (e) {
+        /* no json */
+      }
+    }
+
+    const nextResponse = new NextResponse(filteredData, {
       status: response.status,
       headers: {
         "Content-Type":
           (response.headers["content-type"] as string) || "application/json",
       },
     });
-
-    // 2. Interceptar Login/Register para guardar cookies de usuario manual
-    const pathLower = cleanPath.toLowerCase();
-    const isAuthAction =
-      pathLower.includes("auth/login") || pathLower.includes("auth/register");
-
-    let accessToSet = refreshedTokens?.access;
-    let refreshToSet = refreshedTokens?.refresh;
-
-    if (isAuthAction && response.status >= 200 && response.status < 300) {
-      try {
-        const data = JSON.parse(new TextDecoder().decode(response.data));
-        accessToSet =
-          data.access_token || data.data?.access_token || data.token;
-        refreshToSet =
-          data.refresh_token || data.data?.refresh_token || data.refreshToken;
-      } catch (e) {
-        /* no json */
-      }
-    }
 
     // 3. Seteo de Cookies (Persistencia)
     if (accessToSet) {

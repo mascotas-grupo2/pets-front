@@ -63,7 +63,7 @@ export default function AdoptarSolicitarPage() {
 function AdoptarSolicitarContent() {
   const router = useRouter();
   const dispatch = useDispatch();
-  const { isLoggedIn } = useUserContext();
+  const { isLoggedIn, saveUser } = useUserContext();
   const searchParams = useSearchParams();
   const targetPetId = searchParams.get("pet") ?? "";
   const targetPetName = searchParams.get("name") ?? "";
@@ -80,6 +80,7 @@ function AdoptarSolicitarContent() {
         if (!res) return;
         if (res.ok) {
           dispatch({ type: "user/setFormAdoption", payload: res.data });
+          saveUser(res.data)
           handleToast("success", "¡Solicitud enviada con éxito!");
           setSubmitted(true);
         } else {

@@ -199,7 +199,7 @@ function DoneScreen({
       <div className="page-title">
         <div className="container">
           <h1>¡Publicación enviada!</h1>
-          <p>La comunidad ya puede ayudarte a encontrar a tu mascota.</p>
+          <p>La comunidad ya puede ayudarte.</p>
         </div>
       </div>
       <div className="container">
