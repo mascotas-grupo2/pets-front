@@ -72,3 +72,20 @@ export const putUserDetails: (
     ErrorGeneric(error);
   }
 };
+
+type ResponseAxiosUpload = { ok: boolean; data: { photo: string }; status: number };
+export const uploadUserPhoto: (file: File) => Promise<ResponseAxiosUpload | undefined> = async (file: File) => {
+  try {
+    const form = new FormData();
+    form.append("photo", file);
+    const response = await axios.post(`user/photo`, form, {
+      headers: {
+        // Let browser set the correct multipart boundary
+        "Content-Type": "multipart/form-data",
+      },
+    });
+    return { ok: true, data: response.data, status: response.status };
+  } catch (error) {
+    ErrorGeneric(error);
+  }
+};

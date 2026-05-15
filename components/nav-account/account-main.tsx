@@ -3,7 +3,7 @@ import { convertLocalMonthYear } from "../utils/helpers";
 import { PetCard } from "../pet-card";
 import { UserDetails } from "@/types/user-details";
 import { Pet } from "@/types/pet";
-import { putUserDetails } from "@/services/user.info";
+import { putUserDetails, uploadUserPhoto } from "@/services/user.info";
 import handleToast from "../utils/toast";
 import { ErrorGeneric } from "../utils/catchErrors";
 
@@ -34,33 +34,21 @@ export default function ProfileView({
       handleToast("error", "La imagen es muy pesada (máximo 2MB)");
       return;
     }
-
-    const reader = new FileReader();
-    reader.onloadend = async () => {
-      const base64String = reader.result as string;
-      setIsUpdating(true);
-
-      try {
-        // Enviamos todos los datos actuales pero pisamos la foto
-        const res = await putUserDetails({
-          ...userDetails,
-          photo: base64String,
-        });
-
-        if (res && res.ok) {
-          handleToast("success", "Foto de perfil actualizada");
-          // Recargamos para que el contexto de usuario y la vista tomen los nuevos datos
-          window.location.reload();
-        } else {
-          handleToast("error", "No se pudo actualizar la foto");
-        }
-      } catch (error) {
-        ErrorGeneric(error);
-      } finally {
-        setIsUpdating(false);
+    setIsUpdating(true);
+    try {
+      const res = await uploadUserPhoto(file);
+      if (res && res.ok) {
+        handleToast("success", "Foto de perfil actualizada");
+        // recargar para que el contexto de usuario tome la nueva URL
+        window.location.reload();
+      } else {
+        handleToast("error", "No se pudo actualizar la foto");
       }
-    };
-    reader.readAsDataURL(file);
+    } catch (error) {
+      ErrorGeneric(error);
+    } finally {
+      setIsUpdating(false);
+    }
   };
 
   return (
