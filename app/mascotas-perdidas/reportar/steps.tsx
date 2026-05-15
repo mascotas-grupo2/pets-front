@@ -286,6 +286,23 @@ export function PhotoStep({ formik, onSelectFile }: PhotoStepProps) {
             <input type="file" accept="image/*" onChange={onSelectFile} multiple />
           </label>
           <ShowError message={FormikHandleError(formik, "photo")} />
+          {photosArray.length > 1 && (
+            <div
+              role="status"
+              aria-live="polite"
+              style={{
+                background: "#fff4e5",
+                border: "1px solid #ffd8a8",
+                padding: "0.5rem",
+                borderRadius: 6,
+                marginTop: "0.5rem",
+                color: "#663c00",
+                fontSize: "0.9rem",
+              }}
+            >
+              Puedes arrastrar las miniaturas para cambiar el orden de las imágenes.
+            </div>
+          )}
           {photosArray.length > 0 && (
             <div style={{ display: "flex", gap: "0.5rem", marginTop: "0.5rem", flexWrap: "wrap" }}>
               {photosArray.map((p, i) => {
