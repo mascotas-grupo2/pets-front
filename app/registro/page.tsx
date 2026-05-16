@@ -23,14 +23,18 @@ export default function RegisterPage() {
   const [showConfirm, setShowConfirm] = useState(false);
   const [acceptTerms, setAcceptTerms] = useState(false);
 
+  const passwordChecks = (pass: string) => ({
+    length: pass.length >= 8,
+    lower: /[a-z]/.test(pass),
+    upper: /[A-Z]/.test(pass),
+    digit: /\d/.test(pass),
+    symbol: /[!@#$%^&*()_+\-={}[\]:;"'<>,.?/\\|`~]/.test(pass),
+  });
+
   const getPasswordStrength = (pass: string) => {
     if (!pass) return 0;
-    let score = 0;
-    if (pass.length >= 8) score++;
-    if (/[a-z]/.test(pass)) score++;
-    if (/[A-Z]/.test(pass)) score++;
-    if (/\d/.test(pass)) score++;
-    return score;
+    const c = passwordChecks(pass);
+    return Number(c.length) + Number(c.lower) + Number(c.upper) + Number(c.digit) + Number(c.symbol);
   };
 
   const formik = useFormik<RegisterForm>({
@@ -49,16 +53,13 @@ export default function RegisterPage() {
       try {
         const res = await register(values.name, values.email, values.password);
         if (res && res.ok && res.data) {
-          // Mapear res.data a tipo User si es necesario, asumiendo que register devuelve User
-          // saveUser(res.data as User);
           handleToast(
             "success",
-            "¡Ingreso exitoso! Verifique su casilla de correo electrónico.",
+            "¡Cuenta creada! Verifique su casilla de correo electrónico para ingresar.",
           );
-          //router.push("/account");
+          router.push("/login");
         } else {
           handleToast("error", "¡Error al registrarse!");
-          router.push("/account");
         }
       } catch (error) {
         console.error(error);
@@ -82,14 +83,16 @@ export default function RegisterPage() {
   };
 
   const strength = getPasswordStrength(formik.values.password);
+  const checks = passwordChecks(formik.values.password);
   const strengthColors = [
     "#e0e0e0",
     "#ff4d4f",
+    "#ff7a45",
     "#ffa940",
-    "#faad14",
+    "#73d13d",
     "#52c41a",
   ];
-  const strengthLabels = ["", "Muy débil", "Débil", "Segura", "Muy segura"];
+  const strengthLabels = ["", "Muy débil", "Débil", "Aceptable", "Segura", "Muy segura"];
 
   return (
     <main className="auth-wrap">
@@ -192,7 +195,7 @@ export default function RegisterPage() {
                     <div
                       style={{
                         height: "100%",
-                        width: `${(strength / 4) * 100}%`,
+                        width: `${(strength / 5) * 100}%`,
                         backgroundColor: strengthColors[strength],
                         transition:
                           "width 0.3s ease, background-color 0.3s ease",
@@ -212,6 +215,37 @@ export default function RegisterPage() {
                   </small>
                 </div>
               )}
+              <ul
+                style={{
+                  listStyle: "none",
+                  padding: 0,
+                  margin: "0.5rem 0 0 0",
+                  fontSize: "0.75rem",
+                  lineHeight: "1.4",
+                }}
+                aria-label="Requisitos de la contraseña"
+              >
+                {[
+                  { ok: checks.length, label: "Mínimo 8 caracteres" },
+                  { ok: checks.upper, label: "Una letra mayúscula" },
+                  { ok: checks.lower, label: "Una letra minúscula" },
+                  { ok: checks.digit, label: "Un número" },
+                  { ok: checks.symbol, label: "Un símbolo (! @ # $ % & * …)" },
+                ].map((r) => (
+                  <li
+                    key={r.label}
+                    style={{
+                      color: r.ok ? "#52c41a" : "var(--gray-600)",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "0.4rem",
+                    }}
+                  >
+                    <span aria-hidden>{r.ok ? "✓" : "○"}</span>
+                    <span>{r.label}</span>
+                  </li>
+                ))}
+              </ul>
               <ShowError message={FormikHandleError(formik, "password")} />
             </div>
 
