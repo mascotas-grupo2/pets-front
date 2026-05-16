@@ -82,6 +82,7 @@ export default function AccountSettingsForm({
           <div className="field">
             <label>Nombre</label>
             <input
+              className="input"
               type="text"
               name="firstName"
               value={formik.values.firstName}

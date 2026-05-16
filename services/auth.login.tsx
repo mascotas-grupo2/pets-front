@@ -22,8 +22,9 @@ export const login: (
       password,
     });
     return { ok: true, data: response.data, status: response.status };
-  } catch (error) {
+  } catch (error: unknown) {
     ErrorGeneric(error);
+    return { ok: false, data: null, status: (error as { response?: { status: number } }).response?.status || 500 };
   }
 };
 

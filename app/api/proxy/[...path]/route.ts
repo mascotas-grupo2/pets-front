@@ -58,9 +58,19 @@ async function handleRequest(request: Request) {
   try {
     let response = await forwardRequest();
     let refreshedTokens: { access: string; refresh?: string } | null = null;
-
     // 1. Manejo automático de Refresh en caso de 401
     if (response.status === 401) {
+      const pathLower = cleanPath.toLowerCase();
+      if (pathLower.includes("auth/login")) {
+        console.log(pathLower, new TextDecoder().decode(response.data))
+        return new NextResponse(new TextDecoder().decode(response.data), {
+          status: 401,
+          headers: {
+            "Content-Type": (response.headers["content-type"] as string) || "application/json",
+          },
+        });
+      }
+
       const refreshToken = cookieStore.get("refresh_token")?.value;
       if (refreshToken) {
         try {
@@ -102,6 +112,12 @@ async function handleRequest(request: Request) {
         } catch (e) {
           console.error("Proxy: Refresh falló definitivamente");
         }
+      } else {
+        // Si no es un login y no hay refresh_token, la sesión expiró o es inexistente
+        return NextResponse.json(
+          { message: "Unauthorized - Please log in again" },
+          { status: 401 },
+        );
       }
     }
 
@@ -137,7 +153,7 @@ async function handleRequest(request: Request) {
         const finalResponse = { ...cleanUser, signature };
 
         // Re-empaquetamos los datos filtrados para el cliente
-        filteredData = Buffer.from(JSON.stringify(finalResponse));
+        filteredData = JSON.stringify(finalResponse);
 
         // Extraemos tokens para las cookies si no fueron refrescados arriba
         accessToSet =
