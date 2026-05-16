@@ -74,8 +74,8 @@ export default function ProfileView({
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={userDetails.photo || "/images/avatar-placeholder.jpg"}
-              alt="User Photo"
+              src={userDetails.photo || "/images/avatar-placeholder.svg"}
+              alt="Foto de perfil"
               style={{
                 opacity: isUpdating ? 0.5 : 1,
                 transition: "all 0.3s ease",

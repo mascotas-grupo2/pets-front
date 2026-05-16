@@ -7,18 +7,28 @@ export async function POST(request: NextRequest) {
     const { signature, ...userData } = body;
 
     if (!signature || !userData.name || !userData.role) {
+      console.warn("[verify] missing fields", { hasSig: !!signature, name: userData.name, role: userData.role });
       return NextResponse.json({ valid: false }, { status: 400 });
     }
 
-    // Recalculamos la firma con el secreto del servidor
     const expectedSignature = signUserData(userData);
+    const match = signature === expectedSignature;
 
-    if (signature === expectedSignature) {
-      return NextResponse.json({ valid: true });
+    if (!match) {
+      console.warn("[verify] signature mismatch", {
+        name: userData.name,
+        role: userData.role,
+        adopter: userData.adopter,
+        secretLoaded: !!process.env.APP_SIGNATURE_SECRET,
+        receivedSig: signature?.slice(0, 12) + "…",
+        expectedSig: expectedSignature.slice(0, 12) + "…",
+      });
     }
 
+    if (match) return NextResponse.json({ valid: true });
     return NextResponse.json({ valid: false }, { status: 401 });
   } catch (error) {
+    console.error("[verify] threw:", error);
     return NextResponse.json({ valid: false }, { status: 500 });
   }
 }
