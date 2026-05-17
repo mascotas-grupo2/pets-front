@@ -42,8 +42,7 @@ export type Pet = {
   name?: string;
   status: PetStatus;
   medicalStatus?: PetMedicalStatus;
-  photo: string | null;
-  photos?: string[];
+  photos: string[] | null;
   description: string;
   animalType: AnimalType;
   date: string;

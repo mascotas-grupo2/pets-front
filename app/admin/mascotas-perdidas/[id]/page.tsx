@@ -114,9 +114,9 @@ export default function AdminPetEditPage() {
 
         <header className="admin-edit-header">
           <div className="admin-edit-avatar">
-            {pet.photo ? (
+            {pet.photos && pet.photos.length > 0 ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={pet.photo} alt={pet.name ?? ""} />
+              <img src={pet.photos[0]} alt={pet.name ?? ""} />
             ) : (
               <span aria-hidden>🐾</span>
             )}

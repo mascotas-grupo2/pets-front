@@ -33,33 +33,44 @@ export default function AdminUsuariosPage() {
   const [loading, setLoading] = useState(true);
   const [savingId, setSavingId] = useState<number | null>(null);
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    const res = await listAdminUsers({
-      page,
-      pageSize: PAGE_SIZE,
-      search: search || undefined,
-      role: roleFilter === "todos" ? undefined : roleFilter,
-    });
-    if (res.ok && res.data) {
-      setItems(res.data.items);
-      setTotal(res.data.total);
-    }
-    setLoading(false);
-  }, [page, search, roleFilter]);
-
   useEffect(() => {
-    load();
-  }, [load]);
+    let ignore = false;
+
+    const startFetching = async () => {
+      const res = await listAdminUsers({
+        page,
+        pageSize: PAGE_SIZE,
+        search: search || undefined,
+        role: roleFilter === "todos" ? undefined : roleFilter,
+      });
+
+      if (!ignore) {
+        if (res.ok && res.data) {
+          setItems(res.data.items);
+          setTotal(res.data.total);
+        }
+        setLoading(false);
+      }
+    };
+
+    startFetching();
+    return () => {
+      ignore = true;
+    };
+  }, [page, search, roleFilter]);
 
   // Debounce de búsqueda
   useEffect(() => {
+    const trimmed = searchInput.trim();
+    if (trimmed === search) return;
+
     const t = setTimeout(() => {
-      setSearch(searchInput.trim());
+      setLoading(true);
+      setSearch(trimmed);
       setPage(1);
     }, 300);
     return () => clearTimeout(t);
-  }, [searchInput]);
+  }, [searchInput, search]);
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
@@ -131,8 +142,12 @@ export default function AdminUsuariosPage() {
               className="select"
               value={roleFilter}
               onChange={(e) => {
-                setRoleFilter(e.target.value as AdminUserRole | "todos");
-                setPage(1);
+                const val = e.target.value as AdminUserRole | "todos";
+                if (val !== roleFilter) {
+                  setLoading(true);
+                  setRoleFilter(val);
+                  setPage(1);
+                }
               }}
             >
               {ROLE_OPTIONS.map((r) => (
@@ -265,7 +280,10 @@ export default function AdminUsuariosPage() {
             <button
               type="button"
               className="pagination-btn"
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              onClick={() => {
+                setLoading(true);
+                setPage((p) => Math.max(1, p - 1));
+              }}
               disabled={page === 1}
             >
               ←
@@ -276,7 +294,10 @@ export default function AdminUsuariosPage() {
             <button
               type="button"
               className="pagination-btn"
-              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              onClick={() => {
+                setLoading(true);
+                setPage((p) => Math.min(totalPages, p + 1));
+              }}
               disabled={page === totalPages}
             >
               →
