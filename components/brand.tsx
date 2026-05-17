@@ -5,7 +5,7 @@ export function Brand() {
     <Link href="/" className="brand" aria-label="Huellitas Unidas">
       <span>
         <img
-          src="/favicon.ico"
+          src="./favicon.ico"
           alt=""
           className="brand-paw"
         />

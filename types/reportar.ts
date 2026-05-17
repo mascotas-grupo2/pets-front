@@ -24,7 +24,8 @@ export type ReportForm = {
   heightCm: number | "";
 
   // Foto (paso: Foto)
-  photo: PhotoUpload | null;
+  // ahora soporta una o varias fotos
+  photos: PhotoUpload[] | null;
 
   // Ubicación (paso: Ubicación)
   location: string;

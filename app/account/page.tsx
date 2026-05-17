@@ -106,15 +106,16 @@ export default function AccountPage() {
             {activeSection === "profile" && (
               <>
                 <ProfileView
+                  setUserDetails={setUserDetails}
                   userDetails={userDetails}
                   activeReports={activeReports}
                   pets={pets}
-                />
+                />1
               </>
             )}
             {activeSection === "reports" && <MyReportsView pets={pets} />}
             {activeSection === "settings" && (
-              <AccountSettingsForm userDetails={userDetails} />
+              <AccountSettingsForm userDetails={userDetails}/>
             )}
           </div>
         </div>

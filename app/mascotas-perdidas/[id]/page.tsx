@@ -51,9 +51,8 @@ export default function PetDetailPage() {
     if (!pet) return null;
     const animalLabel =
       pet.animalType.charAt(0).toUpperCase() + pet.animalType.slice(1);
-    const photos =
-      pet.photos && pet.photos.length > 0 ? pet.photos : [pet.photo];
-    const mainPhoto = activePhoto ?? photos[0];
+    const photoUrls = (pet.photos as unknown as string[]) || [];
+    const mainPhoto = activePhoto ?? (photoUrls.length > 0 ? photoUrls[0] : null);
 
     const specs = [
       {
@@ -84,7 +83,7 @@ export default function PetDetailPage() {
       { label: "Tiene chapita con nombre", value: pet.hasTag },
       { label: "Tiene microchip", value: pet.microchipped },
     ];
-    return { animalLabel, photos, mainPhoto, specs, checklist };
+    return { animalLabel, photos: photoUrls, mainPhoto, specs, checklist };
   }, [pet, activePhoto]);
 
   if (loading) {
@@ -122,7 +121,10 @@ export default function PetDetailPage() {
           <div className="pet-detail-identity">
             <div className="pet-detail-avatar">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={pet.photo || ""} alt={pet.name ?? detail.animalLabel} />
+              <img
+                src={(pet.photos?.[0] as unknown as string) || "/images/avatar-placeholder.svg"}
+                alt={pet.name ?? detail.animalLabel}
+              />
             </div>
             <div className="pet-detail-identity-body">
               <h2>
@@ -154,7 +156,7 @@ export default function PetDetailPage() {
               </span>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={detail.mainPhoto || pet.photo || ""}
+                src={detail.mainPhoto || "/images/avatar-placeholder.svg"}
                 alt={pet.name ?? detail.animalLabel}
               />
             </div>
@@ -297,7 +299,10 @@ export default function PetDetailPage() {
                 <li key={p.id} className="similar-card">
                   <div className="similar-photo">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={p.photo || ""} alt={p.name ?? ""} />
+                    <img
+                      src={(p.photos?.[0] as unknown as string) || "/images/avatar-placeholder.svg"}
+                      alt={p.name ?? ""}
+                    />
                   </div>
                   <h3>{p.name ?? p.animalType}</h3>
                   <p>

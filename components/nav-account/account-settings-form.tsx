@@ -41,6 +41,7 @@ export default function AccountSettingsForm({
     validationSchema: validationSchemaUpdateUserDetails,
     onSubmit: async (values) => {
       try {
+        debugger
         const res = await putUserDetails(values);
         if (!res) return;
         if (res.ok) {
@@ -82,6 +83,7 @@ export default function AccountSettingsForm({
           <div className="field">
             <label>Nombre</label>
             <input
+              className="input"
               type="text"
               name="firstName"
               value={formik.values.firstName}

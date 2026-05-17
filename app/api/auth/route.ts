@@ -9,7 +9,8 @@ export async function GET(request: NextRequest) {
   const errorDescription = searchParams.get("error_description");
 
   const issuer = process.env.KEYCLOAK_ISSUER;
-  const clientId = process.env.KEYCLOAK_CLIENT_ID || process.env.KEYCLOAK_AUDIENCE;
+  const clientId =
+    process.env.KEYCLOAK_CLIENT_ID || process.env.KEYCLOAK_AUDIENCE;
   const clientSecret = process.env.KEYCLOAK_CLIENT_SECRET;
   const backendUrl = process.env.BACKEND_URL || "http://localhost:3001/api";
   const baseUrl = process.env.BASE_URL || "http://localhost:3000";
@@ -23,16 +24,21 @@ export async function GET(request: NextRequest) {
   }
 
   if (errorKeycloak) {
-    console.error("Keycloak returned an error:", errorKeycloak, "-", errorDescription);
-    return NextResponse.redirect(new URL(`/login?error=${errorKeycloak}`, baseUrl));
+    console.error(
+      "Keycloak returned an error:",
+      errorKeycloak,
+      "-",
+      errorDescription,
+    );
+    return NextResponse.redirect(
+      new URL(`/login?error=${errorKeycloak}`, baseUrl),
+    );
   }
 
   if (!code) {
     console.error("Error: No auth code or error found in searchParams");
     return NextResponse.redirect(new URL("/login?error=no_code", baseUrl));
   }
-
-
 
   try {
     // 1. Intercambiamos el código por tokens (Server to Server)
@@ -53,25 +59,33 @@ export async function GET(request: NextRequest) {
     const { access_token, id_token, refresh_token } = tokenResponse.data;
     console.log("Token exchange successful!");
 
-    const idTokenPayload = JSON.parse(
-      Buffer.from(id_token.split(".")[1], "base64").toString()
-    );
+    // const idTokenPayload = JSON.parse(
+    //   Buffer.from(id_token.split(".")[1], "base64").toString(),
+    // );
 
-    if (idTokenPayload.email_verified !== true) {
-      console.warn("User email is not verified in Keycloak:", idTokenPayload.email);
-      return NextResponse.redirect(new URL("/login?error=email_unverified", baseUrl));
-    }
+    // if (
+    //   idTokenPayload.identity_provider !== "google" &&
+    //   idTokenPayload.email_verified !== true
+    // ) {
+    //   return NextResponse.redirect(
+    //     new URL("/login?error=email_unverified", baseUrl),
+    //   );
+    // }
 
     // 1.5. Sincronizar con el Backend (Just-in-Time Provisioning)
     // Enviamos el token al backend para que cree el usuario en su DB local si no existe
     let ssoUser = null;
     try {
-      const syncRes = await axios.post(`${backendUrl}/auth/sso-sync`, {}, {
-        headers: {
-          "Authorization": `Bearer ${access_token}`,
-          "Content-Type": "application/json"
+      const syncRes = await axios.post(
+        `${backendUrl}/auth/sso-sync`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${access_token}`,
+            "Content-Type": "application/json",
+          },
         },
-      });
+      );
 
       // Extraemos el usuario que devuelve el backend para procesarlo
       const rawUser = syncRes.data?.user || syncRes.data?.data || syncRes.data;
@@ -88,9 +102,14 @@ export async function GET(request: NextRequest) {
         console.log("User synchronization and local signature successful");
       }
     } catch (syncError) {
-      console.error("Backend Sync failed. User not persisted in DB:", syncError);
+      console.error(
+        "Backend Sync failed. User not persisted in DB:",
+        syncError,
+      );
       // Si el back falla, es mejor no dejarlo entrar porque no podrá realizar acciones
-      return NextResponse.redirect(new URL("/login?error=db_sync_error", baseUrl));
+      return NextResponse.redirect(
+        new URL("/login?error=db_sync_error", baseUrl),
+      );
     }
 
     // 2. Redirigimos al usuario a la app con el token
@@ -139,7 +158,7 @@ export async function GET(request: NextRequest) {
         status: error.response?.status,
         statusText: error.response?.statusText,
         data: error.response?.data,
-        configUrl: error.config?.url
+        configUrl: error.config?.url,
       });
     } else {
       console.error("SSO Callback Error (Unknown):", error);

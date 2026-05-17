@@ -8,7 +8,7 @@ import { ReportForm } from "@/types/reportar";
 import { reportValidationSchema } from "@/validation/reportar";
 import { useFormik } from "formik";
 import { useRouter } from "next/navigation";
-import { ChangeEvent, useState } from "react";
+import { ChangeEvent, useEffect, useState } from "react";
 import { buildPetFromReport } from "./build-pet";
 import {
   CharacteristicsStep,
@@ -21,10 +21,13 @@ import {
   StartStep,
 } from "./steps";
 import { INITIAL_VALUES, LAST_STEP_INDEX, STEPS } from "./wizard-config";
+import { getUserDetails } from "@/services/user.info";
+import { useUserContext } from "@/context/UserContext";
 
 export default function ReportPage() {
   const router = useRouter();
   const dispatch = useAppDispatch();
+  const { isLoggedIn } = useUserContext();
   const [stepIndex, setStepIndex] = useState(0);
   const [isDone, setIsDone] = useState(false);
 
@@ -34,29 +37,55 @@ export default function ReportPage() {
     onSubmit: async (values) => {
       const pet = buildPetFromReport(values);
       try {
-        const res = await reportPet(pet);
+        // optimista: mostrar localmente
+        dispatch({ type: "pets/ReportPet", payload: pet });
+        const res = await reportPet(values);
         if (res && res.ok) {
           dispatch({ type: "pets/ReportPet", payload: res.data });
           handleToast("success", "¡Publicación creada con éxito!");
           setIsDone(true);
         }
       } catch (err) {
-        console.warn("No se pudo persistir localmente", err);
+        console.warn("Error enviando reporte", err);
+        handleToast("error", "No se pudo crear la publicación");
       }
     },
   });
 
-  function handleSelectFile(e: ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () =>
-      formik.setFieldValue("photo", {
-        file,
-        name: file.name,
-        url: reader.result as string,
-      });
-    reader.readAsDataURL(file);
+  useEffect(() => {
+    if (!isLoggedIn) return;
+
+    getUserDetails().then((res) => {
+      if (res && res.ok) {
+        formik.setValues((prev) => ({
+          ...prev,
+          contactEmail: res.data.email || "",
+          contactPhone: res.data.phone || "",
+        }));
+      }
+    });
+  }, [isLoggedIn]);
+
+  async function handleSelectFile(e: ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+
+    function readFile(file: File) {
+      return new Promise<{ file: File; name: string; url: string }>(
+        (resolve) => {
+          const reader = new FileReader();
+          reader.onload = () =>
+            resolve({ file, name: file.name, url: reader.result as string });
+          reader.readAsDataURL(file);
+        },
+      );
+    }
+
+    const reads = files.map((f) => readFile(f));
+    const uploads = await Promise.all(reads);
+
+    const existing = formik.values.photos || [];
+    formik.setFieldValue("photos", [...existing, ...uploads]);
   }
 
   async function goToNextStep() {

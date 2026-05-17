@@ -11,13 +11,16 @@ export const reportDataSchema = Yup.object({
   date: Yup.string().required("Requerido"),
 });
 
+export const photoFileSchema = Yup.object({
+  name: Yup.string().required("Requerido"),
+  file: Yup.mixed().required("Requerido"),
+});
+
 export const reportPhotoSchema = Yup.object({
-  photo: Yup.object({
-    name: Yup.string().required("Requerido"),
-    file: Yup.mixed().required("Requerido"),
-  })
-    .nullable()
-    .required("Requerido"),
+  photos: Yup.array()
+    .of(photoFileSchema)
+    .min(1, "Se requiere al menos una foto")
+    .required("Se requiere al menos una foto"),
 });
 
 export const reportLocationSchema = Yup.object({
