@@ -150,7 +150,7 @@ export default function PetDetailPage() {
           <div className="pet-detail-col-main">
             <div className="pet-detail-hero">
               <span className="pet-badge">
-                {pet.status === "en adopción" ? "Adoptar" : "Perdido"}
+                {pet.status.toLocaleUpperCase()}
               </span>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
