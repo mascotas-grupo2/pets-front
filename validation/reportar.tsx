@@ -17,17 +17,10 @@ export const photoFileSchema = Yup.object({
 });
 
 export const reportPhotoSchema = Yup.object({
-  photo: Yup.mixed().test("photo-or-photos", "Requerido", function (value) {
-    if (!value) return this.createError({ message: "Requerido" });
-    if (Array.isArray(value)) {
-      if (value.length === 0) return this.createError({ message: "Requerido" });
-      // validate first element has name and file
-      const ok = value.every((v) => v && v.name && v.file);
-      return ok || this.createError({ message: "Archivo inválido" });
-    }
-    // single object
-    return value && value.name && value.file ? true : this.createError({ message: "Requerido" });
-  }),
+  photos: Yup.array()
+    .of(photoFileSchema)
+    .min(1, "Se requiere al menos una foto")
+    .required("Se requiere al menos una foto"),
 });
 
 export const reportLocationSchema = Yup.object({

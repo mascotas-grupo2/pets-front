@@ -38,7 +38,7 @@ export const STEPS: readonly WizardStep[] = [
     label: "Foto",
     icon: "📷",
     schema: reportPhotoSchema,
-    fields: ["photo"],
+    fields: ["photos"],
   },
   { key: "details", label: "Detalles", icon: "📝", schema: null, fields: [] },
   {
@@ -74,7 +74,7 @@ export const INITIAL_VALUES: ReportForm = {
   weightKg: "",
   heightCm: "",
 
-  photo: null,
+  photos: [],
   location: "",
 
   hasCollar: false,

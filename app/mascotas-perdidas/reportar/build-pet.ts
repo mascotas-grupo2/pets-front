@@ -10,7 +10,6 @@ export function buildPetFromReport(values: ReportForm): Pet {
   return {
     id: `local-${Date.now()}`,
     status: "perdido",
-    photos: [],
     createdAt: new Date().toISOString(),
 
     name: values.name || undefined,
@@ -18,12 +17,7 @@ export function buildPetFromReport(values: ReportForm): Pet {
     description: values.description,
     date: values.date,
 
-    photo: Array.isArray(values.photo)
-      ? values.photo[0]?.url ?? null
-      : typeof values.photo === "string"
-      ? values.photo
-      : values.photo?.url ?? null,
-    photos: Array.isArray(values.photo) ? values.photo.map((p) => p.url) : [],
+    photos: Array.isArray(values.photos) ? values.photos.map((p) => p.url) : [],
 
     location: values.location,
     contactPhone: values.contactPhone,

@@ -7,8 +7,7 @@ export type Pet = {
   ownerId?: number;
   name?: string;
   status: PetStatus;
-  photo: string | null;
-  photos?: string[];
+  photos: string[];
   description: string;
   animalType: AnimalType;
   date: string;

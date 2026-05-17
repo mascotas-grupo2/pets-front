@@ -5,7 +5,6 @@ export const seedPets: Pet[] = [
     status: "perdido",
     id: "seed-1",
     name: "Toby",
-    photo: "/images/pet-dog.jpg",
     photos: [
       "/images/pet-dog.jpg",
       "/images/guide-1.jpg",
@@ -38,7 +37,6 @@ export const seedPets: Pet[] = [
     id: "seed-2",
     status: "perdido",
     name: "Luna",
-    photo: "/images/pet-cat.jpg",
     photos: [
       "/images/pet-cat.jpg",
       "/images/guide-4.jpg",
@@ -71,7 +69,6 @@ export const seedPets: Pet[] = [
     id: "seed-3",
     status: "perdido",
     name: "Bella",
-    photo: "/images/guide-1.jpg",
     photos: ["/images/guide-1.jpg", "/images/pet-dog.jpg"],
     description:
       "Perrita caniche blanca, muy pequeña. Se escapó por el portón cuando abrieron para sacar la basura. Tiene un moño rosa en la cabeza.",
@@ -99,7 +96,6 @@ export const seedPets: Pet[] = [
     id: "seed-4",
     status: "en adopción",
     name: "Simba",
-    photo: "/images/guide-4.jpg",
     photos: ["/images/guide-4.jpg", "/images/pet-cat.jpg"],
     description:
       "Gato atigrado naranja, muy grande y peludo. Se perdió cerca del parque. Es tímido con extraños pero se acerca si le mostrás comida.",
@@ -127,7 +123,6 @@ export const seedPets: Pet[] = [
     id: "seed-5",
     status: "encontrado",
     name: "Rocco",
-    photo: "/images/guide-2.jpg",
     photos: ["/images/guide-2.jpg", "/images/pet-dog.jpg"],
     description:
       "Bulldog francés negro. Ronca fuerte y es muy cariñoso. Se escapó durante un paseo cuando un auto lo asustó.",
@@ -155,7 +150,6 @@ export const seedPets: Pet[] = [
     id: "seed-6",
     status: "perdido",
     name: "Mía",
-    photo: "/images/guide-5.jpg",
     photos: ["/images/guide-5.jpg", "/images/pet-cat.jpg"],
     description:
       "Gata negra de ojos verdes. Se escapó del balcón del 3er piso. Muy ágil y asustadiza, responde a su nombre.",

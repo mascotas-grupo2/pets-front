@@ -25,7 +25,7 @@ export type ReportForm = {
 
   // Foto (paso: Foto)
   // ahora soporta una o varias fotos
-  photo: PhotoUpload | PhotoUpload[] | null;
+  photos: PhotoUpload[] | null;
 
   // Ubicación (paso: Ubicación)
   location: string;

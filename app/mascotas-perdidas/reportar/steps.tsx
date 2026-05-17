@@ -8,7 +8,7 @@ import {
 import ShowError from "@/components/utils/ShowError";
 import { ReportForm } from "@/types/reportar";
 import { FormikProps } from "formik";
-import { ChangeEvent, useState } from "react";
+import { ChangeEvent, DragEvent, useState } from "react";
 
 /** Alias para los props de un paso típico que sólo necesita el formik bag. */
 type StepProps = { formik: FormikProps<ReportForm> };
@@ -236,12 +236,11 @@ type PhotoStepProps = StepProps & {
 };
 
 export function PhotoStep({ formik, onSelectFile }: PhotoStepProps) {
-  const { photo } = formik.values;
-  const photosArray = Array.isArray(photo) ? photo : photo ? [photo] : [];
+  const photosArray = formik.values.photos || [];
   const [draggingIndex, setDraggingIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
-  function handleDragStart(e: any, idx: number) {
+  function handleDragStart(e: DragEvent<HTMLDivElement>, idx: number) {
     setDraggingIndex(idx);
     e.dataTransfer.effectAllowed = "move";
     try {
@@ -254,12 +253,12 @@ export function PhotoStep({ formik, onSelectFile }: PhotoStepProps) {
     setDragOverIndex(null);
   }
 
-  function handleDragOver(e: any, idx: number) {
+  function handleDragOver(e: DragEvent<HTMLDivElement>, idx: number) {
     e.preventDefault();
     if (dragOverIndex !== idx) setDragOverIndex(idx);
   }
 
-  function handleDrop(e: any, idx: number) {
+  function handleDrop(e: DragEvent<HTMLDivElement>, idx: number) {
     e.preventDefault();
     const srcStr = e.dataTransfer.getData("text/plain");
     const src = Number(srcStr);
@@ -268,7 +267,7 @@ export function PhotoStep({ formik, onSelectFile }: PhotoStepProps) {
       const newArr = [...photosArray];
       const [moved] = newArr.splice(src, 1);
       newArr.splice(dest, 0, moved);
-      formik.setFieldValue("photo", newArr.length > 0 ? newArr : null);
+      formik.setFieldValue("photos", newArr.length > 0 ? newArr : null);
     }
     handleDragEnd();
   }
@@ -285,7 +284,7 @@ export function PhotoStep({ formik, onSelectFile }: PhotoStepProps) {
             <div className="hint">PNG, JPG hasta ~5 MB cada una. Podés seleccionar varias.</div>
             <input type="file" accept="image/*" onChange={onSelectFile} multiple />
           </label>
-          <ShowError message={FormikHandleError(formik, "photo")} />
+          <ShowError message={FormikHandleError(formik, "photos")} />
           {photosArray.length > 1 && (
             <div
               role="status"
@@ -332,7 +331,7 @@ export function PhotoStep({ formik, onSelectFile }: PhotoStepProps) {
                       onClick={() => {
                         const newArr = [...photosArray];
                         newArr.splice(i, 1);
-                        formik.setFieldValue("photo", newArr.length > 0 ? newArr : null);
+                        formik.setFieldValue("photos", newArr.length > 0 ? newArr : null);
                       }}
                       style={{
                         position: "absolute",
@@ -506,9 +505,9 @@ export function ConfirmStep({ values }: { values: ReportForm }) {
           />
         )}
       </dl>
-      {values.photo?.url && (
+      {values.photos?.[0]?.url && (
         /* eslint-disable-next-line @next/next/no-img-element */
-        <img src={values.photo.url} alt="Vista previa" className="preview" />
+        <img src={values.photos[0].url} alt="Vista previa" className="preview" />
       )}
     </>
   );

@@ -41,6 +41,7 @@ export default function AccountSettingsForm({
     validationSchema: validationSchemaUpdateUserDetails,
     onSubmit: async (values) => {
       try {
+        debugger
         const res = await putUserDetails(values);
         if (!res) return;
         if (res.ok) {

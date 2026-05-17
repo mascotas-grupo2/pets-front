@@ -8,7 +8,7 @@ import { ReportForm } from "@/types/reportar";
 import { reportValidationSchema } from "@/validation/reportar";
 import { useFormik } from "formik";
 import { useRouter } from "next/navigation";
-import { ChangeEvent, useState } from "react";
+import { ChangeEvent, useEffect, useState } from "react";
 import { buildPetFromReport } from "./build-pet";
 import {
   CharacteristicsStep,
@@ -21,10 +21,13 @@ import {
   StartStep,
 } from "./steps";
 import { INITIAL_VALUES, LAST_STEP_INDEX, STEPS } from "./wizard-config";
+import { getUserDetails } from "@/services/user.info";
+import { useUserContext } from "@/context/UserContext";
 
 export default function ReportPage() {
   const router = useRouter();
   const dispatch = useAppDispatch();
+  const { isLoggedIn } = useUserContext();
   const [stepIndex, setStepIndex] = useState(0);
   const [isDone, setIsDone] = useState(false);
 
@@ -49,23 +52,40 @@ export default function ReportPage() {
     },
   });
 
+  useEffect(() => {
+    if (!isLoggedIn) return;
+
+    getUserDetails().then((res) => {
+      if (res && res.ok) {
+        formik.setValues((prev) => ({
+          ...prev,
+          contactEmail: res.data.email || "",
+          contactPhone: res.data.phone || "",
+        }));
+      }
+    });
+  }, [isLoggedIn]);
+
   async function handleSelectFile(e: ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
 
     function readFile(file: File) {
-      return new Promise<{ file: File; name: string; url: string }>((resolve) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve({ file, name: file.name, url: reader.result as string });
-        reader.readAsDataURL(file);
-      });
+      return new Promise<{ file: File; name: string; url: string }>(
+        (resolve) => {
+          const reader = new FileReader();
+          reader.onload = () =>
+            resolve({ file, name: file.name, url: reader.result as string });
+          reader.readAsDataURL(file);
+        },
+      );
     }
 
     const reads = files.map((f) => readFile(f));
     const uploads = await Promise.all(reads);
 
-    const existing = Array.isArray(formik.values.photo) ? formik.values.photo : formik.values.photo ? [formik.values.photo] : [];
-    formik.setFieldValue("photo", [...existing, ...uploads]);
+    const existing = formik.values.photos || [];
+    formik.setFieldValue("photos", [...existing, ...uploads]);
   }
 
   async function goToNextStep() {
