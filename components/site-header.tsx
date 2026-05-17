@@ -1,6 +1,7 @@
 "use client";
 
 import { useUserContext } from "@/context/UserContext";
+import { useAppSelector } from "@/redux/hooks";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Brand } from "./brand";
@@ -17,6 +18,8 @@ const NAV = [
 export function SiteHeader() {
   const pathname = usePathname();
   const { isLoggedIn, adopter } = useUserContext();
+  const role = useAppSelector((state) => state.user.role);
+  const isAdmin = role === "admin";
 
   return (
     <header className="site-header">
@@ -44,7 +47,16 @@ export function SiteHeader() {
         </nav>
 
         <div className="header-actions">
-          {isLoggedIn ? ( 
+          {isAdmin && (
+            <Link
+              href="/admin/mascotas-perdidas"
+              className="btn btn-outline btn-sm"
+              title="Panel de admin"
+            >
+              Admin
+            </Link>
+          )}
+          {isLoggedIn ? (
             <Link
               href="/mascotas-perdidas/reportar"
               className="btn btn-primary btn-sm"

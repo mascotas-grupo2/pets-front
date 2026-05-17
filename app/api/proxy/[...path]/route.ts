@@ -149,12 +149,16 @@ async function handleRequest(request: Request) {
       }
     }
 
-    const nextResponse = new NextResponse(filteredData, {
+    // 204/205/304 deben tener body null (la spec de Response lo exige)
+    const noBodyStatus = response.status === 204 || response.status === 205 || response.status === 304;
+    const nextResponse = new NextResponse(noBodyStatus ? null : filteredData, {
       status: response.status,
-      headers: {
-        "Content-Type":
-          (response.headers["content-type"] as string) || "application/json",
-      },
+      headers: noBodyStatus
+        ? {}
+        : {
+            "Content-Type":
+              (response.headers["content-type"] as string) || "application/json",
+          },
     });
 
     // 3. Seteo de Cookies (Persistencia)
