@@ -11,13 +11,23 @@ export const reportDataSchema = Yup.object({
   date: Yup.string().required("Requerido"),
 });
 
+export const photoFileSchema = Yup.object({
+  name: Yup.string().required("Requerido"),
+  file: Yup.mixed().required("Requerido"),
+});
+
 export const reportPhotoSchema = Yup.object({
-  photo: Yup.object({
-    name: Yup.string().required("Requerido"),
-    file: Yup.mixed().required("Requerido"),
-  })
-    .nullable()
-    .required("Requerido"),
+  photo: Yup.mixed().test("photo-or-photos", "Requerido", function (value) {
+    if (!value) return this.createError({ message: "Requerido" });
+    if (Array.isArray(value)) {
+      if (value.length === 0) return this.createError({ message: "Requerido" });
+      // validate first element has name and file
+      const ok = value.every((v) => v && v.name && v.file);
+      return ok || this.createError({ message: "Archivo inválido" });
+    }
+    // single object
+    return value && value.name && value.file ? true : this.createError({ message: "Requerido" });
+  }),
 });
 
 export const reportLocationSchema = Yup.object({

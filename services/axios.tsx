@@ -3,9 +3,6 @@ import axios from "axios";
 const axiosInstance = axios.create({
   baseURL: "/api/proxy",
   withCredentials: true,
-  headers: {
-    "Content-Type": "application/json",
-  },
 });
 
 // Interceptor de respuesta para manejar el 401 (Unauthorized)
