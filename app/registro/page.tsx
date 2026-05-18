@@ -22,6 +22,7 @@ export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [acceptTerms, setAcceptTerms] = useState(false);
+  const [isRegistered, setIsRegistered] = useState(false);
 
   const passwordChecks = (pass: string) => ({
     length: pass.length >= 8,
@@ -57,7 +58,7 @@ export default function RegisterPage() {
             "success",
             "¡Cuenta creada! Verifique su casilla de correo electrónico para ingresar.",
           );
-          router.push("/login");
+          setIsRegistered(true);
         } else {
           handleToast("error", "¡Error al registrarse!");
         }
@@ -108,6 +109,30 @@ export default function RegisterPage() {
         </aside>
 
         <section className="auth-form-panel">
+          {isRegistered ? (
+            <div className="registration-success" style={{ textAlign: 'center', padding: '1rem 0' }}>
+              <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>📧</div>
+              <h1>¡Casi listo!</h1>
+              <p style={{ margin: "1.5rem 0", color: "var(--gray-600)", lineHeight: "1.6" }}>
+                Hemos enviado un enlace de activación a <strong>{formik.values.email}</strong>.
+                Por favor, revisá tu casilla de correo (y la carpeta de spam) para verificar tu cuenta.
+              </p>
+              <div style={{ display: "flex", flexDirection: "column", gap: "1rem", marginTop: '2rem' }}>
+                <Link href="/login" className="btn btn-primary btn-lg">
+                  Ir al Inicio de Sesión
+                </Link>
+                <button
+                  type="button"
+                  className="btn-link btn-ghost-link btn-sm"
+                  onClick={() => setIsRegistered(false)}
+                  style={{ marginTop: '1rem' }}
+                >
+                  ¿Te equivocaste de correo? Volver a intentar
+                </button>
+              </div>
+            </div>
+          ) : (
+            <>
           <h1>Crea tu cuenta</h1>
 
           <form className="auth-form" onSubmit={formik.handleSubmit}>
@@ -329,6 +354,8 @@ export default function RegisterPage() {
           <div className="divider">
             ¿Ya tenés cuenta? <Link href="/login">Ingresar</Link>
           </div>
+            </>
+          )}
         </section>
       </div>
     </main>

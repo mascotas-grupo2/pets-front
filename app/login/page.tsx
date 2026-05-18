@@ -135,7 +135,7 @@ export default function LoginPage() {
                 />
                 <span>Mantener sesión iniciada</span>
               </label>
-              <Link href="#" className="terms-link">
+              <Link href="/forgot-password" className="terms-link">
                 ¿Olvidaste tu contraseña?
               </Link>
             </div>

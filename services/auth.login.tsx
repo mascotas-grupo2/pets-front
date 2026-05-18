@@ -43,3 +43,44 @@ export const logout: () => Promise<
     ErrorGeneric(error);
   }
 };
+
+type ResponseAxiosForgotPassword = {
+  ok: boolean;
+  data: null;
+  status: number;
+};
+export const forgotPassword: (
+  email: string,
+) => Promise<ResponseAxiosForgotPassword | undefined> = async (
+  email: string,
+) => {
+  try {
+    const response = await axios.post("auth/forgot-password", { email });
+    return { ok: true, data: null, status: response.status };
+  } catch (error) {
+    ErrorGeneric(error);
+  }
+};
+
+type ResponseAxiosResetPassword = {
+  ok: boolean;
+  data: null;
+  status: number;
+};
+export const resetPassword: (
+  token: string,
+  newPassword: string
+) => Promise<ResponseAxiosResetPassword | undefined> = async (
+  token: string,
+  newPassword: string
+) => {
+  try {
+    const response = await axios.post("auth/reset-password", {
+      token,
+      newPassword,
+    });
+    return { ok: true, data: null, status: response.status };
+  } catch (error) {
+    ErrorGeneric(error);
+  }
+};
