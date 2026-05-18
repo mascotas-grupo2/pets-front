@@ -36,7 +36,6 @@ function VerifyEmailContent() {
           "success",
           "¡Email verificado exitosamente! Redirigiendo a tu cuenta...",
         );
-        router.replace("/account");
       } else {
         setVerificationStatus("failed");
         handleToast(

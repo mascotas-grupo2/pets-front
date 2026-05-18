@@ -110,7 +110,7 @@ export default function AccountPage() {
                   userDetails={userDetails}
                   activeReports={activeReports}
                   pets={pets}
-                />1
+                />
               </>
             )}
             {activeSection === "reports" && <MyReportsView pets={pets} />}

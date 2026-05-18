@@ -6,7 +6,7 @@ export function PetCard({ pet }: { pet: Pet }) {
     <li className="pet-card">
       <Link href={`/mascotas-perdidas/${pet.id}`} className="pet-photo-wrap">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={Array.isArray(pet.photos) && pet.photos.length > 0 ? pet.photos[0] : ""} alt={pet.name ?? pet.description} />
+        <img src={Array.isArray(pet.photos) && pet.photos.length > 0 ? pet.photos[0] : "/images/pet-dog.png"} alt={pet.name ?? pet.description} />
         <span className="pet-badge">{pet.status && pet.status.toLocaleUpperCase() || "PERDIDO"}</span>
       </Link>
       <div className="pet-body">
