@@ -106,10 +106,42 @@ export default function LostPetsPage() {
   };
 
   const filtered = useMemo(() => {
+    const petSize = (p: Pet): Size | null => {
+      if (p.weightKg != null) {
+        if (p.weightKg <= 10) return "pequeño";
+        if (p.weightKg <= 25) return "mediano";
+        return "grande";
+      }
+      if (p.heightCm != null) {
+        if (p.heightCm <= 35) return "pequeño";
+        if (p.heightCm <= 60) return "mediano";
+        return "grande";
+      }
+      return null;
+    };
+
+    const petAge = (p: Pet): Age | null => {
+      if (p.ageMonths == null) return null;
+      if (p.ageMonths < 12) return "cachorro";
+      if (p.ageMonths < 36) return "joven";
+      if (p.ageMonths < 96) return "adulto";
+      return "senior";
+    };
+
     const basePets = pets ?? [];
     const result = basePets.filter((p) => {
       if (filters.type !== "todos" && p.animalType !== filters.type)
         return false;
+      if (filters.sex !== "cualquiera" && p.sex !== filters.sex) return false;
+      if (filters.hasCollar && !p.hasCollar && !p.hasTag) return false;
+      if (filters.sizes.length > 0) {
+        const size = petSize(p);
+        if (!size || !filters.sizes.includes(size)) return false;
+      }
+      if (filters.ages.length > 0) {
+        const age = petAge(p);
+        if (!age || !filters.ages.includes(age)) return false;
+      }
       if (
         filters.location &&
         !p.location.toLowerCase().includes(filters.location.toLowerCase())

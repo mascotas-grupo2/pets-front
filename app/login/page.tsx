@@ -40,6 +40,10 @@ export default function LoginPage() {
           );
           router.push("/account");
         } else {
+          if (userData?.status === 403) {
+            handleToast("error", "Verificá tu email antes de iniciar sesión.");
+            return;
+          }
           handleToast(
             "error",
             "Credenciales inválidas. Por favor, intentá de nuevo.",

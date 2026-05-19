@@ -256,7 +256,7 @@ export default function PetDetailPage() {
                 <p>¿Me querés adoptar?</p>
                 <Link
                   href={{
-                    pathname: "/adoptar/emparejar",
+                    pathname: "/adoptar/solicitar",
                     query: {
                       pet: pet.id,
                       name: pet.name ?? detail.animalLabel,
