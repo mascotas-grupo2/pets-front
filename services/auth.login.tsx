@@ -57,8 +57,14 @@ export const forgotPassword: (
   try {
     const response = await axios.post("auth/forgot-password", { email });
     return { ok: true, data: null, status: response.status };
-  } catch (error) {
+  } catch (error: unknown) {
     ErrorGeneric(error);
+    return {
+      ok: false,
+      data: null,
+      status:
+        (error as { response?: { status: number } }).response?.status || 500,
+    };
   }
 };
 
@@ -80,7 +86,13 @@ export const resetPassword: (
       newPassword,
     });
     return { ok: true, data: null, status: response.status };
-  } catch (error) {
+  } catch (error: unknown) {
     ErrorGeneric(error);
+    return {
+      ok: false,
+      data: null,
+      status:
+        (error as { response?: { status: number } }).response?.status || 500,
+    };
   }
 };
