@@ -66,23 +66,16 @@ export default function ReportPage() {
     });
   }, [isLoggedIn]);
 
-  async function handleSelectFile(e: ChangeEvent<HTMLInputElement>) {
+  function handleSelectFile(e: ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
 
-    function readFile(file: File) {
-      return new Promise<{ file: File; name: string; url: string }>(
-        (resolve) => {
-          const reader = new FileReader();
-          reader.onload = () =>
-            resolve({ file, name: file.name, url: reader.result as string });
-          reader.readAsDataURL(file);
-        },
-      );
-    }
-
-    const reads = files.map((f) => readFile(f));
-    const uploads = await Promise.all(reads);
+    // Crear preview URLs sin base64 (usando object URLs)
+    const uploads = files.map((file) => ({
+      file,
+      name: file.name,
+      url: URL.createObjectURL(file),
+    }));
 
     const existing = formik.values.photos || [];
     formik.setFieldValue("photos", [...existing, ...uploads]);
