@@ -53,14 +53,13 @@ export default function ResetPasswordPage() {
         .required("Confirmar contraseña es requerido"),
     }),
     onSubmit: async (values) => {
-      try {
-        const token = params.id as string;
-        // Se asume que existe el servicio resetPassword(token, password)
-        await resetPassword(token, values.password);
+      const token = params.id as string;
+      const res = await resetPassword(token, values.password);
 
+      if (res?.ok) {
         handleToast("success", "Contraseña actualizada correctamente.");
         setIsSuccess(true);
-      } catch (error) {
+      } else {
         handleToast("error", "El enlace ha expirado o es inválido.");
       }
     },

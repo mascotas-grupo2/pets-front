@@ -15,6 +15,7 @@ export type HouseholdSetting = "" | "urbano" | "suburbano" | "rural";
 export type ActivityLevel = "" | "tranquilo" | "moderado" | "activo";
 
 export type AdoptForm = {
+  petId?: string;
   preferredAnimal: AnimalType | "";
   firstName: string;
   lastName: string;
@@ -42,6 +43,7 @@ export type AdoptForm = {
 };
 
 export const adoptInitialValues: AdoptForm = {
+  petId: "",
   preferredAnimal: "",
   firstName: "",
   lastName: "",

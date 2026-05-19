@@ -72,11 +72,14 @@ function AdoptarSolicitarContent() {
 
   const formik = useFormik<AdoptForm>({
     enableReinitialize: true,
-    initialValues: adoptInitialValues,
+    initialValues: { ...adoptInitialValues, petId: targetPetId },
     validationSchema: adoptFullSchema(step),
     onSubmit: async (values) => {
       try {
-        const res = await submitAdoption(values);
+        const res = await submitAdoption({
+          ...values,
+          petId: targetPetId || values.petId || undefined,
+        });
         if (!res) return;
         if (res.ok) {
           dispatch({ type: "user/setFormAdoption", payload: res.data });

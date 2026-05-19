@@ -25,16 +25,14 @@ export default function ForgotPasswordPage() {
         .required("El email es requerido"),
     }),
     onSubmit: async (values) => {
-      try {
-        // Aquí se llamaría al servicio de backend para enviar el correo de recuperación
-        console.log("Solicitando recuperación para:", values.email);
-        await forgotPassword(values.email);
+      const res = await forgotPassword(values.email);
+      if (res?.ok) {
         handleToast(
           "success",
           "Si el correo está registrado, recibirás instrucciones en breve.",
         );
         setIsSent(true);
-      } catch (error) {
+      } else {
         handleToast("error", "Ocurrió un error al procesar la solicitud.");
       }
     },

@@ -100,9 +100,10 @@ async function handleRequest(request: Request) {
               `${BACKEND_URL}/auth/refresh-token`,
               { refreshToken },
             );
+            const body = manualRes.data;
             refreshedTokens = {
-              access: manualRes.data.access_token,
-              refresh: manualRes.data.refresh_token,
+              access: body.access_token || body.token,
+              refresh: body.refresh_token || body.refreshToken,
             };
           }
 
