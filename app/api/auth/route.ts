@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
     process.env.KEYCLOAK_CLIENT_ID || process.env.KEYCLOAK_AUDIENCE;
   const clientSecret = process.env.KEYCLOAK_CLIENT_SECRET;
   const backendUrl = process.env.BACKEND_URL || "http://localhost:3001/api";
-  const baseUrl = process.env.BASE_URL || "http://localhost:3000";
+  const baseUrl = process.env.FRONTEND_URL || "http://localhost:3000";
   const redirectUri = `${baseUrl}/api/auth`;
 
   // Si ya tenemos un token activo, ignoramos el proceso de intercambio
