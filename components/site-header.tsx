@@ -20,72 +20,77 @@ export function SiteHeader() {
   const { isLoggedIn, adopter } = useUserContext();
   const role = useAppSelector((state) => state.user.role);
   const isAdmin = role === "admin";
+  const admin_view = pathname.includes("admin");
 
   return (
-    <header className="site-header">
-      <div className="container">
-        <Brand />
+    !admin_view && (
+      <header className="site-header">
+        <div className="container">
+          <Brand />
 
-        <nav className="nav" aria-label="Navegación principal">
-          {NAV.filter((item) =>
-            adopter ? item.label != "Adoptar" : item.label,
-          ).map((item) => {
-            const active =
-              item.href === "/"
-                ? pathname === "/"
-                : pathname.startsWith(item.href);
-            return (
+          <nav className="nav" aria-label="Navegación principal">
+            {NAV.filter((item) =>
+              adopter ? item.label != "Adoptar" : item.label,
+            ).map((item) => {
+              const active =
+                item.href === "/"
+                  ? pathname === "/"
+                  : pathname.startsWith(item.href);
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={active ? "active" : undefined}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
+          </nav>
+
+          <div className="header-actions">
+            {isAdmin && (
               <Link
-                key={item.href}
-                href={item.href}
-                className={active ? "active" : undefined}
+                href="/admin/mascotas-perdidas"
+                className="btn btn-outline btn-sm"
+                title="Panel de admin"
               >
-                {item.label}
+                Admin
               </Link>
-            );
-          })}
-        </nav>
-
-        <div className="header-actions">
-          {isAdmin && (
-            <Link
-              href="/admin/mascotas-perdidas"
-              className="btn btn-outline btn-sm"
-              title="Panel de admin"
-            >
-              Admin
-            </Link>
-          )}
-          {isLoggedIn ? (
-            <Link
-              href="/mascotas-perdidas/reportar"
-              className="btn btn-primary btn-sm"
-            >
-              Reportar
-            </Link>
-          ) : (
-            <div className="tooltip-container">
-              <button
-                type="button"
+            )}
+            {isLoggedIn ? (
+              <Link
+                href="/mascotas-perdidas/reportar"
                 className="btn btn-primary btn-sm"
-                style={{ opacity: 0.5, cursor: "not-allowed" }}
               >
                 Reportar
-              </button>
-              <span className="tooltip-content">Necesitás iniciar sesión</span>
-            </div>
-          )}
-          {isLoggedIn ? (
-            <Link href="/account" className="btn btn-outline btn-sm">
-              Mi Cuenta
-            </Link>
-          ) : (
-            <Link href="/login" className="btn btn-outline btn-sm">
-              Ingresar
-            </Link>
-          )}
+              </Link>
+            ) : (
+              <div className="tooltip-container">
+                <button
+                  type="button"
+                  className="btn btn-primary btn-sm"
+                  style={{ opacity: 0.5, cursor: "not-allowed" }}
+                >
+                  Reportar
+                </button>
+                <span className="tooltip-content">
+                  Necesitás iniciar sesión
+                </span>
+              </div>
+            )}
+            {isLoggedIn ? (
+              <Link href="/account" className="btn btn-outline btn-sm">
+                Mi Cuenta
+              </Link>
+            ) : (
+              <Link href="/login" className="btn btn-outline btn-sm">
+                Ingresar
+              </Link>
+            )}
+          </div>
         </div>
-      </div>
-    </header>
+      </header>
+    )
   );
 }

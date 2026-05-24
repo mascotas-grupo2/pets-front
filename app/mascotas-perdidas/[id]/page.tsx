@@ -268,7 +268,7 @@ export default function PetDetailPage() {
                 </Link>
               </section>
             )}
-             {!adopter && (
+             {!adopter && pet.status === "en adopción" && (
               <section className="pet-detail-cta">
                 <p>¿Te interesa adoptar?</p>
                 <Link

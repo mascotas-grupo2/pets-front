@@ -102,10 +102,9 @@ function AdoptarSolicitarContent() {
     if (!isLoggedIn) return;
     getUserDetails().then((res) => {
       if (res && res.ok) {
-        const { reports, messages, notifications, created_at, ...rest } =
-          res.data;
-        const data = Object.entries(rest).filter(([_, v]) => {
-          return v != null;
+        const { ...rest } = res.data;
+        const data = Object.entries(rest).filter(([key, v]) => {
+          return v != null && key;
         });
         data.forEach(([k, v]) => {
           v = v === null ? "" : v;
@@ -113,7 +112,7 @@ function AdoptarSolicitarContent() {
         });
       }
     });
-  }, [isLoggedIn]);
+  }, [isLoggedIn, formik]);
 
   async function handleNext() {
     const fields = STEP_FIELDS[step] ?? [];
