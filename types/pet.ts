@@ -39,6 +39,7 @@ export type AdminPetSummary = Pet & {
 export type Pet = {
   id: string;
   ownerId?: number;
+  userId?: number;
   name?: string;
   status: PetStatus;
   medicalStatus?: PetMedicalStatus;

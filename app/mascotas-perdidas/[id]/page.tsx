@@ -26,6 +26,10 @@ export default function PetDetailPage() {
 
   const pet = useAppSelector((state) => state.pet);
   const pets = useAppSelector((state) => state.allPets);
+  const user = useAppSelector((state) => state.user);
+
+  const isOwner =
+    !!user.isLoggedIn && user.id != null && pet?.userId === user.id;
 
   useEffect(() => {
     if (!id) return;
@@ -117,6 +121,14 @@ export default function PetDetailPage() {
 
         {/* Header */}
         <header className="pet-detail-header">
+          {isOwner && (
+            <Link
+              href={`/mascotas-perdidas/${pet.id}/editar`}
+              className="btn btn-outline btn-sm pet-edit-btn"
+            >
+              ✏️ Editar publicación
+            </Link>
+          )}
           <h1>¡Hola humano!</h1>
           <div className="pet-detail-identity">
             <div className="pet-detail-avatar">
