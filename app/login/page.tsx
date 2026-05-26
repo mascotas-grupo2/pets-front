@@ -34,11 +34,14 @@ export default function LoginPage() {
         if (userData?.ok) {
           // Mapear userData.data a tipo User si es necesario, asumiendo que login devuelve User
           saveUser(userData.data);
+          const isAdmin = userData.data?.role === "admin";
           handleToast(
             "success",
-            "¡Ingreso exitoso! Redirigiendo a tu cuenta...",
+            isAdmin
+              ? "¡Ingreso exitoso! Redirigiendo al panel..."
+              : "¡Ingreso exitoso! Redirigiendo a tu cuenta...",
           );
-          router.push("/account");
+          router.push(isAdmin ? "/admin" : "/account");
         } else {
           if (userData?.status === 403) {
             handleToast("error", "Verificá tu email antes de iniciar sesión.");
