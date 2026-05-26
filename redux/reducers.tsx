@@ -23,7 +23,9 @@ const userReducer = (state = initialUserState, action: AppAction): User => {
     case "user/SetUser": // Use the specific action type
       return {
         isLoggedIn: true,
+        id: action.payload.id,
         name: action.payload.name,
+        email: action.payload.email,
         adopter: action.payload.adopter,
         role: action.payload.role,
         signature: action.payload.signature,
@@ -31,7 +33,9 @@ const userReducer = (state = initialUserState, action: AppAction): User => {
     case "user/setFormAdoption":
       return {
         isLoggedIn: true,
+        id: action.payload.id,
         name: action.payload.name,
+        email: action.payload.email,
         adopter: action.payload.adopter,
         role: action.payload.role,
         signature: action.payload.signature,
