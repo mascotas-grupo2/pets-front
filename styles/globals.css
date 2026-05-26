@@ -3,6 +3,7 @@
 @import "./layout.css";
 @import "./ui.css";
 @import "./navigation.css";
+@import "./admin.css";
 
 /* ===== Hero ===== */
 .hero {
@@ -1792,6 +1793,24 @@
 .pet-breadcrumb > span:last-child {
   color: var(--primary-900);
   font-weight: 600;
+}
+
+.pet-detail-header {
+  position: relative;
+}
+
+.pet-edit-btn {
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+@media (max-width: 640px) {
+  .pet-edit-btn {
+    position: static;
+    display: inline-flex;
+    margin-bottom: 1rem;
+  }
 }
 
 .pet-detail-header h1 {
