@@ -144,7 +144,9 @@ async function handleRequest(request: Request) {
         // Esto evita exponer datos sensibles o innecesarios en el cliente
         const cleanUser = {
           isLoggedIn: true,
+          id: userObj.id,
           name: userObj.name || "",
+          email: userObj.email || "",
           role: userObj.role || "user",
           adopter: !!userObj.adopter,
         };
