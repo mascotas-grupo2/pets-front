@@ -21,6 +21,9 @@ export function SiteHeader() {
   const role = useAppSelector((state) => state.user.role);
   const isAdmin = role === "admin";
 
+  // El panel de administración usa su propio menú lateral, sin el header público.
+  if (pathname?.startsWith("/admin")) return null;
+
   return (
     <header className="site-header">
       <div className="container">
@@ -49,7 +52,7 @@ export function SiteHeader() {
         <div className="header-actions">
           {isAdmin && (
             <Link
-              href="/admin/mascotas-perdidas"
+              href="/admin"
               className="btn btn-outline btn-sm"
               title="Panel de admin"
             >
