@@ -18,7 +18,7 @@ export default function AdminPage() {
 
   const meta = SECTION_MAP[active];
   const Content = SECTION_CONTENT[active];
-
+  console.log(active)
   return (
     <div className="admin-shell">
       <AdminSidebar
@@ -32,7 +32,11 @@ export default function AdminPage() {
         <AdminTopbar title={meta.title} subtitle={meta.subtitle} />
 
         <main className="admin-content">
-          {Content ? <Content /> : <PlaceholderSection title={meta.title} />}
+          {Content ? (
+            <Content setActive={setActive} />
+          ) : (
+            <PlaceholderSection title={meta.title} />
+          )}
         </main>
 
         <AdminFooter />

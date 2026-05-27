@@ -42,16 +42,76 @@ export type SectionDef = {
  * Agregar una sección = agregar una entrada acá (+ registrar su contenido en sections/registry).
  */
 export const SECTIONS: SectionDef[] = [
-  { id: "dashboard", label: "Dashboard", icon: Home, title: "Panel de administración", subtitle: "Resumen general del refugio" },
-  { id: "mascotas", label: "Mascotas", icon: PawPrint, title: "Mascotas", subtitle: "Gestión de mascotas del refugio" },
-  { id: "solicitudes", label: "Solicitudes", icon: FileText, title: "Solicitudes", subtitle: "Solicitudes de adopción" },
-  { id: "seguimientos", label: "Seguimientos", icon: ClipboardList, title: "Seguimientos", subtitle: "Controles y visitas programadas" },
-  { id: "reportes", label: "Reportes", icon: BarChart3, title: "Reportes", subtitle: "Métricas y estadísticas" },
-  { id: "mensajes", label: "Mensajes", icon: MessageSquare, title: "Mensajes", subtitle: "Conversaciones con adoptantes" },
-  { id: "personas", label: "Personas", icon: Users, title: "Personas", subtitle: "Usuarios y adoptantes" },
-  { id: "historias", label: "Historias", icon: BookOpen, title: "Historias", subtitle: "Historias de adopción" },
-  { id: "costos", label: "Costos", icon: DollarSign, title: "Costos", subtitle: "Gastos del refugio" },
-  { id: "configuracion", label: "Configuración", icon: Settings, title: "Configuración", subtitle: "Ajustes del panel" },
+  {
+    id: "dashboard",
+    label: "Dashboard",
+    icon: Home,
+    title: "Panel de administración",
+    subtitle: "Resumen general del refugio",
+  },
+  {
+    id: "mascotas",
+    label: "Mascotas",
+    icon: PawPrint,
+    title: "Mascotas",
+    subtitle: "Gestión de mascotas del refugio",
+  },
+  {
+    id: "solicitudes",
+    label: "Solicitudes",
+    icon: FileText,
+    title: "Solicitudes",
+    subtitle: "Solicitudes de adopción",
+  },
+  {
+    id: "seguimientos",
+    label: "Seguimientos",
+    icon: ClipboardList,
+    title: "Seguimientos",
+    subtitle: "Controles y visitas programadas",
+  },
+  {
+    id: "reportes",
+    label: "Reportes",
+    icon: BarChart3,
+    title: "Reportes",
+    subtitle: "Métricas y estadísticas",
+  },
+  {
+    id: "mensajes",
+    label: "Mensajes",
+    icon: MessageSquare,
+    title: "Mensajes",
+    subtitle: "Conversaciones con adoptantes",
+  },
+  {
+    id: "personas",
+    label: "Personas",
+    icon: Users,
+    title: "Personas",
+    subtitle: "Usuarios y adoptantes",
+  },
+  {
+    id: "historias",
+    label: "Historias",
+    icon: BookOpen,
+    title: "Historias",
+    subtitle: "Historias de adopción",
+  },
+  {
+    id: "costos",
+    label: "Costos",
+    icon: DollarSign,
+    title: "Costos",
+    subtitle: "Gastos del refugio",
+  },
+  {
+    id: "configuracion",
+    label: "Configuración",
+    icon: Settings,
+    title: "Configuración",
+    subtitle: "Ajustes del panel",
+  },
 ];
 
 /** Acceso O(1) a la definición de una sección por su id. */
