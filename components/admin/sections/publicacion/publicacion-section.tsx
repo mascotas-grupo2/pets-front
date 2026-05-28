@@ -20,7 +20,7 @@ import {
 import { toast } from "sonner";
 import { Pill } from "../../ui/pill";
 import { DataTable, type Column } from "../../ui/data-table";
-import { ESTADO_META } from "../../lib/pet-status";
+import { EstadoPill } from "../../lib/pet-status";
 import { PublicacionDrawer } from "./publicacion-drawer";
 import {
   approvePet,
@@ -270,10 +270,7 @@ export function PublicacionSection() {
       key: "estado",
       label: "Estado",
       sortable: true,
-      render: (pet) => {
-        const meta = pet.reportStatus ? ESTADO_META[pet.reportStatus] : null;
-        return meta ? <Pill tone={meta.tone}>{meta.label}</Pill> : "—";
-      },
+      render: (pet) => <EstadoPill status={pet.reportStatus} />,
     },
     {
       key: "fecha",

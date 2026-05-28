@@ -1,44 +1,83 @@
 "use client";
 
+import { useEffect, useMemo, useState } from "react";
 import { Eye, Pencil, MoreVertical, ChevronRight } from "lucide-react";
 import { Panel } from "../../ui/panel";
 import { Pill } from "../../ui/pill";
+import { DataTable, type Column } from "../../ui/data-table";
+import { EstadoPill } from "../../lib/pet-status";
+import { getAdminPets } from "@/services/mascotas.pets";
+import type { AdminPetSummary } from "@/types/pet";
+import type { SectionProps } from "../../admin-config";
 import {
   STATS,
   SOLICITUDES,
   SEGUIMIENTOS,
-  PUBLICACIONES,
   ACTIVIDAD,
-  CITAS,
-  COSTOS,
   compatTone,
   initials,
 } from "./dashboard.data";
 
 /** Enlace "Ver todas/os" del encabezado de un panel. */
-function VerTodas({ label = "Ver todas" }: { label?: string }) {
+function VerTodas({
+  label = "Ver todas",
+  onClick,
+}: {
+  label?: string;
+  onClick?: () => void;
+}) {
   return (
-    <button type="button" className="dash-link">
+    <button type="button" className="dash-link" onClick={onClick}>
       {label}
     </button>
   );
 }
 
-function StatCards() {
+function StatCards({
+  publicaciones,
+  onVerPublicaciones,
+}: {
+  publicaciones: number | null;
+  onVerPublicaciones?: () => void;
+}) {
   return (
     <div className="dash-stats">
       {STATS.map((s) => {
         const Icon = s.icon;
-        return (
-          <div key={s.label} className="dash-stat-card">
+        // "Publicaciones" usa el conteo real; el resto sigue mockeado.
+        const esPublicaciones = s.label === "Publicaciones";
+        const value = esPublicaciones
+          ? publicaciones === null
+            ? "…"
+            : String(publicaciones)
+          : s.value;
+
+        const body = (
+          <>
             <div className={`dash-stat-icon tone-${s.tone}`}>
               <Icon size={22} aria-hidden />
             </div>
             <div className="dash-stat-body">
               <span className="dash-stat-label">{s.label}</span>
-              <span className="dash-stat-value">{s.value}</span>
+              <span className="dash-stat-value">{value}</span>
               <span className="dash-stat-hint">{s.hint}</span>
             </div>
+          </>
+        );
+
+        // Sólo "Publicaciones" navega; el resto sigue siendo mock estático.
+        return esPublicaciones ? (
+          <button
+            key={s.label}
+            type="button"
+            className="dash-stat-card dash-stat-card--link"
+            onClick={onVerPublicaciones}
+          >
+            {body}
+          </button>
+        ) : (
+          <div key={s.label} className="dash-stat-card">
+            {body}
           </div>
         );
       })}
@@ -46,125 +85,182 @@ function StatCards() {
   );
 }
 
+const SOLICITUDES_COLS: Column<(typeof SOLICITUDES)[number]>[] = [
+  {
+    key: "usuario",
+    label: "Usuario",
+    render: (r) => (
+      <div className="dash-user">
+        <span className="dash-avatar" aria-hidden>
+          {initials(r.usuario)}
+        </span>
+        <span className="dash-user-text">
+          <span className="dash-user-name">{r.usuario}</span>
+          <span className="dash-user-email">{r.email}</span>
+        </span>
+      </div>
+    ),
+  },
+  { key: "mascota", label: "Mascota", render: (r) => r.mascota },
+  {
+    key: "compat",
+    label: "Compatibilidad",
+    render: (r) => (
+      <>
+        <span className={`dash-compat tone-${compatTone(r.compat.pct)}`}>
+          {r.compat.pct}%
+        </span>
+        <span className="dash-compat-label">{r.compat.label}</span>
+      </>
+    ),
+  },
+  {
+    key: "estado",
+    label: "Estado",
+    render: (r) => <Pill tone={r.estado.tone}>{r.estado.label}</Pill>,
+  },
+  {
+    key: "fecha",
+    label: "Fecha",
+    tdClassName: "dash-muted",
+    render: (r) => r.fecha,
+  },
+  {
+    key: "action",
+    ariaLabel: "Acción",
+    tdClassName: "dash-cell-action",
+    render: () => <ChevronRight size={16} aria-hidden />,
+  },
+];
+
 function SolicitudesPanel() {
   return (
     <Panel title="Solicitudes recientes" action={<VerTodas />}>
-      <div className="dash-table-wrap">
-        <table className="dash-table">
-          <thead>
-            <tr>
-              <th>Usuario</th>
-              <th>Mascota</th>
-              <th>Compatibilidad</th>
-              <th>Estado</th>
-              <th>Fecha</th>
-              <th aria-label="Acción" />
-            </tr>
-          </thead>
-          <tbody>
-            {SOLICITUDES.map((r) => (
-              <tr key={r.usuario}>
-                <td>
-                  <div className="dash-user">
-                    <span className="dash-avatar" aria-hidden>{initials(r.usuario)}</span>
-                    <span className="dash-user-text">
-                      <span className="dash-user-name">{r.usuario}</span>
-                      <span className="dash-user-email">{r.email}</span>
-                    </span>
-                  </div>
-                </td>
-                <td>{r.mascota}</td>
-                <td>
-                  <span className={`dash-compat tone-${compatTone(r.compat.pct)}`}>
-                    {r.compat.pct}%
-                  </span>
-                  <span className="dash-compat-label">{r.compat.label}</span>
-                </td>
-                <td><Pill tone={r.estado.tone}>{r.estado.label}</Pill></td>
-                <td className="dash-muted">{r.fecha}</td>
-                <td className="dash-cell-action">
-                  <ChevronRight size={16} aria-hidden />
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <DataTable
+        columns={SOLICITUDES_COLS}
+        data={SOLICITUDES}
+        rowKey={(r) => r.usuario}
+      />
     </Panel>
   );
 }
+
+const SEGUIMIENTOS_COLS: Column<(typeof SEGUIMIENTOS)[number]>[] = [
+  {
+    key: "mascota",
+    label: "Mascota",
+    tdClassName: "dash-strong",
+    render: (r) => r.mascota,
+  },
+  { key: "tipo", label: "Tipo", render: (r) => r.tipo },
+  {
+    key: "fechaHora",
+    label: "Fecha y hora",
+    tdClassName: "dash-muted",
+    render: (r) => r.fechaHora,
+  },
+  { key: "adoptante", label: "Adoptante", render: (r) => r.adoptante },
+  {
+    key: "estado",
+    label: "Estado",
+    render: () => <Pill tone="blue">Programada</Pill>,
+  },
+];
 
 function SeguimientosPanel() {
   return (
     <Panel title="Seguimientos próximos" action={<VerTodas label="Ver todos" />}>
-      <div className="dash-table-wrap">
-        <table className="dash-table">
-          <thead>
-            <tr>
-              <th>Mascota</th>
-              <th>Tipo</th>
-              <th>Fecha y hora</th>
-              <th>Adoptante</th>
-              <th>Estado</th>
-            </tr>
-          </thead>
-          <tbody>
-            {SEGUIMIENTOS.map((r) => (
-              <tr key={r.mascota}>
-                <td className="dash-strong">{r.mascota}</td>
-                <td>{r.tipo}</td>
-                <td className="dash-muted">{r.fechaHora}</td>
-                <td>{r.adoptante}</td>
-                <td><Pill tone="blue">Programada</Pill></td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <DataTable
+        columns={SEGUIMIENTOS_COLS}
+        data={SEGUIMIENTOS}
+        rowKey={(r) => r.mascota}
+      />
     </Panel>
   );
 }
 
-function PublicacionesPanel() {
+function PublicacionesPanel({
+  pets,
+  loading,
+  onVerTodas,
+}: {
+  pets: AdminPetSummary[];
+  loading: boolean;
+  onVerTodas?: () => void;
+}) {
+  // Las 5 publicaciones más recientes por fecha de creación.
+  const recientes = useMemo(
+    () =>
+      [...pets]
+        .sort(
+          (a, b) =>
+            new Date(b.createdAt ?? b.date).getTime() -
+            new Date(a.createdAt ?? a.date).getTime(),
+        )
+        .slice(0, 5),
+    [pets],
+  );
+
+  const columns: Column<AdminPetSummary>[] = [
+    {
+      key: "name",
+      label: "Publicación",
+      render: (p) => (
+        <span className="dash-user-text">
+          <span className="dash-user-name">{p.name ?? "Sin nombre"}</span>
+          <span className="dash-user-email">{p.location}</span>
+        </span>
+      ),
+    },
+    {
+      key: "tipo",
+      label: "Tipo",
+      render: (p) => <Pill tone="violet">{p.statusLabel ?? p.status}</Pill>,
+    },
+    {
+      key: "fecha",
+      label: "Fecha",
+      tdClassName: "dash-muted",
+      render: (p) => p.date,
+    },
+    {
+      key: "estado",
+      label: "Estado",
+      render: (p) => <EstadoPill status={p.reportStatus} />,
+    },
+    { key: "vistas", label: "Vistas", tdClassName: "dash-muted", render: () => "—" },
+    {
+      key: "actions",
+      ariaLabel: "Acciones",
+      tdClassName: "dash-cell-action",
+      render: () => (
+        <div className="dash-row-actions">
+          <button type="button" aria-label="Ver" onClick={onVerTodas}>
+            <Eye size={15} />
+          </button>
+          <button type="button" aria-label="Editar" onClick={onVerTodas}>
+            <Pencil size={15} />
+          </button>
+          <button type="button" aria-label="Más">
+            <MoreVertical size={15} />
+          </button>
+        </div>
+      ),
+    },
+  ];
+
   return (
-    <Panel title="Publicaciones recientes" action={<VerTodas />}>
-      <div className="dash-table-wrap">
-        <table className="dash-table">
-          <thead>
-            <tr>
-              <th>Publicación</th>
-              <th>Tipo</th>
-              <th>Fecha</th>
-              <th>Estado</th>
-              <th>Vistas</th>
-              <th aria-label="Acciones" />
-            </tr>
-          </thead>
-          <tbody>
-            {PUBLICACIONES.map((r) => (
-              <tr key={r.titulo}>
-                <td>
-                  <span className="dash-user-text">
-                    <span className="dash-user-name">{r.titulo}</span>
-                    <span className="dash-user-email">{r.detalle}</span>
-                  </span>
-                </td>
-                <td><Pill tone="violet">{r.tipo}</Pill></td>
-                <td className="dash-muted">{r.fecha}</td>
-                <td><Pill tone={r.estado.tone}>{r.estado.label}</Pill></td>
-                <td className="dash-muted">{r.vistas}</td>
-                <td className="dash-cell-action">
-                  <div className="dash-row-actions">
-                    <button type="button" aria-label="Ver"><Eye size={15} /></button>
-                    <button type="button" aria-label="Editar"><Pencil size={15} /></button>
-                    <button type="button" aria-label="Más"><MoreVertical size={15} /></button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+    <Panel
+      title="Publicaciones recientes"
+      action={<VerTodas onClick={onVerTodas} />}
+    >
+      <DataTable
+        columns={columns}
+        data={recientes}
+        rowKey={(p) => p.id}
+        loading={loading}
+        empty="No hay publicaciones."
+      />
     </Panel>
   );
 }
@@ -193,69 +289,41 @@ function ActividadPanel() {
   );
 }
 
-function CitasPanel() {
-  return (
-    <Panel title="Próximas Citas Veterinarias">
-      <ul className="dash-activity divided">
-        {CITAS.map((c) => (
-          <li key={c.mascota} className="dash-activity-item">
-            <span className={`dash-activity-icon tone-${c.tone}`}>
-              {c.mascota.charAt(0)}
-            </span>
-            <span className="dash-activity-text">
-              <span className="dash-activity-title">{c.mascota}</span>
-              <span className="dash-activity-detail">{c.tipo}</span>
-            </span>
-            <span className="dash-when">
-              <span className="dash-when-date">{c.fecha}</span>
-              <span className="dash-when-time">{c.hora}</span>
-            </span>
-          </li>
-        ))}
-      </ul>
-    </Panel>
-  );
-}
+export function DashboardSection({ onNavigate }: SectionProps) {
+  const [pets, setPets] = useState<AdminPetSummary[]>([]);
+  const [loading, setLoading] = useState(true);
 
-function CostosPanel() {
-  return (
-    <Panel title="Resumen de Costos">
-      <ul className="dash-activity">
-        {COSTOS.map((c) => {
-          const Icon = c.icon;
-          return (
-            <li key={c.categoria} className="dash-activity-item">
-              <span className={`dash-cost-icon tone-${c.tone}`}>
-                <Icon size={18} aria-hidden />
-              </span>
-              <span className="dash-activity-text">
-                <span className="dash-activity-title">{c.categoria}</span>
-                <span className="dash-activity-detail">{c.pct}</span>
-              </span>
-              <span className="dash-cost-amount">{c.monto}</span>
-            </li>
-          );
-        })}
-      </ul>
-    </Panel>
-  );
-}
+  useEffect(() => {
+    let alive = true;
+    getAdminPets().then((res) => {
+      if (!alive) return;
+      if (res.ok && res.data) setPets(res.data);
+      setLoading(false);
+    });
+    return () => {
+      alive = false;
+    };
+  }, []);
 
-export function DashboardSection() {
+  const verPublicaciones = () => onNavigate?.("publicacion");
+
   return (
     <div className="dash">
-      <StatCards />
+      <StatCards
+        publicaciones={loading ? null : pets.length}
+        onVerPublicaciones={verPublicaciones}
+      />
       <div className="dash-grid">
         <SolicitudesPanel />
         <SeguimientosPanel />
       </div>
       <div className="dash-grid">
-        <PublicacionesPanel />
+        <PublicacionesPanel
+          pets={pets}
+          loading={loading}
+          onVerTodas={verPublicaciones}
+        />
         <ActividadPanel />
-      </div>
-      <div className="dash-grid">
-        <CitasPanel />
-        <CostosPanel />
       </div>
     </div>
   );
