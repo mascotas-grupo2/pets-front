@@ -8,7 +8,7 @@ import { DataTable, type Column } from "../../ui/data-table";
 import { EstadoPill } from "../../lib/pet-status";
 import { getAdminPets } from "@/services/mascotas.pets";
 import type { AdminPetSummary } from "@/types/pet";
-import type { SectionProps } from "../../admin-config";
+import type { Section, SectionProps } from "../../admin-config";
 import {
   STATS,
   SOLICITUDES,
@@ -33,12 +33,21 @@ function VerTodas({
   );
 }
 
+/** Cada stat-card del dashboard navega a su sección correspondiente. */
+const STAT_SECTION: Record<string, Section> = {
+  "Mascotas activas": "mascotas",
+  Solicitudes: "solicitudes",
+  "Seguimientos hoy": "seguimientos",
+  Publicaciones: "publicacion",
+  "Mensajes sin leer": "mensajes",
+};
+
 function StatCards({
   publicaciones,
-  onVerPublicaciones,
+  onNavigate,
 }: {
   publicaciones: number | null;
-  onVerPublicaciones?: () => void;
+  onNavigate?: (section: Section) => void;
 }) {
   return (
     <div className="dash-stats">
@@ -51,6 +60,10 @@ function StatCards({
             ? "…"
             : String(publicaciones)
           : s.value;
+
+        const target = STAT_SECTION[s.label];
+        const onClick =
+          target && onNavigate ? () => onNavigate(target) : undefined;
 
         const body = (
           <>
@@ -65,13 +78,12 @@ function StatCards({
           </>
         );
 
-        // Sólo "Publicaciones" navega; el resto sigue siendo mock estático.
-        return esPublicaciones ? (
+        return onClick ? (
           <button
             key={s.label}
             type="button"
             className="dash-stat-card dash-stat-card--link"
-            onClick={onVerPublicaciones}
+            onClick={onClick}
           >
             {body}
           </button>
@@ -311,7 +323,7 @@ export function DashboardSection({ onNavigate }: SectionProps) {
     <div className="dash">
       <StatCards
         publicaciones={loading ? null : pets.length}
-        onVerPublicaciones={verPublicaciones}
+        onNavigate={onNavigate}
       />
       <div className="dash-grid">
         <SolicitudesPanel />
