@@ -2,10 +2,14 @@ import type { ComponentType } from "react";
 import type { Section, SectionProps } from "../admin-config";
 import { DashboardSection } from "./dashboard/dashboard-section";
 import { PublicacionSection } from "./publicacion/publicacion-section";
+import { MascotasSection } from "./mascotas/mascotas-section";
+import { PersonasSection } from "./personas/personas-section";
 
 export const SECTION_CONTENT: Partial<
   Record<Section, ComponentType<SectionProps>>
 > = {
   dashboard: DashboardSection,
   publicacion: PublicacionSection,
+  mascotas: MascotasSection,
+  personas: PersonasSection,
 };
