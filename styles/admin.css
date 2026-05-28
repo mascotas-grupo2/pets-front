@@ -741,20 +741,30 @@
   text-align: center;
 }
 
-.pub-loading {
+/* Indicador de carga reutilizable (componente <Loading>). */
+.ui-loading {
   display: inline-flex;
   align-items: center;
   gap: 8px;
 }
 
-.pub-spin {
-  animation: pub-spin 0.8s linear infinite;
+.ui-spin {
+  animation: ui-spin 0.8s linear infinite;
 }
 
-@keyframes pub-spin {
+@keyframes ui-spin {
   to {
     transform: rotate(360deg);
   }
+}
+
+/* Utilidades de alineación de celdas para <DataTable>. */
+.dash-table .ta-center {
+  text-align: center;
+}
+
+.dash-table .ta-right {
+  text-align: right;
 }
 
 .val-thumb {
