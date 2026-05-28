@@ -430,7 +430,13 @@ export default function LostPetsPage() {
             <>
               <ul className="pet-grid listing-grid">
                 {petsPerPages &&
-                  petsPerPages.map((pet) => <PetCard key={pet.id} pet={pet} />)}
+                  petsPerPages.map((pet) => (
+                    <PetCard
+                      key={pet.id}
+                      pet={pet}
+                      showReportStatus={pet.reportStatus !== "activo"}
+                    />
+                  ))}
               </ul>
 
               {totalPages > 1 && (
