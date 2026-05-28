@@ -6,9 +6,6 @@ import {
   Megaphone,
   FileText,
   ClipboardCheck,
-  ClipboardList,
-  Home,
-  DollarSign,
   UserPlus,
   type LucideIcon,
 } from "lucide-react";
@@ -28,11 +25,11 @@ export type Stat = {
 };
 
 export const STATS: Stat[] = [
-  { label: "Mascotas", value: "128", hint: "En total", icon: PawPrint, tone: "violet" },
-  { label: "Solicitudes activas", value: "18", hint: "En evaluación", icon: Users, tone: "green" },
-  { label: "Seguimientos hoy", value: "7", hint: "Citas programadas", icon: CalendarCheck, tone: "amber" },
-  { label: "Mensajes sin leer", value: "3", hint: "Nuevos mensajes", icon: MessageSquare, tone: "blue" },
-  { label: "Publicaciones nuevas", value: "12", hint: "Por revisar", icon: Megaphone, tone: "pink" },
+  { label: "Mascotas activas", value: "128", hint: "Ver todas", icon: PawPrint, tone: "violet" },
+  { label: "Solicitudes", value: "24", hint: "Ver todas", icon: Users, tone: "green" },
+  { label: "Seguimientos hoy", value: "7", hint: "Ver todas", icon: CalendarCheck, tone: "amber" },
+  { label: "Publicaciones", value: "18", hint: "Ver todas", icon: Megaphone, tone: "pink" },
+  { label: "Mensajes sin leer", value: "5", hint: "Ver todas", icon: MessageSquare, tone: "blue" },
 ];
 
 export type Compat = { pct: number; label: string };
@@ -99,36 +96,6 @@ export const ACTIVIDAD: Actividad[] = [
   { icon: MessageSquare, tone: "blue", titulo: "Nuevo mensaje", detalle: "María Gómez te envió un mensaje", tiempo: "Hace 2 h" },
   { icon: Megaphone, tone: "pink", titulo: "Nueva publicación", detalle: "Publicación de Simba creada", tiempo: "Hace 3 h" },
   { icon: UserPlus, tone: "amber", titulo: "Usuario registrado", detalle: "Laura Martínez se registró en la plataforma", tiempo: "Hace 5 h" },
-];
-
-export type Cita = {
-  mascota: string;
-  tipo: string;
-  fecha: string;
-  hora: string;
-  tone: Tone;
-};
-
-export const CITAS: Cita[] = [
-  { mascota: "Bella", tipo: "Vacunación", fecha: "26 Mayo", hora: "10:00 AM", tone: "violet" },
-  { mascota: "Thor", tipo: "Revisión General", fecha: "27 Mayo", hora: "2:30 PM", tone: "blue" },
-  { mascota: "Mia", tipo: "Esterilización", fecha: "28 Mayo", hora: "9:00 AM", tone: "pink" },
-  { mascota: "Rocky", tipo: "Control", fecha: "29 Mayo", hora: "11:00 AM", tone: "amber" },
-];
-
-export type Costo = {
-  categoria: string;
-  pct: string;
-  monto: string;
-  icon: LucideIcon;
-  tone: Tone;
-};
-
-export const COSTOS: Costo[] = [
-  { categoria: "Alimentación", pct: "40% del total", monto: "$980", icon: PawPrint, tone: "violet" },
-  { categoria: "Veterinaria", pct: "35% del total", monto: "$850", icon: ClipboardList, tone: "green" },
-  { categoria: "Mantenimiento", pct: "15% del total", monto: "$370", icon: Home, tone: "amber" },
-  { categoria: "Otros", pct: "10% del total", monto: "$250", icon: DollarSign, tone: "pink" },
 ];
 
 /** Color de la compatibilidad según el porcentaje. */
