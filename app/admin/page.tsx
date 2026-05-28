@@ -32,7 +32,11 @@ export default function AdminPage() {
         <AdminTopbar title={meta.title} subtitle={meta.subtitle} />
 
         <main className="admin-content">
-          {Content ? <Content /> : <PlaceholderSection title={meta.title} />}
+          {Content ? (
+            <Content onNavigate={setActive} />
+          ) : (
+            <PlaceholderSection title={meta.title} />
+          )}
         </main>
 
         <AdminFooter />
