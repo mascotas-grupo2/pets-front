@@ -68,7 +68,7 @@ export const SECTIONS: SectionDef[] = [
     label: "Mascotas",
     icon: PawPrint,
     title: "Mascotas",
-    subtitle: "Gestión de mascotas del refugio",
+    subtitle: "Listado de todas las mascotas del refugio",
   },
   {
     id: "solicitudes",
