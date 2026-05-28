@@ -144,6 +144,84 @@ export const createPetNote: (
   }
 };
 
+type ResponseAxiosApprove = {
+  ok: boolean;
+  data: Pet | null;
+  status: number;
+  error?: string;
+};
+/** Aprueba una publicación pendiente: el back la pasa a reportStatus = activo. */
+export const approvePet: (id: string) => Promise<ResponseAxiosApprove> = async (
+  id,
+) => {
+  try {
+    const response = await axios.post(`mascotas/${id}/approve`);
+    return { ok: true, data: response.data, status: response.status };
+  } catch (error) {
+    console.error(error);
+    const err = error as AxiosError;
+    return {
+      ok: false,
+      data: null,
+      status: err.response?.status || 500,
+      error: err.message,
+    };
+  }
+};
+
+/** Rechaza una publicación pendiente: el back la pasa a reportStatus = rechazado. */
+export const rejectPet: (id: string) => Promise<ResponseAxiosApprove> = async (
+  id,
+) => {
+  try {
+    const response = await axios.post(`mascotas/${id}/reject`);
+    return { ok: true, data: response.data, status: response.status };
+  } catch (error) {
+    console.error(error);
+    const err = error as AxiosError;
+    return {
+      ok: false,
+      data: null,
+      status: err.response?.status || 500,
+      error: err.message,
+    };
+  }
+};
+
+/** Finaliza una publicación: el back la pasa a reportStatus = finalizado. */
+export const finalizePet: (id: string) => Promise<ResponseAxiosApprove> = async (
+  id,
+) => {
+  try {
+    const response = await axios.post(`mascotas/${id}/finalize`);
+    return { ok: true, data: response.data, status: response.status };
+  } catch (error) {
+    console.error(error);
+    const err = error as AxiosError;
+    return {
+      ok: false,
+      data: null,
+      status: err.response?.status || 500,
+      error: err.message,
+    };
+  }
+};
+
+type ResponseAxiosDelete = { ok: boolean; status: number; error?: string };
+/** Elimina una publicación (solo admin). */
+export const deletePet: (id: string) => Promise<ResponseAxiosDelete> = async (
+  id,
+) => {
+  try {
+    const response = await axios.delete(`mascotas/${id}`);
+    return { ok: true, status: response.status };
+  } catch (error) {
+    console.error(error);
+    const err = error as AxiosError;
+    return { ok: false, status: err.response?.status || 500, error: err.message };
+  }
+};
+
 type ResponseAxiosAdminList = {
   ok: boolean;
   data: AdminPetSummary[] | null;
