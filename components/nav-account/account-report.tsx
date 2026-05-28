@@ -92,7 +92,7 @@ export default function MyReportsView({ pets }: MyReportsViewProps) {
       ) : (
         <ul className="pet-grid">
           {filteredPets.map((p) => (
-            <PetCard key={p.id} pet={p} />
+            <PetCard key={p.id} pet={p} showReportStatus />
           ))}
         </ul>
       )}

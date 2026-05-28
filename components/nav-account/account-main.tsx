@@ -256,7 +256,7 @@ export default function ProfileView({
       ) : (
         <ul className="pet-grid">
           {pets.slice(0, 4).map((p) => (
-            <PetCard key={p.id} pet={p} />
+            <PetCard key={p.id} pet={p} showReportStatus />
           ))}
         </ul>
       )}
