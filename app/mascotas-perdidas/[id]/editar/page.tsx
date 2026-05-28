@@ -167,7 +167,12 @@ export default function EditPetPage() {
 
     if (res.ok && res.data) {
       dispatch({ type: "pets/pet", payload: res.data });
-      handleToast("success", "Publicación actualizada.");
+      handleToast(
+        "success",
+        res.data.reportStatus === "pendiente"
+          ? "Cambios guardados. Quedaron pendientes de revisión por un administrador."
+          : "Publicación actualizada.",
+      );
       router.push(`/mascotas-perdidas/${id}`);
     } else {
       handleToast("error", "No se pudo guardar. Intentá de nuevo.");
