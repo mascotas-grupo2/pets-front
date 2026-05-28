@@ -185,6 +185,7 @@ async function handleRequest(request: Request) {
       nextResponse.cookies.set("auth_token", accessToSet, {
         path: "/",
         maxAge: 3600,
+        httpOnly: true,
         secure: process.env.NODE_ENV === "production",
       });
     }

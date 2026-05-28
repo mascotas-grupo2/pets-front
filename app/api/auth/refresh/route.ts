@@ -33,10 +33,11 @@ export async function POST(request: NextRequest) {
 
     const response = NextResponse.json({ ok: true });
 
-    // Actualizamos las cookies
+    // Actualizamos las cookies (auth_token HttpOnly: solo se usa server-side)
     response.cookies.set("auth_token", access_token, {
       path: "/",
       maxAge: 3600,
+      httpOnly: true,
       secure: process.env.NODE_ENV === "production",
     });
 

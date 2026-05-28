@@ -117,10 +117,11 @@ export async function GET(request: NextRequest) {
     const response = NextResponse.redirect(new URL("/account", baseUrl));
     console.log("Redirecting to /account - Session established");
 
-    // Guardamos el token en una cookie (puedes ponerla HttpOnly si tenés un endpoint /api/me)
+    // Cookie HttpOnly: el token solo se usa server-side (proxy), no desde JS.
     response.cookies.set("auth_token", access_token, {
       path: "/",
       maxAge: 3600, // 1 hora
+      httpOnly: true,
       secure: process.env.NODE_ENV === "production",
     });
 
