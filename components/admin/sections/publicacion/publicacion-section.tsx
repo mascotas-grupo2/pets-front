@@ -15,12 +15,12 @@ import {
   Trash2,
   Check,
   X,
-  PawPrint,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Pill } from "../../ui/pill";
 import { DataTable, type Column } from "../../ui/data-table";
 import { EstadoPill } from "../../lib/pet-status";
+import { PetThumb } from "../../ui/pet-thumb";
 import { PublicacionDrawer } from "./publicacion-drawer";
 import {
   approvePet,
@@ -238,25 +238,15 @@ export function PublicacionSection() {
       key: "name",
       label: "Publicación",
       sortable: true,
-      render: (pet) => {
-        const thumb = pet.photos?.[0] ?? pet.photo ?? null;
-        return (
-          <div className="dash-user">
-            <span className="val-thumb" aria-hidden>
-              {thumb ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={thumb} alt="" />
-              ) : (
-                <PawPrint size={16} />
-              )}
-            </span>
-            <span className="dash-user-text">
-              <span className="dash-user-name">{pet.name ?? "Sin nombre"}</span>
-              <span className="dash-user-email">{pet.location}</span>
-            </span>
-          </div>
-        );
-      },
+      render: (pet) => (
+        <div className="dash-user">
+          <PetThumb pet={pet} />
+          <span className="dash-user-text">
+            <span className="dash-user-name">{pet.name ?? "Sin nombre"}</span>
+            <span className="dash-user-email">{pet.location}</span>
+          </span>
+        </div>
+      ),
     },
     {
       key: "tipo",
