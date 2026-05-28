@@ -592,8 +592,12 @@
 .dash-table tbody tr:last-child td {
   border-bottom: none;
 }
+/* Zebra + hover para TODAS las tablas del panel (base DataTable). */
+.dash-table tbody tr:nth-child(even) {
+  background: var(--gray-50);
+}
 .dash-table tbody tr:hover {
-  background: var(--surface-alt);
+  background: var(--primary-50);
 }
 
 .dash-strong {
@@ -970,6 +974,264 @@
   flex: 1;
 }
 
+/* ---------- Drawer de Mascotas ---------- */
+.mdrawer-photo-empty {
+  display: grid;
+  place-items: center;
+  background: var(--gray-100);
+  color: var(--gray-400);
+}
+
+.mdrawer-sub {
+  margin: 0;
+  font-size: 13px;
+  color: var(--gray-600);
+}
+
+.mdrawer-ingreso {
+  margin: 2px 0 14px;
+  font-size: 12px;
+  color: var(--gray-400);
+}
+
+.mdrawer-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.mdrawer-tab {
+  padding: 8px 10px;
+  border: none;
+  background: transparent;
+  color: var(--gray-500);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+.mdrawer-tab:hover {
+  color: var(--gray-800);
+}
+.mdrawer-tab.active {
+  color: var(--primary-600);
+  border-bottom-color: var(--primary-500);
+}
+
+.mdrawer-placeholder {
+  padding: 32px 8px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--gray-400);
+}
+
+/* ---------- Densidad compacta de la sección Mascotas ---------- */
+.mascotas .dash-table th {
+  padding: 8px 16px;
+}
+.mascotas .dash-table td {
+  padding: 8px 16px;
+}
+.mascotas .val-thumb {
+  width: 34px;
+  height: 34px;
+}
+.mascotas .pub-search {
+  border-radius: var(--radius-md);
+}
+.mascotas .pub-search input {
+  padding: 9px 0;
+  font-size: 13px;
+}
+
+/* barra de compatibilidad (mock) */
+.mdrawer-compat {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.mdrawer-compat-bar {
+  flex: 1;
+  height: 8px;
+  border-radius: var(--radius-full);
+  background: var(--gray-100);
+  overflow: hidden;
+}
+.mdrawer-compat-fill {
+  height: 100%;
+  border-radius: var(--radius-full);
+  background: var(--green-500, #22c55e);
+}
+.mdrawer-compat-val {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--gray-800);
+}
+
+.mdrawer-seg-tipo {
+  margin: 0 0 2px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--gray-800);
+}
+.mdrawer-seg-meta {
+  margin: 0;
+  font-size: 13px;
+  color: var(--gray-600);
+}
+
+/* stats de Personas: 4 columnas y separación con los controles de abajo */
+.personas .dash-stats {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin-bottom: 16px;
+}
+
+/* avatar redondo de Personas (foto del usuario) */
+.persona-avatar {
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  border-radius: var(--radius-full);
+  object-fit: cover;
+}
+
+/* tabs segmentadas (contenedor con borde) de Mascotas */
+.mtabs {
+  display: inline-flex;
+  gap: 2px;
+  padding: 4px;
+  margin-bottom: 14px;
+  border-radius: var(--radius-lg);
+  background: var(--gray-100);
+  max-width: 100%;
+  overflow-x: auto;
+}
+.mtab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border: none;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--gray-600);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+.mtab:hover {
+  color: var(--gray-900);
+}
+.mtab.active {
+  background: var(--surface);
+  color: var(--primary-700);
+  font-weight: 600;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+.mtab-count {
+  display: inline-block;
+  min-width: 20px;
+  padding: 0 6px;
+  border-radius: var(--radius-full);
+  background: var(--gray-200);
+  color: var(--gray-600);
+  font-size: 11px;
+  font-weight: 600;
+  text-align: center;
+}
+.mtab.active .mtab-count {
+  background: var(--primary-100);
+  color: var(--primary-700);
+}
+
+/* pie de la tabla de Mascotas (paginación) */
+.mtable-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+  padding: 14px 4px 4px;
+  border-top: 1px solid var(--border);
+}
+.mtable-count {
+  font-size: 13px;
+  color: var(--gray-500);
+}
+/* cuando no hay botones de página, el conteo queda solo y alineado a la derecha */
+.mtable-foot:not(:has(.mtable-pages)) {
+  justify-content: flex-end;
+}
+.mtable-pages {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.mtable-page-btn {
+  display: grid;
+  place-items: center;
+  min-width: 30px;
+  height: 30px;
+  padding: 0 6px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--gray-600);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+.mtable-page-btn:hover:not(:disabled):not(.active) {
+  background: var(--gray-100);
+  border-color: var(--primary-200);
+}
+.mtable-page-btn.active {
+  background: var(--primary-500);
+  border-color: var(--primary-500);
+  color: #fff;
+  font-weight: 600;
+}
+.mtable-page-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.mdrawer-muted {
+  color: var(--gray-400);
+}
+
+/* contador dentro de los chips de filtro */
+.pub-chip-count {
+  display: inline-block;
+  margin-left: 4px;
+  padding: 0 5px;
+  border-radius: var(--radius-full);
+  background: var(--gray-100);
+  color: var(--gray-500);
+  font-size: 11px;
+  font-weight: 600;
+}
+.pub-chip.active .pub-chip-count {
+  background: var(--primary-100);
+  color: var(--primary-700);
+}
+
 /* ---------- Sección Publicaciones (gestión) ---------- */
 .pub-toolbar {
   display: flex;
@@ -1134,12 +1396,7 @@
 }
 
 /* filas tipo zebra */
-.pub-table tbody tr:nth-child(even) {
-  background: var(--gray-50);
-}
-.pub-table tbody tr:hover {
-  background: var(--primary-50);
-}
+/* (zebra + hover ahora viven en .dash-table base, para todas las tablas) */
 
 /* encabezados ordenables: el th aloja un botón con la flechita de orden */
 .pub-sort {
