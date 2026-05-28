@@ -185,7 +185,7 @@ async function handleRequest(request: Request) {
       nextResponse.cookies.set("auth_token", accessToSet, {
         path: "/",
         maxAge: 3600,
-        httpOnly: true,
+        // auth_token NO httpOnly: el front lo lee desde JS (UserContext).
         secure: process.env.NODE_ENV === "production",
       });
     }
