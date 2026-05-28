@@ -38,6 +38,7 @@ type DataTableProps<T> = {
   onSort?: (key: string) => void;
   /** Clase extra para la `<table>` (ej. estilos específicos de una sección). */
   tableClassName?: string;
+  wrapClassName?: string;
   /** Clase opcional por fila. */
   rowClassName?: (row: T) => string | undefined;
 };
@@ -63,11 +64,16 @@ export function DataTable<T>({
   sort = null,
   onSort,
   tableClassName,
+  wrapClassName,
   rowClassName,
 }: DataTableProps<T>) {
   return (
-    <div className="dash-table-wrap">
-      <table className={`dash-table${tableClassName ? ` ${tableClassName}` : ""}`}>
+    <div
+      className={`dash-table-wrap${wrapClassName ? ` ${wrapClassName}` : ""}`}
+    >
+      <table
+        className={`dash-table${tableClassName ? ` ${tableClassName}` : ""}`}
+      >
         <thead>
           <tr>
             {columns.map((col) => {
