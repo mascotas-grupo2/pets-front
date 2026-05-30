@@ -4,6 +4,7 @@ import { DashboardSection } from "./dashboard/dashboard-section";
 import { PublicacionSection } from "./publicacion/publicacion-section";
 import { MascotasSection } from "./mascotas/mascotas-section";
 import { PersonasSection } from "./personas/personas-section";
+import { MensajesSection } from "./mensajes/mensajes-section";
 
 export const SECTION_CONTENT: Partial<
   Record<Section, ComponentType<SectionProps>>
@@ -12,4 +13,5 @@ export const SECTION_CONTENT: Partial<
   publicacion: PublicacionSection,
   mascotas: MascotasSection,
   personas: PersonasSection,
+  mensajes: MensajesSection,
 };
