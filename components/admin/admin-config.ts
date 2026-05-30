@@ -96,7 +96,7 @@ export const SECTIONS: SectionDef[] = [
     label: "Mensajes",
     icon: MessageSquare,
     title: "Mensajes",
-    subtitle: "Conversaciones con adoptantes",
+    subtitle: "Conversaciones con usuarios e internos",
   },
   {
     id: "personas",
