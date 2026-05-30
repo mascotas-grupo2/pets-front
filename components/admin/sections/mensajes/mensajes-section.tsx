@@ -1,15 +1,25 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { MoreHorizontal, Search, Send, Smile } from "lucide-react";
+import { useAppSelector } from "@/redux/hooks";
 import {
-  CONVERSACIONES,
-  initials,
+  getConversations,
+  getMessages,
+  markConversationRead,
   type Conversacion,
-  type SubTab,
-} from "./mensajes.data";
+  type Mensaje,
+} from "@/services/chat";
+import {
+  createWebSocketTransport,
+  chatWsUrl,
+  type ChatTransport,
+} from "./chat-transport";
+import { horaCorta, horaMensaje, initials } from "./format";
+import type { SectionProps } from "../../admin-config";
 
 type Filtro = "todos" | "usuario" | "interno";
+type SubTab = "mensajes" | "perfil" | "evaluacion" | "notas";
 
 const FILTROS: { id: Filtro; label: string }[] = [
   { id: "todos", label: "Todos" },
@@ -24,59 +34,128 @@ const SUBTABS: { id: SubTab; label: string }[] = [
   { id: "notas", label: "Notas" },
 ];
 
-/** Marca temporal "dd/mm/aaaa hh:mm" para los mensajes que se envían. */
-function ahora(): string {
-  const d = new Date();
-  const p = (n: number) => String(n).padStart(2, "0");
-  return `${p(d.getDate())}/${p(d.getMonth() + 1)}/${d.getFullYear()} ${p(d.getHours())}:${p(d.getMinutes())}`;
-}
+const PAGE = 30;
 
-export function MensajesSection() {
-  const [convs, setConvs] = useState<Conversacion[]>(CONVERSACIONES);
-  const [activaId, setActivaId] = useState<string>(CONVERSACIONES[0]?.id ?? "");
+/** `transport` se puede inyectar en tests; en runtime usa el WebSocket real. */
+export function MensajesSection({
+  transport,
+}: SectionProps & { transport?: ChatTransport } = {}) {
+  const myUserId = useAppSelector((s) => s.user.id);
+
+  const [conversaciones, setConversaciones] = useState<Conversacion[]>([]);
+  const [mensajes, setMensajes] = useState<Record<string, Mensaje[]>>({});
+  const [hayMas, setHayMas] = useState<Record<string, boolean>>({});
+  const [activaId, setActivaId] = useState<string | null>(null);
   const [filtro, setFiltro] = useState<Filtro>("todos");
   const [query, setQuery] = useState("");
   const [subTab, setSubTab] = useState<SubTab>("mensajes");
   const [draft, setDraft] = useState("");
+  const [cargando, setCargando] = useState(true);
+
+  // Refs para que el listener del socket (suscrito una sola vez) lea lo actual.
+  const activaIdRef = useRef<string | null>(null);
+  activaIdRef.current = activaId;
+  const myUserIdRef = useRef<number | undefined>(undefined);
+  myUserIdRef.current = myUserId;
+  const transportRef = useRef<ChatTransport | null>(null);
+
+  // Carga inicial de conversaciones.
+  useEffect(() => {
+    getConversations().then((res) => {
+      if (res.ok && res.data) {
+        setConversaciones(res.data);
+        if (res.data[0]) abrir(res.data[0].id);
+      }
+      setCargando(false);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Conexión al WebSocket y suscripción a mensajes entrantes.
+  useEffect(() => {
+    const t = transport ?? createWebSocketTransport(chatWsUrl());
+    transportRef.current = t;
+
+    const unsubscribe = t.subscribe(({ conversationId, message }) => {
+      setMensajes((prev) =>
+        prev[conversationId]
+          ? { ...prev, [conversationId]: [...prev[conversationId], message] }
+          : prev,
+      );
+      const esActiva = conversationId === activaIdRef.current;
+      const esMio = message.senderUserId === myUserIdRef.current;
+      setConversaciones((prev) =>
+        prev.map((c) =>
+          c.id === conversationId
+            ? {
+                ...c,
+                lastMessageAt: message.createdAt,
+                noLeidos: esActiva || esMio ? 0 : c.noLeidos + 1,
+              }
+            : c,
+        ),
+      );
+      if (esActiva && !esMio) markConversationRead(conversationId);
+    });
+
+    return () => {
+      unsubscribe();
+      if (!transport) t.close(); // sólo cerramos el socket que creamos nosotros
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  /** Abre una conversación: carga la última página (si falta) y la marca leída. */
+  function abrir(id: string) {
+    setActivaId(id);
+    setSubTab("mensajes");
+    setConversaciones((prev) => prev.map((c) => (c.id === id ? { ...c, noLeidos: 0 } : c)));
+    markConversationRead(id);
+    setMensajes((prev) => {
+      if (prev[id]) return prev;
+      getMessages(id, { limit: PAGE }).then((res) => {
+        if (res.ok && res.data) {
+          setMensajes((m) => ({ ...m, [id]: res.data! }));
+          setHayMas((h) => ({ ...h, [id]: res.data!.length === PAGE }));
+        }
+      });
+      return prev;
+    });
+  }
+
+  /** Carga la página anterior de mensajes (paginación hacia atrás). */
+  function cargarAnteriores() {
+    if (!activaId) return;
+    const actuales = mensajes[activaId] ?? [];
+    const before = actuales[0]?.createdAt;
+    getMessages(activaId, { limit: PAGE, before }).then((res) => {
+      if (!res.ok || !res.data) return;
+      setMensajes((m) => ({ ...m, [activaId]: [...res.data!, ...(m[activaId] ?? [])] }));
+      setHayMas((h) => ({ ...h, [activaId]: res.data!.length === PAGE }));
+    });
+  }
+
+  function enviar(e: React.FormEvent) {
+    e.preventDefault();
+    const texto = draft.trim();
+    if (!texto || !activaId) return;
+    // No lo agregamos a mano: vuelve por el socket (eco del servidor).
+    transportRef.current?.send(activaId, texto);
+    setDraft("");
+  }
 
   const visibles = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return convs.filter((c) => {
+    return conversaciones.filter((c) => {
       if (filtro !== "todos" && c.canal !== filtro) return false;
       if (!q) return true;
       return c.nombre.toLowerCase().includes(q) || c.contexto.toLowerCase().includes(q);
     });
-  }, [convs, filtro, query]);
+  }, [conversaciones, filtro, query]);
 
-  const activa = convs.find((c) => c.id === activaId) ?? null;
-
-  /** Abre una conversación y la marca como leída. */
-  function abrir(id: string) {
-    setActivaId(id);
-    setSubTab("mensajes");
-    setConvs((prev) => prev.map((c) => (c.id === id ? { ...c, noLeidos: 0 } : c)));
-  }
-
-  /** Agrega el mensaje del admin a la conversación activa (optimista, local). */
-  function enviar(e: React.FormEvent) {
-    e.preventDefault();
-    const texto = draft.trim();
-    if (!texto || !activa) return;
-    setConvs((prev) =>
-      prev.map((c) =>
-        c.id === activa.id
-          ? {
-              ...c,
-              mensajes: [
-                ...c.mensajes,
-                { id: `m${c.mensajes.length + 1}`, autor: "yo", texto, hora: ahora() },
-              ],
-            }
-          : c,
-      ),
-    );
-    setDraft("");
-  }
+  const activa = conversaciones.find((c) => c.id === activaId) ?? null;
+  const hilo = activaId ? mensajes[activaId] ?? [] : [];
+  const esMio = (m: Mensaje) => m.senderUserId != null && m.senderUserId === myUserId;
 
   return (
     <div className="msg">
@@ -109,7 +188,7 @@ export function MensajesSection() {
         </div>
 
         <ul className="msg-list">
-          {visibles.length === 0 && (
+          {!cargando && visibles.length === 0 && (
             <li className="msg-empty-list">No hay conversaciones.</li>
           )}
           {visibles.map((c) => (
@@ -128,7 +207,7 @@ export function MensajesSection() {
                   <span className="msg-item-sub">{c.contexto}</span>
                 </span>
                 <span className="msg-item-meta">
-                  <span className="msg-item-time">{c.hora}</span>
+                  <span className="msg-item-time">{horaCorta(c.lastMessageAt)}</span>
                   {c.noLeidos > 0 && (
                     <span className="msg-unread" aria-label={`${c.noLeidos} sin leer`}>
                       {c.noLeidos}
@@ -144,7 +223,9 @@ export function MensajesSection() {
       {/* ---- Columna derecha: conversación activa ---- */}
       <section className="msg-chat-panel" aria-label="Conversación">
         {!activa ? (
-          <div className="msg-empty">Elegí una conversación para ver los mensajes.</div>
+          <div className="msg-empty">
+            {cargando ? "Cargando conversaciones…" : "Elegí una conversación para ver los mensajes."}
+          </div>
         ) : (
           <>
             <header className="msg-chat-head">
@@ -178,19 +259,24 @@ export function MensajesSection() {
             {subTab === "mensajes" ? (
               <>
                 <div className="msg-thread">
-                  {activa.mensajes.map((m) => (
+                  {hayMas[activa.id] && (
+                    <button type="button" className="msg-load-more" onClick={cargarAnteriores}>
+                      Ver mensajes anteriores
+                    </button>
+                  )}
+                  {hilo.map((m) => (
                     <div
                       key={m.id}
-                      className={`msg-bubble-row ${m.autor === "yo" ? "is-mine" : "is-theirs"}`}
+                      className={`msg-bubble-row ${esMio(m) ? "is-mine" : "is-theirs"}`}
                     >
-                      {m.autor === "otro" && (
+                      {!esMio(m) && (
                         <span className="msg-avatar msg-avatar-sm" aria-hidden>
-                          {initials(activa.nombre)}
+                          {initials(m.senderName)}
                         </span>
                       )}
                       <div className="msg-bubble">
                         <p>{m.texto}</p>
-                        <time>{m.hora}</time>
+                        <time>{horaMensaje(m.createdAt)}</time>
                       </div>
                     </div>
                   ))}

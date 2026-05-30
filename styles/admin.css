@@ -1890,6 +1890,24 @@
   padding: 20px;
 }
 
+.msg-load-more {
+  align-self: center;
+  margin-bottom: 4px;
+  padding: 6px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  background: var(--surface);
+  color: var(--primary-600);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.msg-load-more:hover {
+  background: var(--primary-50);
+}
+
 .msg-bubble-row {
   display: flex;
   align-items: flex-end;
