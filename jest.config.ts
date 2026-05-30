@@ -29,6 +29,7 @@ const config: Config = {
     "redux/{hooks.ts,reducers.tsx}",
     "services/{request.ts,user.admin.tsx}",
     "components/admin/lib/**/*.{ts,tsx}",
+    "components/admin/sections/mensajes/**/*.{ts,tsx}",
     "components/utils/{helpers,FormikHelper}.tsx",
     "components/{brand,pet-card,form-stepper}.tsx",
     "!**/*.d.ts",
