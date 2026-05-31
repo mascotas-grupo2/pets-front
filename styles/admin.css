@@ -721,7 +721,9 @@
   gap: 4px;
 }
 
-.dash-row-actions button {
+.dash-row-actions button,
+.dash-row-actions a,
+.dash-action-btn {
   display: grid;
   place-items: center;
   padding: 5px;
@@ -730,11 +732,20 @@
   background: transparent;
   color: var(--gray-400);
   cursor: pointer;
+  text-decoration: none;
 }
 
-.dash-row-actions button:hover {
+.dash-row-actions button:hover,
+.dash-row-actions a:hover,
+.dash-action-btn:hover {
   background: var(--gray-100);
   color: var(--gray-700);
+}
+
+.dash-action-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
 }
 
 /* ---------- Sección Validación ---------- */
@@ -2031,6 +2042,25 @@
   color: var(--gray-900);
 }
 
+.vdrawer-head-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.btn-ghost.btn-icon {
+  background: none;
+  border: none;
+  padding: 6px;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+}
+.btn-ghost.btn-icon:hover {
+  background: var(--color-bg-hover);
+  color: var(--color-text-primary);
+}
+
 /* ---------- Responsive ---------- */
 @media (max-width: 900px) {
   .msg {
@@ -2038,3 +2068,5 @@
     height: auto;
   }
 }
+
+
