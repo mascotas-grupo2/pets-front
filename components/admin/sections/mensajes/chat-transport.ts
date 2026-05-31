@@ -1,3 +1,4 @@
+import axios from "axios";
 import type { Mensaje } from "@/services/chat";
 
 /** Evento empujado por el servidor (mensaje nuevo en una conversación). */
@@ -15,45 +16,47 @@ export interface ChatTransport {
   close(): void;
 }
 
-/** URL del WebSocket de chat (configurable por env). */
-export function chatWsUrl(): string {
-  return process.env.NEXT_PUBLIC_WS_URL ?? "ws://localhost:3001/ws/chat";
-}
-
 /**
  * Implementación sobre WebSocket nativo: encola los envíos hasta que la conexión
- * esté abierta y reintenta la conexión si se cae.
+ * esté abierta, obteniendo la configuración desde la API interna.
  */
-export function createWebSocketTransport(url: string): ChatTransport {
+export function createWebSocketTransport(): ChatTransport {
   const listeners = new Set<Listener>();
   let socket: WebSocket | null = null;
   let pending: string[] = [];
   let closedByUser = false;
   let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
 
-  function connect() {
-    socket = new WebSocket(url);
+  async function connect() {
+    try {
+      // Obtenemos la URL de conexión desde nuestra API interna (BFF)
+      const res = await axios.get<{ url: string }>("/api/chat");
+      const { url } = res.data;
 
-    socket.onopen = () => {
-      pending.forEach((frame) => socket?.send(frame));
-      pending = [];
-    };
+      socket = new WebSocket(url);
 
-    socket.onmessage = (e) => {
-      try {
-        const event = JSON.parse(e.data) as ChatEvent;
-        if (event.type === "message") listeners.forEach((l) => l(event));
-      } catch {
-        /* frame no-JSON: lo ignoramos */
-      }
-    };
+      socket.onopen = () => {
+        pending.forEach((frame) => socket?.send(frame));
+        pending = [];
+      };
 
-    socket.onclose = () => {
-      socket = null;
-      if (!closedByUser) reconnectTimer = setTimeout(connect, 1500);
-    };
+      socket.onmessage = (e) => {
+        try {
+          const event = JSON.parse(e.data) as ChatEvent;
+          if (event.type === "message") listeners.forEach((l) => l(event));
+        } catch { /* ignore */ }
+      };
 
-    socket.onerror = () => socket?.close();
+      socket.onclose = () => {
+        socket = null;
+        if (!closedByUser) reconnectTimer = setTimeout(connect, 2000);
+      };
+
+      socket.onerror = () => socket?.close();
+    } catch (err) {
+      console.error("ChatTransport connect error:", err);
+      if (!closedByUser) reconnectTimer = setTimeout(connect, 5000);
+    }
   }
 
   connect();

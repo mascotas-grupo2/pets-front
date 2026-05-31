@@ -10,13 +10,9 @@ import {
   type Conversacion,
   type Mensaje,
 } from "@/services/chat";
-import {
-  createWebSocketTransport,
-  chatWsUrl,
-  type ChatTransport,
-} from "./chat-transport";
 import { horaCorta, horaMensaje, initials } from "./format";
 import type { SectionProps } from "../../admin-config";
+import { ChatTransport, createWebSocketTransport } from "./chat-transport";
 
 type Filtro = "todos" | "usuario" | "interno";
 type SubTab = "mensajes" | "perfil" | "evaluacion" | "notas";
@@ -73,7 +69,7 @@ export function MensajesSection({
 
   // Conexión al WebSocket y suscripción a mensajes entrantes.
   useEffect(() => {
-    const t = transport ?? createWebSocketTransport(chatWsUrl());
+    const t = transport ?? createWebSocketTransport();
     transportRef.current = t;
 
     const unsubscribe = t.subscribe(({ conversationId, message }) => {
