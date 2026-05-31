@@ -1,21 +1,21 @@
 "use client";
 
 import { ChevronsLeft, ChevronsRight, Plus } from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { SECTIONS, type Section } from "./admin-config";
 
 type AdminSidebarProps = {
-  active: Section;
-  onSelect: (section: Section) => void;
   collapsed: boolean;
   onToggleCollapse: () => void;
 };
 
 export function AdminSidebar({
-  active,
-  onSelect,
   collapsed,
   onToggleCollapse,
 }: AdminSidebarProps) {
+  const pathname = usePathname();
+
   return (
     <aside
       className={`admin-sidebar${collapsed ? " collapsed" : ""}`}
@@ -32,13 +32,14 @@ export function AdminSidebar({
       <nav className="admin-nav" aria-label="Secciones">
         {SECTIONS.map((item) => {
           const Icon = item.icon;
-          const isActive = active === item.id;
+          const href = `/admin/${item.id}`;
+          // Marcamos como activo si la URL coincide con la sección o si estamos en el raíz y es el dashboard
+          const isActive = pathname === href || (pathname === "/admin" && item.id === "dashboard");
           return (
-            <button
+            <Link
               key={item.id}
-              type="button"
+              href={href}
               className={`admin-nav-item${isActive ? " active" : ""}`}
-              onClick={() => onSelect(item.id)}
               aria-current={isActive ? "page" : undefined}
               title={collapsed ? item.label : undefined}
             >
@@ -47,7 +48,7 @@ export function AdminSidebar({
               {item.badge != null && (
                 <span className="admin-nav-badge">{item.badge}</span>
               )}
-            </button>
+            </Link>
           );
         })}
       </nav>

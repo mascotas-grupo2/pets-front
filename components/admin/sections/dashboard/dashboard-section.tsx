@@ -1,14 +1,16 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { Eye, Pencil, MoreVertical, ChevronRight } from "lucide-react";
 import { Panel } from "../../ui/panel";
 import { Pill } from "../../ui/pill";
 import { DataTable, type Column } from "../../ui/data-table";
+import { ActionButton } from "../../ui/button";
 import { EstadoPill } from "../../lib/pet-status";
 import { getAdminPets } from "@/services/mascotas.pets";
 import type { AdminPetSummary } from "@/types/pet";
-import type { Section, SectionProps } from "../../admin-config";
+import type { Section } from "../../admin-config";
 import {
   STATS,
   SOLICITUDES,
@@ -21,15 +23,17 @@ import {
 /** Enlace "Ver todas/os" del encabezado de un panel. */
 function VerTodas({
   label = "Ver todas",
-  onClick,
+  href,
 }: {
   label?: string;
-  onClick?: () => void;
+  href?: string;
 }) {
-  return (
-    <button type="button" className="dash-link" onClick={onClick}>
+  return href ? (
+    <Link href={href} className="dash-link">
       {label}
-    </button>
+    </Link>
+  ) : (
+    <span className="dash-link">{label}</span>
   );
 }
 
@@ -44,10 +48,8 @@ const STAT_SECTION: Record<string, Section> = {
 
 function StatCards({
   publicaciones,
-  onNavigate,
 }: {
   publicaciones: number | null;
-  onNavigate?: (section: Section) => void;
 }) {
   return (
     <div className="dash-stats">
@@ -62,8 +64,7 @@ function StatCards({
           : s.value;
 
         const target = STAT_SECTION[s.label];
-        const onClick =
-          target && onNavigate ? () => onNavigate(target) : undefined;
+        const href = target ? `/admin/${target}` : undefined;
 
         const body = (
           <>
@@ -78,15 +79,14 @@ function StatCards({
           </>
         );
 
-        return onClick ? (
-          <button
+        return href ? (
+          <Link
             key={s.label}
-            type="button"
+            href={href}
             className="dash-stat-card dash-stat-card--link"
-            onClick={onClick}
           >
             {body}
-          </button>
+          </Link>
         ) : (
           <div key={s.label} className="dash-stat-card">
             {body}
@@ -147,7 +147,7 @@ const SOLICITUDES_COLS: Column<(typeof SOLICITUDES)[number]>[] = [
 
 function SolicitudesPanel() {
   return (
-    <Panel title="Solicitudes recientes" action={<VerTodas />}>
+    <Panel title="Solicitudes recientes" action={<VerTodas href="/admin/solicitudes" />}>
       <DataTable
         columns={SOLICITUDES_COLS}
         data={SOLICITUDES}
@@ -181,7 +181,7 @@ const SEGUIMIENTOS_COLS: Column<(typeof SEGUIMIENTOS)[number]>[] = [
 
 function SeguimientosPanel() {
   return (
-    <Panel title="Seguimientos próximos" action={<VerTodas label="Ver todos" />}>
+    <Panel title="Seguimientos próximos" action={<VerTodas label="Ver todos" href="/admin/seguimientos" />}>
       <DataTable
         columns={SEGUIMIENTOS_COLS}
         data={SEGUIMIENTOS}
@@ -194,11 +194,11 @@ function SeguimientosPanel() {
 function PublicacionesPanel({
   pets,
   loading,
-  onVerTodas,
+  href,
 }: {
   pets: AdminPetSummary[];
   loading: boolean;
-  onVerTodas?: () => void;
+  href?: string;
 }) {
   // Las 5 publicaciones más recientes por fecha de creación.
   const recientes = useMemo(
@@ -243,29 +243,28 @@ function PublicacionesPanel({
     { key: "vistas", label: "Vistas", tdClassName: "dash-muted", render: () => "—" },
     {
       key: "actions",
-      ariaLabel: "Acciones",
+      ariaLabel: "Acción",
       tdClassName: "dash-cell-action",
       render: () => (
         <div className="dash-row-actions">
-          <button type="button" aria-label="Ver" onClick={onVerTodas}>
-            <Eye size={15} />
-          </button>
-          <button type="button" aria-label="Editar" onClick={onVerTodas}>
-            <Pencil size={15} />
-          </button>
-          <button type="button" aria-label="Más">
-            <MoreVertical size={15} />
-          </button>
+          <ActionButton
+            icon={Eye}
+            href={href ?? "/admin/publicacion"}
+            ariaLabel="Ver"
+          />
+          <ActionButton
+            icon={Pencil}
+            href={href ?? "/admin/publicacion"}
+            ariaLabel="Editar"
+          />
+          <ActionButton icon={MoreVertical} ariaLabel="Más" />
         </div>
       ),
     },
   ];
 
   return (
-    <Panel
-      title="Publicaciones recientes"
-      action={<VerTodas onClick={onVerTodas} />}
-    >
+    <Panel title="Publicaciones recientes" action={<VerTodas href={href} />}>
       <DataTable
         columns={columns}
         data={recientes}
@@ -301,7 +300,7 @@ function ActividadPanel() {
   );
 }
 
-export function DashboardSection({ onNavigate }: SectionProps) {
+export function DashboardSection() {
   const [pets, setPets] = useState<AdminPetSummary[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -317,24 +316,15 @@ export function DashboardSection({ onNavigate }: SectionProps) {
     };
   }, []);
 
-  const verPublicaciones = () => onNavigate?.("publicacion");
-
   return (
     <div className="dash">
-      <StatCards
-        publicaciones={loading ? null : pets.length}
-        onNavigate={onNavigate}
-      />
+      <StatCards publicaciones={loading ? null : pets.length} />
       <div className="dash-grid">
         <SolicitudesPanel />
         <SeguimientosPanel />
       </div>
       <div className="dash-grid">
-        <PublicacionesPanel
-          pets={pets}
-          loading={loading}
-          onVerTodas={verPublicaciones}
-        />
+        <PublicacionesPanel pets={pets} loading={loading} href="/admin/publicacion" />
         <ActividadPanel />
       </div>
     </div>
