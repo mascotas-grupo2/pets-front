@@ -5,6 +5,7 @@ import { PublicacionSection } from "./publicacion/publicacion-section";
 import { MascotasSection } from "./mascotas/mascotas-section";
 import { PersonasSection } from "./personas/personas-section";
 import { MensajesSection } from "./mensajes/mensajes-section";
+import { SolicitudesSection } from "./solicitudes/solicitudes-section";
 
 export const SECTION_CONTENT: Partial<
   Record<Section, ComponentType<SectionProps>>
@@ -12,6 +13,7 @@ export const SECTION_CONTENT: Partial<
   dashboard: DashboardSection,
   publicacion: PublicacionSection,
   mascotas: MascotasSection,
+  solicitudes: SolicitudesSection,
   personas: PersonasSection,
   mensajes: MensajesSection,
 };

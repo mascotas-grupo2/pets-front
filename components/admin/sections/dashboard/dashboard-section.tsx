@@ -1,24 +1,27 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { Eye, Pencil, MoreVertical, ChevronRight } from "lucide-react";
 import { Panel } from "../../ui/panel";
 import { Pill } from "../../ui/pill";
 import { DataTable, type Column } from "../../ui/data-table";
 import { ActionButton } from "../../ui/button";
 import { EstadoPill } from "../../lib/pet-status";
-import { getAdminPets } from "@/services/mascotas.pets";
 import type { AdminPetSummary } from "@/types/pet";
-import type { Section } from "../../admin-config";
+
 import {
-  STATS,
   SOLICITUDES,
   SEGUIMIENTOS,
   ACTIVIDAD,
   compatTone,
   initials,
 } from "./dashboard.data";
+import { useDashboardPreviews } from "../hook/useDashboardPreviews";
+import { DashboardStatCards } from "./DashboardStatCards";
+import { DashboardTablePanel } from "./DashboardTablePanel";
+import { DashboardRecentList } from "./DashboardRecentList";
+import { solicitudEstadoTone } from "../../lib/solicitud-status";
 
 /** Enlace "Ver todas/os" del encabezado de un panel. */
 function VerTodas({
@@ -34,66 +37,6 @@ function VerTodas({
     </Link>
   ) : (
     <span className="dash-link">{label}</span>
-  );
-}
-
-/** Cada stat-card del dashboard navega a su sección correspondiente. */
-const STAT_SECTION: Record<string, Section> = {
-  "Mascotas activas": "mascotas",
-  Solicitudes: "solicitudes",
-  "Seguimientos hoy": "seguimientos",
-  Publicaciones: "publicacion",
-  "Mensajes sin leer": "mensajes",
-};
-
-function StatCards({
-  publicaciones,
-}: {
-  publicaciones: number | null;
-}) {
-  return (
-    <div className="dash-stats">
-      {STATS.map((s) => {
-        const Icon = s.icon;
-        // "Publicaciones" usa el conteo real; el resto sigue mockeado.
-        const esPublicaciones = s.label === "Publicaciones";
-        const value = esPublicaciones
-          ? publicaciones === null
-            ? "…"
-            : String(publicaciones)
-          : s.value;
-
-        const target = STAT_SECTION[s.label];
-        const href = target ? `/admin/${target}` : undefined;
-
-        const body = (
-          <>
-            <div className={`dash-stat-icon tone-${s.tone}`}>
-              <Icon size={22} aria-hidden />
-            </div>
-            <div className="dash-stat-body">
-              <span className="dash-stat-label">{s.label}</span>
-              <span className="dash-stat-value">{value}</span>
-              <span className="dash-stat-hint">{s.hint}</span>
-            </div>
-          </>
-        );
-
-        return href ? (
-          <Link
-            key={s.label}
-            href={href}
-            className="dash-stat-card dash-stat-card--link"
-          >
-            {body}
-          </Link>
-        ) : (
-          <div key={s.label} className="dash-stat-card">
-            {body}
-          </div>
-        );
-      })}
-    </div>
   );
 }
 
@@ -145,18 +88,6 @@ const SOLICITUDES_COLS: Column<(typeof SOLICITUDES)[number]>[] = [
   },
 ];
 
-function SolicitudesPanel() {
-  return (
-    <Panel title="Solicitudes recientes" action={<VerTodas href="/admin/solicitudes" />}>
-      <DataTable
-        columns={SOLICITUDES_COLS}
-        data={SOLICITUDES}
-        rowKey={(r) => r.usuario}
-      />
-    </Panel>
-  );
-}
-
 const SEGUIMIENTOS_COLS: Column<(typeof SEGUIMIENTOS)[number]>[] = [
   {
     key: "mascota",
@@ -181,7 +112,10 @@ const SEGUIMIENTOS_COLS: Column<(typeof SEGUIMIENTOS)[number]>[] = [
 
 function SeguimientosPanel() {
   return (
-    <Panel title="Seguimientos próximos" action={<VerTodas label="Ver todos" href="/admin/seguimientos" />}>
+    <Panel
+      title="Seguimientos próximos"
+      action={<VerTodas label="Ver todos" href="/admin/seguimientos" />}
+    >
       <DataTable
         columns={SEGUIMIENTOS_COLS}
         data={SEGUIMIENTOS}
@@ -240,7 +174,12 @@ function PublicacionesPanel({
       label: "Estado",
       render: (p) => <EstadoPill status={p.reportStatus} />,
     },
-    { key: "vistas", label: "Vistas", tdClassName: "dash-muted", render: () => "—" },
+    {
+      key: "vistas",
+      label: "Vistas",
+      tdClassName: "dash-muted",
+      render: () => "—",
+    },
     {
       key: "actions",
       ariaLabel: "Acción",
@@ -276,56 +215,51 @@ function PublicacionesPanel({
   );
 }
 
-function ActividadPanel() {
-  return (
-    <Panel title="Actividad reciente">
-      <ul className="dash-activity">
-        {ACTIVIDAD.map((a) => {
-          const Icon = a.icon;
-          return (
-            <li key={a.titulo} className="dash-activity-item">
-              <span className={`dash-activity-icon tone-${a.tone}`}>
-                <Icon size={16} aria-hidden />
-              </span>
-              <span className="dash-activity-text">
-                <span className="dash-activity-title">{a.titulo}</span>
-                <span className="dash-activity-detail">{a.detalle}</span>
-              </span>
-              <span className="dash-activity-time">{a.tiempo}</span>
-            </li>
-          );
-        })}
-      </ul>
-    </Panel>
-  );
-}
-
 export function DashboardSection() {
-  const [pets, setPets] = useState<AdminPetSummary[]>([]);
-  const [loading, setLoading] = useState(true);
+  const {
+    publicaciones: publicacionesPreview,
+    publicacionesCount,
+    solicitudes: solicitudesPreviewRaw,
+    pubsLoading,
+    solicitudesLoading,
+  } = useDashboardPreviews({ pageSize: 5 });
 
-  useEffect(() => {
-    let alive = true;
-    getAdminPets().then((res) => {
-      if (!alive) return;
-      if (res.ok && res.data) setPets(res.data);
-      setLoading(false);
-    });
-    return () => {
-      alive = false;
-    };
-  }, []);
+  // map solicitudes to dashboard shape
+  const solicitudesPreview = solicitudesPreviewRaw.map((s) => ({
+    usuario: s.userName,
+    email: s.userEmail,
+    mascota: s.petName,
+    compat: { pct: s.compatPct, label: s.compatLabel },
+    estado: {
+      label: s.estado.replace(/_/g, " "),
+      tone: solicitudEstadoTone(s.estado),
+    },
+    fecha: s.fecha,
+  }));
 
   return (
     <div className="dash">
-      <StatCards publicaciones={loading ? null : pets.length} />
+      <DashboardStatCards
+        publicaciones={pubsLoading ? null : (publicacionesCount ?? null)}
+      />
       <div className="dash-grid">
-        <SolicitudesPanel />
+        <DashboardTablePanel
+          title="Solicitudes recientes"
+          href="/admin/solicitudes"
+          columns={SOLICITUDES_COLS}
+          data={solicitudesPreview}
+          rowKey={(r) => r.usuario}
+          loading={solicitudesLoading}
+        />
         <SeguimientosPanel />
       </div>
       <div className="dash-grid">
-        <PublicacionesPanel pets={pets} loading={loading} href="/admin/publicacion" />
-        <ActividadPanel />
+        <PublicacionesPanel
+          pets={publicacionesPreview}
+          loading={pubsLoading}
+          href="/admin/publicacion"
+        />
+        <DashboardRecentList items={ACTIVIDAD} />
       </div>
     </div>
   );
