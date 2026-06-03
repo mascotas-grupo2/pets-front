@@ -29,3 +29,7 @@ export const getAdminUsers = (params?: {
   pageSize?: number;
 }) =>
   request<AdminUsersResponse>(() => axios.get("user/admin/list", { params }));
+
+/** Cambia el rol de un usuario. El back resuelve el código ("admin" | "user"). */
+export const updateUserRole = (id: number, role: "admin" | "user") =>
+  request<AdminUser>(() => axios.patch(`user/admin/${id}/role`, { role }));

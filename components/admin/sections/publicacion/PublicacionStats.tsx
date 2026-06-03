@@ -1,11 +1,11 @@
 "use client";
 
-import { CheckCircle2, Clock, XCircle } from "lucide-react";
+import { CheckCircle2, Clock, XCircle, Flag } from "lucide-react";
 import type { EstadoFiltro } from "../hook/usePublicaciones";
 import type { PetReportStatus } from "@/types/pet";
 
 type Props = {
-  counts: { pendiente: number; activo: number; rechazado: number };
+  counts: { pendiente: number; activo: number; rechazado: number; finalizado: number };
   loading: boolean;
   estado: EstadoFiltro;
   onToggle: (key: PetReportStatus) => void;
@@ -15,7 +15,7 @@ type StatCardProps = {
   icon: React.ReactNode;
   label: string;
   value: number | string;
-  tone: "violet" | "green" | "red";
+  tone: "violet" | "green" | "red" | "blue";
   active: boolean;
   onClick: () => void;
 };
@@ -65,6 +65,14 @@ export function PublicacionStats({ counts, loading, estado, onToggle }: Props) {
         tone="red"
         active={estado === "rechazado"}
         onClick={() => onToggle("rechazado")}
+      />
+      <StatCard
+        icon={<Flag size={22} aria-hidden />}
+        label="Finalizadas"
+        value={val(counts.finalizado)}
+        tone="blue"
+        active={estado === "finalizado"}
+        onClick={() => onToggle("finalizado")}
       />
     </div>
   );

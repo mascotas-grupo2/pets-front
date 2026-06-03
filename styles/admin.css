@@ -509,6 +509,10 @@
   background: #fde8f3;
   color: #db2777;
 }
+.dash-stat-icon.tone-red {
+  background: #fde8e8;
+  color: var(--danger);
+}
 
 /* ---------- Grilla de paneles ---------- */
 .dash-grid {
