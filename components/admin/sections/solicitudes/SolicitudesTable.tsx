@@ -40,8 +40,9 @@ export function SolicitudesTable({
 }: Props) {
   const columns: Column<Solicitud>[] = [
     {
-      key: "name",
-      label: "Nombre",
+      key: "userName",
+      label: "Solicitante",
+      sortable: true,
       render: (u) => (
         <div className="dash-user">
           {u.userPhoto ? (
@@ -57,8 +58,8 @@ export function SolicitudesTable({
       ),
     },
     {
-      key: "name",
-      label: "Nombre",
+      key: "petName",
+      label: "Mascota",
       sortable: true,
       render: (p) => (
         <div className="dash-user">
