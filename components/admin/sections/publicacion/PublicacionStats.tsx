@@ -5,7 +5,12 @@ import type { EstadoFiltro } from "../hook/usePublicaciones";
 import type { PetReportStatus } from "@/types/pet";
 
 type Props = {
-  counts: { pendiente: number; activo: number; rechazado: number; finalizado: number };
+  counts: {
+    pendiente: number;
+    activo: number;
+    rechazado: number;
+    finalizado: number;
+  };
   loading: boolean;
   estado: EstadoFiltro;
   onToggle: (key: PetReportStatus) => void;
@@ -20,7 +25,14 @@ type StatCardProps = {
   onClick: () => void;
 };
 
-function StatCard({ icon, label, value, tone, active, onClick }: StatCardProps) {
+function StatCard({
+  icon,
+  label,
+  value,
+  tone,
+  active,
+  onClick,
+}: StatCardProps) {
   return (
     <button
       type="button"
@@ -41,7 +53,10 @@ export function PublicacionStats({ counts, loading, estado, onToggle }: Props) {
   const val = (n: number) => (loading ? "…" : n);
 
   return (
-    <div className="pub-stats">
+    <div
+      className="pub-stats"
+      style={{ gridTemplateColumns: "repeat(4, minmax(0, 1fr))" }}
+    >
       <StatCard
         icon={<Clock size={22} aria-hidden />}
         label="Nuevas (pendientes)"

@@ -17,7 +17,7 @@ export type SortKey = "name" | "tipo" | "estado" | "fecha" | "vistas";
 export type SortDir = "asc" | "desc";
 export type Sort = { key: SortKey; dir: SortDir };
 
-const PAGE_SIZE = 20;
+const PAGE_SIZE = 6;
 
 // ── Tipos de respuesta esperados del back ─────────────────────────────────────
 // Cuando el back esté listo, getAdminPets deberá aceptar estos params
@@ -100,7 +100,9 @@ export function usePublicaciones() {
 
       // Filtro por estado
       if (params.reportStatus) {
-        filtered = filtered.filter((p) => p.reportStatus === params.reportStatus);
+        filtered = filtered.filter(
+          (p) => p.reportStatus === params.reportStatus,
+        );
       }
 
       // Búsqueda
@@ -119,9 +121,15 @@ export function usePublicaciones() {
         filtered = [...filtered].sort((a, b) => {
           let c = 0;
           if (params.sortKey === "name")
-            c = (a.name ?? "").localeCompare(b.name ?? "", "es", { sensitivity: "base" });
+            c = (a.name ?? "").localeCompare(b.name ?? "", "es", {
+              sensitivity: "base",
+            });
           else if (params.sortKey === "tipo")
-            c = (a.statusLabel ?? a.status ?? "").localeCompare(b.statusLabel ?? b.status ?? "", "es", { sensitivity: "base" });
+            c = (a.statusLabel ?? a.status ?? "").localeCompare(
+              b.statusLabel ?? b.status ?? "",
+              "es",
+              { sensitivity: "base" },
+            );
           else if (params.sortKey === "estado")
             c = rankEstado(a.reportStatus) - rankEstado(b.reportStatus);
           else if (params.sortKey === "fecha")
@@ -132,10 +140,13 @@ export function usePublicaciones() {
 
       // Stats temporales (sobre total sin paginar)
       setCounts({
-        pendiente: res.data.filter((p) => p.reportStatus === "pendiente").length,
+        pendiente: res.data.filter((p) => p.reportStatus === "pendiente")
+          .length,
         activo: res.data.filter((p) => p.reportStatus === "activo").length,
-        rechazado: res.data.filter((p) => p.reportStatus === "rechazado").length,
-        finalizado: res.data.filter((p) => p.reportStatus === "finalizado").length,
+        rechazado: res.data.filter((p) => p.reportStatus === "rechazado")
+          .length,
+        finalizado: res.data.filter((p) => p.reportStatus === "finalizado")
+          .length,
       });
 
       // Paginación
@@ -200,35 +211,55 @@ export function usePublicaciones() {
   // ── Acciones ──────────────────────────────────────────────────────────────
   async function handleApprove(id: string) {
     const res = await approvePet(id);
-    if (res.ok) { handleToast("success", "Publicación aprobada."); await reload(); return true; }
+    if (res.ok) {
+      handleToast("success", "Publicación aprobada.");
+      await reload();
+      return true;
+    }
     handleToast("error", "No se pudo aprobar. Probá de nuevo.");
     return false;
   }
 
   async function handleReject(id: string) {
     const res = await rejectPet(id);
-    if (res.ok) { handleToast("success", "Publicación rechazada."); await reload(); return true; }
+    if (res.ok) {
+      handleToast("success", "Publicación rechazada.");
+      await reload();
+      return true;
+    }
     handleToast("error", "No se pudo rechazar. Probá de nuevo.");
     return false;
   }
 
   async function handleFinalize(id: string) {
     const res = await finalizePet(id);
-    if (res.ok) { handleToast("success", "Publicación finalizada."); await reload(); return true; }
+    if (res.ok) {
+      handleToast("success", "Publicación finalizada.");
+      await reload();
+      return true;
+    }
     handleToast("error", "No se pudo finalizar. Probá de nuevo.");
     return false;
   }
 
   async function handleDelete(id: string) {
     const res = await deletePet(id);
-    if (res.ok) { handleToast("success", "Publicación eliminada."); await reload(); return true; }
+    if (res.ok) {
+      handleToast("success", "Publicación eliminada.");
+      await reload();
+      return true;
+    }
     handleToast("error", "No se pudo eliminar. Probá de nuevo.");
     return false;
   }
 
   async function handleSave(id: string, patch: Partial<Pet>) {
     const res = await updatePet(id, patch);
-    if (res.ok) { handleToast("success", "Publicación actualizada."); await reload(); return true; }
+    if (res.ok) {
+      handleToast("success", "Publicación actualizada.");
+      await reload();
+      return true;
+    }
     handleToast("error", "No se pudo guardar. Probá de nuevo.");
     return false;
   }
@@ -268,7 +299,15 @@ export function usePublicaciones() {
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 const ESTADO_RANK: Record<string, number> = {
-  pendiente: 0, activo: 1, finalizado: 2, rechazado: 3,
+  pendiente: 0,
+  activo: 1,
+  finalizado: 2,
+  rechazado: 3,
 };
-function rankEstado(s?: string) { return s ? (ESTADO_RANK[s] ?? 99) : 99; }
-function dateVal(d?: string) { const t = d ? new Date(d).getTime() : NaN; return Number.isNaN(t) ? 0 : t; }
+function rankEstado(s?: string) {
+  return s ? (ESTADO_RANK[s] ?? 99) : 99;
+}
+function dateVal(d?: string) {
+  const t = d ? new Date(d).getTime() : NaN;
+  return Number.isNaN(t) ? 0 : t;
+}

@@ -62,7 +62,7 @@ export type SortKey = "userName" | "petName" | "compat" | "estado" | "fecha";
 export type SortDir = "asc" | "desc";
 export type Sort = { key: SortKey; dir: SortDir };
 
-const PAGE_SIZE = 20;
+const PAGE_SIZE = 8;
 
 type Params = {
   estado?: EstadoSolicitud;

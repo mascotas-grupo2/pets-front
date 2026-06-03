@@ -9,7 +9,7 @@ import type { TableSort } from "../../ui/data-table";
 export type FiltroEstado = "todas" | "refugio" | "adopcion" | "adoptados";
 export type FiltroEspecie = "todas" | AnimalType;
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 8;
 
 /** "refugio" agrupa todo lo que no es adopción ni adoptado. */
 export function inFiltro(status: PetStatus | undefined, f: FiltroEstado) {
@@ -31,13 +31,21 @@ export function useMascotas() {
   const [pets, setPets] = useState<AdminPetSummary[]>([]);
   const [visible, setVisible] = useState<AdminPetSummary[]>([]);
   const [total, setTotal] = useState(0);
-  const [counts, setCounts] = useState({ todas: 0, refugio: 0, adopcion: 0, adoptados: 0 });
+  const [counts, setCounts] = useState({
+    todas: 0,
+    refugio: 0,
+    adopcion: 0,
+    adoptados: 0,
+  });
   const [loading, setLoading] = useState(true);
 
   const [query, setQueryRaw] = useState("");
   const [filtro, setFiltroRaw] = useState<FiltroEstado>("todas");
   const [especie, setEspecieRaw] = useState<FiltroEspecie>("todas");
-  const [sort, setSort] = useState<TableSort | null>({ key: "name", dir: "asc" });
+  const [sort, setSort] = useState<TableSort | null>({
+    key: "name",
+    dir: "asc",
+  });
   const [page, setPageRaw] = useState(1);
 
   // ── Fetch + filtrado cliente (temporal hasta que el back soporte params) ──
@@ -62,7 +70,8 @@ export function useMascotas() {
       const q = params.q.trim().toLowerCase();
       let filtered = all.filter((p) => {
         if (!inFiltro(p.status, params.filtro)) return false;
-        if (params.especie !== "todas" && p.animalType !== params.especie) return false;
+        if (params.especie !== "todas" && p.animalType !== params.especie)
+          return false;
         if (!q) return true;
         return (
           (p.name ?? "").toLowerCase().includes(q) ||
@@ -74,7 +83,9 @@ export function useMascotas() {
       // Sort
       if (params.sort?.key === "name") {
         filtered = [...filtered].sort((a, b) => {
-          const c = (a.name ?? "").localeCompare(b.name ?? "", "es", { sensitivity: "base" });
+          const c = (a.name ?? "").localeCompare(b.name ?? "", "es", {
+            sensitivity: "base",
+          });
           return params.sort!.dir === "asc" ? c : -c;
         });
       }
@@ -93,16 +104,30 @@ export function useMascotas() {
 
   useEffect(() => {
     loadPets(currentParams);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query, filtro, especie, sort, page]);
 
-  const reload = useCallback(() => loadPets(currentParams), [currentParams, loadPets]);
+  const reload = useCallback(
+    () => loadPets(currentParams),
+    [currentParams, loadPets],
+  );
 
   // ── Setters que resetean página ───────────────────────────────────────────
-  function setQuery(v: string) { setQueryRaw(v); setPageRaw(1); }
-  function setFiltro(v: FiltroEstado) { setFiltroRaw(v); setPageRaw(1); }
-  function setEspecie(v: FiltroEspecie) { setEspecieRaw(v); setPageRaw(1); }
-  function setPage(n: number) { setPageRaw(n); }
+  function setQuery(v: string) {
+    setQueryRaw(v);
+    setPageRaw(1);
+  }
+  function setFiltro(v: FiltroEstado) {
+    setFiltroRaw(v);
+    setPageRaw(1);
+  }
+  function setEspecie(v: FiltroEspecie) {
+    setEspecieRaw(v);
+    setPageRaw(1);
+  }
+  function setPage(n: number) {
+    setPageRaw(n);
+  }
   function toggleSort(key: string) {
     setPageRaw(1);
     setSort((s) => {
@@ -114,7 +139,12 @@ export function useMascotas() {
 
   // ── Acciones ──────────────────────────────────────────────────────────────
   async function handleDelete(pet: AdminPetSummary) {
-    if (!window.confirm(`¿Eliminar "${pet.name ?? "sin nombre"}"? Esta acción no se puede deshacer.`)) return false;
+    if (
+      !window.confirm(
+        `¿Eliminar "${pet.name ?? "sin nombre"}"? Esta acción no se puede deshacer.`,
+      )
+    )
+      return false;
     const res = await deletePet(pet.id);
     if (res.ok) {
       toast.success("Mascota eliminada.");
@@ -134,11 +164,20 @@ export function useMascotas() {
     visible,
     loading,
     counts,
-    query, setQuery,
-    filtro, setFiltro,
-    especie, setEspecie,
-    sort, toggleSort,
-    page, setPage, totalPages, total, desde, hasta,
+    query,
+    setQuery,
+    filtro,
+    setFiltro,
+    especie,
+    setEspecie,
+    sort,
+    toggleSort,
+    page,
+    setPage,
+    totalPages,
+    total,
+    desde,
+    hasta,
     handleDelete,
     reload,
   };
