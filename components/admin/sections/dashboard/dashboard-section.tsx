@@ -226,6 +226,7 @@ export function DashboardSection() {
 
   // map solicitudes to dashboard shape
   const solicitudesPreview = solicitudesPreviewRaw.map((s) => ({
+    id: s.id,
     usuario: s.userName,
     email: s.userEmail,
     mascota: s.petName,
@@ -248,7 +249,7 @@ export function DashboardSection() {
           href="/admin/solicitudes"
           columns={SOLICITUDES_COLS}
           data={solicitudesPreview}
-          rowKey={(r) => r.usuario}
+          rowKey={(r) => r.id}
           loading={solicitudesLoading}
         />
         <SeguimientosPanel />

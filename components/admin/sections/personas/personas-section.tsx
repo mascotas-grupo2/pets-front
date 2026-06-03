@@ -21,6 +21,8 @@ export function PersonasSection() {
     total,
     desde,
     hasta,
+    handlePromote,
+    handleDemote,
   } = usePersonas();
 
   return (
@@ -43,6 +45,8 @@ export function PersonasSection() {
         desde={desde}
         hasta={hasta}
         onPage={setPage}
+        onPromote={handlePromote}
+        onDemote={handleDemote}
       />
     </div>
   );

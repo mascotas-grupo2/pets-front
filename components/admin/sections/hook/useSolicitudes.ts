@@ -2,7 +2,60 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
-import { SOLICITUDES, type Solicitud, type EstadoSolicitud } from "../solicitudes/solicitudes.data";
+import {
+  getAdminAdoptions,
+  type AdminAdoptionItem,
+} from "@/services/adoptions";
+import type {
+  Solicitud,
+  EstadoSolicitud,
+} from "../solicitudes/solicitudes.data";
+
+const ESTADOS: EstadoSolicitud[] = [
+  "NUEVA",
+  "EN_EVALUACION",
+  "ENTREVISTA_PENDIENTE",
+  "ACEPTADA_CON_SEGUIMIENTO",
+  "ACEPTADA",
+  "DESCARTADA",
+];
+
+function compatLabel(score: number | null): string {
+  if (score == null) return "Sin datos";
+  if (score >= 90) return "Excelente";
+  if (score >= 80) return "Alta";
+  if (score >= 65) return "Buena";
+  if (score >= 50) return "Moderada";
+  return "Baja";
+}
+
+function formatFecha(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "—";
+  const dd = String(d.getDate()).padStart(2, "0");
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  return `${dd}/${mm}/${d.getFullYear()}`;
+}
+
+/** Mapea una solicitud del backend al shape que consumen las tablas. */
+function toSolicitud(a: AdminAdoptionItem): Solicitud {
+  const estado = (
+    ESTADOS.includes(a.status as EstadoSolicitud) ? a.status : "NUEVA"
+  ) as EstadoSolicitud;
+  return {
+    id: String(a.id),
+    userName: a.userName ?? a.applicantName ?? "—",
+    userEmail: a.userEmail ?? a.applicantEmail ?? "",
+    userPhoto: a.userPhoto ?? "",
+    petName: a.petName ?? "Sin nombre",
+    petPhoto: a.petPhoto ?? "",
+    compatPct:
+      a.compatibilityScore != null ? Math.round(a.compatibilityScore) : 0,
+    compatLabel: compatLabel(a.compatibilityScore),
+    estado,
+    fecha: formatFecha(a.createdAt),
+  };
+}
 
 export type EstadoFiltro = "TODAS" | EstadoSolicitud;
 export type SortKey = "userName" | "petName" | "compat" | "estado" | "fecha";
@@ -20,7 +73,7 @@ type Params = {
 };
 
 export function useSolicitudes() {
-  const [items, setItems] = useState<Solicitud[]>(SOLICITUDES);
+  const [items, setItems] = useState<Solicitud[]>([]);
   const [visible, setVisible] = useState<Solicitud[]>([]);
   const [total, setTotal] = useState(0);
   const [counts, setCounts] = useState<Record<EstadoSolicitud, number>>({
@@ -39,7 +92,6 @@ export function useSolicitudes() {
 
   const loadSolicitudes = useCallback(
     async (params: Params) => {
-      setLoading(true);
       let filtered = [...items];
 
       if (params.estado) {
@@ -60,9 +112,13 @@ export function useSolicitudes() {
         filtered = [...filtered].sort((a, b) => {
           let result = 0;
           if (params.sortKey === "userName") {
-            result = a.userName.localeCompare(b.userName, "es", { sensitivity: "base" });
+            result = a.userName.localeCompare(b.userName, "es", {
+              sensitivity: "base",
+            });
           } else if (params.sortKey === "petName") {
-            result = a.petName.localeCompare(b.petName, "es", { sensitivity: "base" });
+            result = a.petName.localeCompare(b.petName, "es", {
+              sensitivity: "base",
+            });
           } else if (params.sortKey === "compat") {
             result = a.compatPct - b.compatPct;
           } else if (params.sortKey === "estado") {
@@ -74,22 +130,43 @@ export function useSolicitudes() {
         });
       }
 
-      setCounts({
-        NUEVA: items.filter((item) => item.estado === "NUEVA").length,
-        EN_EVALUACION: items.filter((item) => item.estado === "EN_EVALUACION").length,
-        ENTREVISTA_PENDIENTE: items.filter((item) => item.estado === "ENTREVISTA_PENDIENTE").length,
-        ACEPTADA_CON_SEGUIMIENTO: items.filter((item) => item.estado === "ACEPTADA_CON_SEGUIMIENTO").length,
-        ACEPTADA: items.filter((item) => item.estado === "ACEPTADA").length,
-        DESCARTADA: items.filter((item) => item.estado === "DESCARTADA").length,
-      });
-
+      // Los conteos por estado salen de statusTotals (toda la DB), no de esta
+      // vista paginada — se setean en el fetch inicial, no acá.
       setTotal(filtered.length);
       const from = (params.page - 1) * PAGE_SIZE;
       setVisible(filtered.slice(from, from + PAGE_SIZE));
-      setLoading(false);
     },
     [items],
   );
+
+  // Carga inicial desde el backend (GET /adoptions/admin/paged).
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      setLoading(true);
+      const res = await getAdminAdoptions({ pageSize: 100 });
+      if (cancelled) return;
+      if (res.ok && res.data) {
+        setItems(res.data.items.map(toSolicitud));
+        // statusTotals viene del backend y cuenta TODA la base, no esta página.
+        const st = res.data.statusTotals ?? {};
+        setCounts({
+          NUEVA: st.NUEVA ?? 0,
+          EN_EVALUACION: st.EN_EVALUACION ?? 0,
+          ENTREVISTA_PENDIENTE: st.ENTREVISTA_PENDIENTE ?? 0,
+          ACEPTADA_CON_SEGUIMIENTO: st.ACEPTADA_CON_SEGUIMIENTO ?? 0,
+          ACEPTADA: st.ACEPTADA ?? 0,
+          DESCARTADA: st.DESCARTADA ?? 0,
+        });
+      } else {
+        toast.error("No se pudieron cargar las solicitudes.");
+      }
+      setLoading(false);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const currentParams: Params = {
     estado: estado !== "TODAS" ? (estado as EstadoSolicitud) : undefined,
@@ -101,7 +178,7 @@ export function useSolicitudes() {
 
   useEffect(() => {
     loadSolicitudes(currentParams);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query, estado, sort, page, items]);
 
   function setQuery(value: string) {
@@ -135,12 +212,9 @@ export function useSolicitudes() {
   async function handleDelete(id: string) {
     const solicitud = items.find((item) => item.id === id);
     if (!solicitud) return false;
-    if (!window.confirm(`¿Eliminar la solicitud de ${solicitud.userName} sobre ${solicitud.petName}? Esta acción no se puede deshacer.`)) {
-      return false;
-    }
-    setItems((prev) => prev.filter((item) => item.id !== id));
-    toast.success("Solicitud eliminada.");
-    return true;
+    // El backend todavía no expone un endpoint para eliminar solicitudes.
+    toast.error("Eliminar solicitud no está disponible aún.");
+    return false;
   }
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));

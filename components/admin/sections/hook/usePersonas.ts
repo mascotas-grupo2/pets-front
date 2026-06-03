@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
-import { getAdminUsers, type AdminUser } from "@/services/user.admin";
+import { getAdminUsers, updateUserRole, type AdminUser } from "@/services/user.admin";
 
 export type TipoFiltro = "todos" | "admin" | "adoptante" | "comun";
 
@@ -36,10 +36,10 @@ export function usePersonas() {
   // setVisible(res.data.items); setTotal(res.data.total); setCounts(res.data.counts);
   const loadUsers = useCallback(async (params: Params) => {
     setLoading(true);
-    const search = params.q;
-    const page = params.page;
-    const pageSize = PAGE_SIZE;
-    const res = await getAdminUsers({search, page,  pageSize });
+    // Traemos toda la base (cap 100 del back) y contamos/filtramos/paginamos en
+    // el cliente, así los conteos por categoría son sobre toda la base y no sobre
+    // una sola página.
+    const res = await getAdminUsers({ pageSize: 100 });
     if (res.ok && res.data) {
       const all = res.data.items;
 
@@ -91,9 +91,30 @@ export function usePersonas() {
 
   async function handlePromote(user: AdminUser): Promise<boolean> {
     if (!window.confirm(`¿Promover a "${user.name}" como administrador?`)) return false;
-    // const res = await promoteUser(user.id);
-    // if (res.ok) { toast.success("Usuario promovido a admin."); await reload(); return true; }
-    toast.error("Promover usuario no está disponible aún.");
+    const res = await updateUserRole(user.id, "admin");
+    if (res.ok) {
+      toast.success(`"${user.name}" ahora es administrador.`);
+      await reload();
+      return true;
+    }
+    toast.error("No se pudo cambiar el rol.");
+    return false;
+  }
+
+  async function handleDemote(user: AdminUser): Promise<boolean> {
+    if (!window.confirm(`¿Quitar el rol de administrador a "${user.name}"?`)) return false;
+    const res = await updateUserRole(user.id, "user");
+    if (res.ok) {
+      toast.success(`"${user.name}" ya no es administrador.`);
+      await reload();
+      return true;
+    }
+    // El back devuelve 400 si es el último admin del sistema.
+    toast.error(
+      res.status === 400
+        ? "No se puede: es el único administrador."
+        : "No se pudo cambiar el rol.",
+    );
     return false;
   }
 
@@ -111,6 +132,7 @@ export function usePersonas() {
     page, setPage, totalPages, total, desde, hasta,
     handleDelete,
     handlePromote,
+    handleDemote,
     reload,
   };
 }
