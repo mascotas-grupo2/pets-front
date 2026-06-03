@@ -12,12 +12,15 @@ import "@/styles/chatbot.css";
 const SESSION_STORAGE_KEY = "chatbot_session_id";
 
 /**
- * Quick replies de bienvenida.
+ * Welcome replies hardcoded en el frontend. Solo se muestran cuando NO hay
+ * conversación todavía (estado pre-primer-mensaje). Son atajos que guían al
+ * usuario a uno de los tres flujos principales del dominio.
  *
- * Vienen del frontend (no del backend) por una razón de UX: solo tienen
- * sentido cuando el usuario abre el widget y todavía no escribió nada.
- * Una vez que la conversación arranca, los atajos de "perdí/encontré/adopto"
- * dejan de aplicar y solo distraen.
+ * Nota futura: el tipo QuickReply y el campo `quickReplies` en la response
+ * del backend siguen existiendo. Cuando se quiera agregar quick replies
+ * contextuales dinámicas (sugeridas por el LLM en el medio de la
+ * conversación), solo hay que agregar la tool suggestQuickReplies al
+ * backend y leer `result.data.quickReplies` acá.
  */
 const WELCOME_QUICK_REPLIES: QuickReply[] = [
   { label: "Perdí una mascota", value: "Perdí a mi mascota, ¿qué hago?" },
@@ -31,12 +34,12 @@ type DisplayMessage = ChatbotMessage | { role: "error"; type: "text"; text: stri
  * Widget de chatbot flotante.
  *
  * Features:
- * - Burbujas user/assistant con auto-scroll
- * - Indicador "escribiendo..." durante la espera
- * - Quick replies de bienvenida (solo cuando el historial está vacío)
- * - sessionId persistido en localStorage (sobrevive a navegación)
- * - Auth automática vía cookie auth_token (gestionada por el proxy de Next)
- * - Botón "nueva conversación" que resetea el contexto
+ * - Burbujas user/assistant con auto-scroll.
+ * - Indicador "escribiendo..." durante la espera.
+ * - Welcome quick replies al inicio (frontend, sin backend).
+ * - sessionId persistido en localStorage.
+ * - Auth automática vía cookie auth_token (proxy de Next.js).
+ * - Botón "nueva conversación" que resetea todo.
  */
 export function ChatbotWidget() {
   const [isOpen, setIsOpen] = useState(false);
@@ -54,14 +57,14 @@ export function ChatbotWidget() {
     if (stored) setSessionId(stored);
   }, []);
 
-  // Auto-scroll al final cada vez que llegan mensajes nuevos o aparece typing
+  // Auto-scroll cada vez que llegan mensajes nuevos o aparece typing
   useEffect(() => {
     if (bodyRef.current) {
       bodyRef.current.scrollTop = bodyRef.current.scrollHeight;
     }
   }, [messages, isTyping]);
 
-  // Focus en el input cuando se abre el panel
+  // Focus en el input al abrir el panel
   useEffect(() => {
     if (isOpen && inputRef.current) {
       setTimeout(() => inputRef.current?.focus(), 100);
@@ -100,7 +103,7 @@ export function ChatbotWidget() {
         return;
       }
 
-      // Guardar sessionId en localStorage (primera vez o si cambió)
+      // Guardar sessionId si es nuevo o cambió
       if (result.data.sessionId && result.data.sessionId !== sessionId) {
         setSessionId(result.data.sessionId);
         if (typeof window !== "undefined") {
@@ -111,7 +114,7 @@ export function ChatbotWidget() {
         }
       }
 
-      // Agregar respuesta(s) del asistente
+      // Agregar respuesta del asistente
       const assistantMessages = result.data.messages || [];
       setMessages((prev) => [...prev, ...assistantMessages]);
     },
@@ -137,8 +140,9 @@ export function ChatbotWidget() {
     toast.info("Conversación reiniciada");
   };
 
-  // Las welcome replies solo se muestran cuando no hay conversación aún
-  const showWelcomeReplies = messages.length === 0 && !isTyping;
+  // Welcome replies solo al inicio (sin conversación todavía)
+  const conversationNotStarted = messages.length === 0;
+  const showWelcomeReplies = conversationNotStarted && !isTyping;
 
   return (
     <>
@@ -187,7 +191,7 @@ export function ChatbotWidget() {
           </div>
 
           <div className="chatbot-body" ref={bodyRef}>
-            {messages.length === 0 && !isTyping && (
+            {conversationNotStarted && !isTyping && (
               <div className="chatbot-empty">
                 <div className="chatbot-empty-icon" aria-hidden="true">
                   🐾
@@ -217,7 +221,6 @@ export function ChatbotWidget() {
             )}
           </div>
 
-          {/* Quick replies de bienvenida: solo cuando no hay conversación */}
           {showWelcomeReplies && (
             <div className="chatbot-quick-replies">
               {WELCOME_QUICK_REPLIES.map((qr) => (
