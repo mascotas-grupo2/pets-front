@@ -4,6 +4,7 @@
 @import "./ui.css";
 @import "./navigation.css";
 @import "./admin.css";
+@import "./drawer-solicitud.css";
 
 /* ===== Hero ===== */
 .hero {

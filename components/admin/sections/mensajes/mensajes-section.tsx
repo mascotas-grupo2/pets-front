@@ -1,13 +1,14 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { MoreHorizontal, Search, Send, Smile } from "lucide-react";
+import { MoreHorizontal, Search, Send, Smile, Trash2 } from "lucide-react";
 import {
   CONVERSACIONES,
   initials,
   type Conversacion,
   type SubTab,
 } from "./mensajes.data";
+import { ActionButton } from "../../ui/button";
 
 type Filtro = "todos" | "usuario" | "interno";
 
@@ -44,7 +45,10 @@ export function MensajesSection() {
     return convs.filter((c) => {
       if (filtro !== "todos" && c.canal !== filtro) return false;
       if (!q) return true;
-      return c.nombre.toLowerCase().includes(q) || c.contexto.toLowerCase().includes(q);
+      return (
+        c.nombre.toLowerCase().includes(q) ||
+        c.contexto.toLowerCase().includes(q)
+      );
     });
   }, [convs, filtro, query]);
 
@@ -54,7 +58,9 @@ export function MensajesSection() {
   function abrir(id: string) {
     setActivaId(id);
     setSubTab("mensajes");
-    setConvs((prev) => prev.map((c) => (c.id === id ? { ...c, noLeidos: 0 } : c)));
+    setConvs((prev) =>
+      prev.map((c) => (c.id === id ? { ...c, noLeidos: 0 } : c)),
+    );
   }
 
   /** Agrega el mensaje del admin a la conversación activa (optimista, local). */
@@ -69,7 +75,12 @@ export function MensajesSection() {
               ...c,
               mensajes: [
                 ...c.mensajes,
-                { id: `m${c.mensajes.length + 1}`, autor: "yo", texto, hora: ahora() },
+                {
+                  id: `m${c.mensajes.length + 1}`,
+                  autor: "yo",
+                  texto,
+                  hora: ahora(),
+                },
               ],
             }
           : c,
@@ -96,24 +107,37 @@ export function MensajesSection() {
             </button>
           ))}
         </div>
-
-        <div className="admin-search msg-search">
-          <Search size={16} aria-hidden />
-          <input
-            type="search"
-            placeholder="Buscar conversación..."
-            aria-label="Buscar conversación"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-          />
+        <div
+          style={{ display: "flex", justifyContent: "space-between", gap: "1rem"}}
+        >
+          <button
+            type="button"
+            className="btn btn-primary btn-sm"
+            onClick={() => {
+              /* abrir modal nueva conversación */
+            }}
+          >
+            + Nueva
+          </button>
+          <div className="admin-search msg-search">
+            <Search size={16} aria-hidden />
+            <input
+              type="search"
+              placeholder="Buscar conversación..."
+              aria-label="Buscar conversación"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+            />
+          </div>
         </div>
 
         <ul className="msg-list">
+          <div className="msg-list-header"></div>
           {visibles.length === 0 && (
             <li className="msg-empty-list">No hay conversaciones.</li>
           )}
           {visibles.map((c) => (
-            <li key={c.id}>
+            <li key={c.id} className="msg-list-item-wrap">
               <button
                 type="button"
                 className={`msg-item${c.id === activaId ? " is-active" : ""}`}
@@ -127,14 +151,36 @@ export function MensajesSection() {
                   <span className="msg-item-name">{c.nombre}</span>
                   <span className="msg-item-sub">{c.contexto}</span>
                 </span>
+
                 <span className="msg-item-meta">
                   <span className="msg-item-time">{c.hora}</span>
-                  {c.noLeidos > 0 && (
-                    <span className="msg-unread" aria-label={`${c.noLeidos} sin leer`}>
-                      {c.noLeidos}
-                    </span>
-                  )}
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      flexDirection: "row",
+                    }}
+                  >
+                    <ActionButton
+                      icon={Trash2}
+                      onClick={() =>
+                        setConvs((prev) =>
+                          prev.filter((conv) => conv.id !== c.id),
+                        )
+                      }
+                      ariaLabel="Eliminar conversación"
+                      title="Eliminar"
+                    />
+                  </div>
                 </span>
+                {c.noLeidos > 0 && (
+                  <span
+                    className="msg-unread"
+                    aria-label={`${c.noLeidos} sin leer`}
+                  >
+                    {c.noLeidos}
+                  </span>
+                )}
               </button>
             </li>
           ))}
@@ -144,7 +190,9 @@ export function MensajesSection() {
       {/* ---- Columna derecha: conversación activa ---- */}
       <section className="msg-chat-panel" aria-label="Conversación">
         {!activa ? (
-          <div className="msg-empty">Elegí una conversación para ver los mensajes.</div>
+          <div className="msg-empty">
+            Elegí una conversación para ver los mensajes.
+          </div>
         ) : (
           <>
             <header className="msg-chat-head">
@@ -155,7 +203,11 @@ export function MensajesSection() {
                 <h3>{activa.nombre}</h3>
                 <p>{activa.asunto}</p>
               </div>
-              <button type="button" className="msg-icon-btn" aria-label="Más opciones">
+              <button
+                type="button"
+                className="msg-icon-btn"
+                aria-label="Más opciones"
+              >
                 <MoreHorizontal size={18} />
               </button>
             </header>
@@ -204,7 +256,11 @@ export function MensajesSection() {
                     value={draft}
                     onChange={(e) => setDraft(e.target.value)}
                   />
-                  <button type="button" className="msg-icon-btn" aria-label="Emoji">
+                  <button
+                    type="button"
+                    className="msg-icon-btn"
+                    aria-label="Emoji"
+                  >
                     <Smile size={18} />
                   </button>
                   <button

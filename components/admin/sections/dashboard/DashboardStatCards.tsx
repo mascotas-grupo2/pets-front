@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { STATS } from "./dashboard.data";
-import type { Tone } from "../../ui/types";
 import type { Stat } from "./dashboard.data";
 
 export function DashboardStatCards({ publicaciones }: { publicaciones: number | null }) {

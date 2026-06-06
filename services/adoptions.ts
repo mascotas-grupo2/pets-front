@@ -1,3 +1,4 @@
+import type { AdoptionDetail } from "@/types/adoption-detail";
 import axiosInstance from "./axios";
 import { request } from "./request";
 
@@ -40,5 +41,6 @@ export const getAdminAdoptions = (params?: {
     axios.get("adoptions/admin/paged", { params }),
   );
 
+// typed to AdoptionDetail
 export const getAdoptionById = (id: number | string) =>
-  request<Record<string, unknown>>(() => axios.get(`adoptions/${id}`));
+  request<AdoptionDetail>(() => axios.get(`adoptions/${id}`));

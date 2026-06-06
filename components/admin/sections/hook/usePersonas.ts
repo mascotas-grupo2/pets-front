@@ -48,7 +48,7 @@ export function usePersonas() {
     // Traemos toda la base (cap 100 del back) y contamos/filtramos/paginamos en
     // el cliente, así los conteos por categoría son sobre toda la base y no sobre
     // una sola página.
-    const res = await getAdminUsers({ pageSize: 100 });
+    const res = await getAdminUsers({ pageSize: PAGE_SIZE });
     if (res.ok && res.data) {
       const all = res.data.items;
 

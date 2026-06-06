@@ -23,14 +23,68 @@ function roleFromToken(token: string): string | null {
  * no-admin nunca recibe el HTML/JS del panel (no "descubre" que existe).
  * Deny-by-default: solo pasa con un token cuyo rol sea "admin".
  *
- * Nota: para usuarios SSO (Keycloak) el rol puede no venir como claim plano
- * `role`; si en el futuro hay admins por Keycloak, habría que verificar el
- * token con la clave y mapear el rol.
+ * Intentamos un refresh server-side consultando el endpoint de refresh a
+ * través del proxy (`/api/proxy/auth/refresh-token`) para reutilizar la
+ * misma lógica centralizada del proxy y evitar discrepancias de URL/headers.
  */
-export function middleware(req: NextRequest) {
+export async function middleware(req: NextRequest) {
   const token = req.cookies.get("auth_token")?.value;
 
+  // Si no hay token de acceso, intentar un refresh server-side si existe
   if (!token) {
+    const refreshToken = req.cookies.get("refresh_token")?.value;
+    if (refreshToken) {
+      try {
+        const proxyUrl = `${req.nextUrl.origin}/api/proxy/auth/refresh-token`;
+        console.log("Middleware: attempting refresh via proxy", proxyUrl);
+        const res = await fetch(proxyUrl, {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ refreshToken }),
+        });
+
+        console.log("Middleware: refresh via proxy status", res.status);
+        if (res.ok) {
+          const body = await res.json().catch(() => ({}));
+          console.log("Middleware: refresh via proxy body", body);
+          const newAccess = body.access_token || body.token || body.accessToken;
+          const newRefresh = body.refresh_token || body.refreshToken || null;
+
+          if (newAccess) {
+            const nextRes = NextResponse.next();
+            nextRes.cookies.set("auth_token", String(newAccess), {
+              path: "/",
+              maxAge: 3600,
+              secure: process.env.NODE_ENV === "production",
+            });
+            if (newRefresh) {
+              nextRes.cookies.set("refresh_token", String(newRefresh), {
+                path: "/",
+                maxAge: 3600 * 24 * 7,
+                httpOnly: true,
+                secure: process.env.NODE_ENV === "production",
+              });
+            }
+
+            // Verificamos rol con el nuevo token
+            if (roleFromToken(String(newAccess)) !== "admin") {
+              const url = req.nextUrl.clone();
+              url.pathname = "/";
+              return NextResponse.redirect(url);
+            }
+
+            console.log("Middleware: refresh succeeded, continuing request");
+            return nextRes;
+          }
+        } else {
+          console.log("Middleware: proxy refresh failed with status", res.status);
+        }
+      } catch (e) {
+        console.error("Middleware: proxy refresh threw", e);
+        // caemos al redirect abajo
+      }
+    }
+
     const url = req.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);

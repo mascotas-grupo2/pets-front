@@ -1,3 +1,5 @@
+import { AdoptionFile, AdoptionHistoryItem, AdoptionMessage } from "@/types/adoption-detail";
+
 export type EstadoSolicitud =
   | "NUEVA"
   | "EN_EVALUACION"
@@ -10,13 +12,18 @@ export type Solicitud = {
   id: string;
   userName: string;
   userEmail: string;
-  userPhoto: string;
-  petName: string;
-  petPhoto: string;
+  userPhoto?: string | null;
+  petName?: string | null;
+  petPhoto?: string | null;
   compatPct: number;
   compatLabel: string;
-  estado: EstadoSolicitud;
+  estado: "NUEVA" | "EN_EVALUACION" | "ENTREVISTA_PENDIENTE" | "ACEPTADA_CON_SEGUIMIENTO" | "ACEPTADA" | "DESCARTADA";
   fecha: string;
+
+  // detail fields (optional, populated when fetching detail)
+  messages?: AdoptionMessage[];
+  history?: AdoptionHistoryItem[];
+  files?: AdoptionFile[];
 };
 
 export const SOLICITUDES: Solicitud[] = [
