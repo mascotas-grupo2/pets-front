@@ -1,10 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { getAdminPets, deletePet } from "@/services/mascotas.pets";
 import type { AdminPetSummary, AnimalType, PetStatus } from "@/types/pet";
-import type { TableSort } from "../../ui/data-table";
+import type { SortOrder } from "../../ui/data-table";
 
 export type FiltroEstado = "todas" | "refugio" | "adopcion" | "adoptados";
 export type FiltroEspecie = "todas" | AnimalType;
@@ -23,12 +23,11 @@ type Params = {
   filtro: FiltroEstado;
   especie: FiltroEspecie;
   q: string;
-  sort: TableSort | null;
+  sort: SortOrder<string>[];
   page: number;
 };
 
 export function useMascotas() {
-  const [pets, setPets] = useState<AdminPetSummary[]>([]);
   const [visible, setVisible] = useState<AdminPetSummary[]>([]);
   const [total, setTotal] = useState(0);
   const [counts, setCounts] = useState({
@@ -42,10 +41,7 @@ export function useMascotas() {
   const [query, setQueryRaw] = useState("");
   const [filtro, setFiltroRaw] = useState<FiltroEstado>("todas");
   const [especie, setEspecieRaw] = useState<FiltroEspecie>("todas");
-  const [sort, setSort] = useState<TableSort | null>({
-    key: "name",
-    dir: "asc",
-  });
+  const [sort, setSortRaw] = useState<SortOrder<string>[]>([{ key: "name", direction: "asc" }]);
   const [page, setPageRaw] = useState(1);
 
   // ── Fetch + filtrado cliente (temporal hasta que el back soporte params) ──
@@ -81,31 +77,36 @@ export function useMascotas() {
       });
 
       // Sort
-      if (params.sort?.key === "name") {
+      const activeSort = params.sort?.[0];
+      if (activeSort?.key === "name") {
         filtered = [...filtered].sort((a, b) => {
           const c = (a.name ?? "").localeCompare(b.name ?? "", "es", {
             sensitivity: "base",
           });
-          return params.sort!.dir === "asc" ? c : -c;
+          return activeSort.direction === "asc" ? c : -c;
         });
       }
 
       setTotal(filtered.length);
       const from = (params.page - 1) * PAGE_SIZE;
       setVisible(filtered.slice(from, from + PAGE_SIZE));
-      setPets(all);
     } else {
       toast.error("No se pudieron cargar las mascotas.");
     }
     setLoading(false);
   }, []);
 
-  const currentParams: Params = { filtro, especie, q: query, sort, page };
+  const currentParams: Params = useMemo(
+    () => ({ filtro, especie, q: query, sort, page }),
+    [filtro, especie, query, sort, page]
+  );
 
   useEffect(() => {
-    loadPets(currentParams);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [query, filtro, especie, sort, page]);
+    const trigger = async () => {
+      await loadPets(currentParams);
+    };
+    void trigger();
+  }, [loadPets, currentParams]);
 
   const reload = useCallback(
     () => loadPets(currentParams),
@@ -128,13 +129,9 @@ export function useMascotas() {
   function setPage(n: number) {
     setPageRaw(n);
   }
-  function toggleSort(key: string) {
+  function setSort(next: SortOrder<string>[]) {
     setPageRaw(1);
-    setSort((s) => {
-      if (!s || s.key !== key) return { key, dir: "asc" };
-      if (s.dir === "asc") return { key, dir: "desc" };
-      return null;
-    });
+    setSortRaw(next);
   }
 
   // ── Acciones ──────────────────────────────────────────────────────────────
@@ -171,7 +168,7 @@ export function useMascotas() {
     especie,
     setEspecie,
     sort,
-    toggleSort,
+    setSort,
     page,
     setPage,
     totalPages,

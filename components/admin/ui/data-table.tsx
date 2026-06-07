@@ -3,7 +3,7 @@ import { ArrowUp, ArrowDown, ChevronsUpDown } from "lucide-react";
 import { Loading } from "./loading";
 
 export type SortDir = "asc" | "desc";
-export type TableSort = { key: string; dir: SortDir };
+export type SortOrder<Key extends string = string> = { key: Key; direction: SortDir };
 
 export type Column<T> = {
   /** Identificador único de la columna (también clave de orden si es sortable). */
@@ -32,10 +32,10 @@ type DataTableProps<T> = {
   loadingLabel?: string;
   /** Contenido a mostrar cuando no hay filas. */
   empty?: ReactNode;
-  /** Orden activo (o null). */
-  sort?: TableSort | null;
+  /** Orden activo (lista de criterios). */
+  sort?: SortOrder<string>[];
   /** Callback al clickear un encabezado sortable. */
-  onSort?: (key: string) => void;
+  onSort?: (next: SortOrder<string>[]) => void;
   /** Clase extra para la `<table>` (ej. estilos específicos de una sección). */
   tableClassName?: string;
   wrapClassName?: string;
@@ -61,7 +61,7 @@ export function DataTable<T>({
   loading = false,
   loadingLabel = "Cargando…",
   empty = "No hay datos para mostrar.",
-  sort = null,
+  sort = [],
   onSort,
   tableClassName,
   wrapClassName,
@@ -78,19 +78,38 @@ export function DataTable<T>({
           <tr>
             {columns.map((col) => {
               const alignClass = ALIGN_CLASS[col.align ?? "left"];
+
+              const handleToggle = () => {
+                if (!onSort) return;
+                const currentSort = sort ?? [];
+                const existing = currentSort.find((item) => item.key === col.key);
+                let next: SortOrder<string>[];
+
+                if (!existing) {
+                  next = [{ key: col.key, direction: "asc" }, ...currentSort];
+                } else if (existing.direction === "asc") {
+                  next = currentSort.map((item) =>
+                    item.key === col.key ? { ...item, direction: "desc" } : item,
+                  );
+                } else {
+                  next = currentSort.filter((item) => item.key !== col.key);
+                }
+                onSort(next);
+              };
+
               if (col.sortable && onSort) {
-                const active = sort?.key === col.key;
+                const active = sort.find((s) => s.key === col.key);
                 return (
                   <th key={col.key} className={alignClass || undefined}>
                     <button
                       type="button"
                       className={`pub-sort${active ? " active" : ""}`}
-                      onClick={() => onSort(col.key)}
+                      onClick={handleToggle}
                     >
                       {col.label}
                       <span className="pub-sort-arrow" aria-hidden>
                         {active ? (
-                          sort?.dir === "asc" ? (
+                          active.direction === "asc" ? (
                             <ArrowUp size={13} />
                           ) : (
                             <ArrowDown size={13} />

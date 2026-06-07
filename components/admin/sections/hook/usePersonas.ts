@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import {
   getAdminUsers,
@@ -79,7 +79,7 @@ export function usePersonas() {
     setLoading(false);
   }, []);
 
-  const currentParams: Params = { tipo, q: query, page };
+  const currentParams: Params = useMemo(() => ({ tipo, q: query, page }), [tipo, query, page]);
 
   useEffect(() => {
     loadUsers(currentParams);

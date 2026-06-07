@@ -4,8 +4,11 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import {
   getAdminAdoptions,
+  deleteAdoption,
+  updateAdoptionStatus,
   type AdminAdoptionItem,
 } from "@/services/adoptions";
+import type { SortOrder } from "../../ui/data-table";
 import type {
   Solicitud,
   EstadoSolicitud,
@@ -60,8 +63,6 @@ export function toSolicitud(a: AdminAdoptionItem): Solicitud {
 export type EstadoFiltro = "TODAS" | EstadoSolicitud;
 export type SortKey = "userName" | "petName" | "compat" | "estado" | "fecha";
 export type SortDir = "asc" | "desc";
-export type Sort = { key: SortKey; dir: SortDir };
-
 const PAGE_SIZE = 8;
 
 type Params = {
@@ -69,7 +70,7 @@ type Params = {
   q?: string;
   page: number;
   sortKey?: SortKey;
-  sortDir?: SortDir;
+  sort?: SortOrder<SortKey>[];
 };
 
 export function useSolicitudes() {
@@ -87,16 +88,19 @@ export function useSolicitudes() {
   const [loading, setLoading] = useState(true);
   const [query, setQueryRaw] = useState("");
   const [estado, setEstadoRaw] = useState<EstadoFiltro>("TODAS");
-  const [sort, setSort] = useState<Sort | null>(null);
+  const [sort, setSortRaw] = useState<SortOrder<SortKey>[]>([]);
   const [page, setPageRaw] = useState(1);
 
   const loadSolicitudes = useCallback(async (params: Params) => {
     setLoading(true);
 
+    const sortQuery = params.sort?.map((s) => `${s.key}:${s.direction}`).join(",");
+
     const res = await getAdminAdoptions({
       page: params.page,
       pageSize: PAGE_SIZE,
       status: params.estado,
+      sort: sortQuery,
     });
 
     if (!res.ok || !res.data) {
@@ -120,41 +124,9 @@ export function useSolicitudes() {
 
     setTotal(res.data.total);
 
-    let visibleRows = mapped;
-
-    if (params.q) {
-      const q = params.q.toLowerCase();
-      visibleRows = visibleRows.filter(
-        (item) =>
-          item.userName.toLowerCase().includes(q) ||
-          (item.petName ?? "").toLowerCase().includes(q) ||
-          item.userEmail.toLowerCase().includes(q),
-      );
-    }
-
-    if (params.sortKey) {
-      visibleRows = [...visibleRows].sort((a, b) => {
-        let result = 0;
-        if (params.sortKey === "userName") {
-          result = a.userName.localeCompare(b.userName, "es", {
-            sensitivity: "base",
-          });
-        } else if (params.sortKey === "petName") {
-          result = (a.petName ?? "").localeCompare(b.petName ?? "", "es", {
-            sensitivity: "base",
-          });
-        } else if (params.sortKey === "compat") {
-          result = a.compatPct - b.compatPct;
-        } else if (params.sortKey === "estado") {
-          result = rankEstado(a.estado) - rankEstado(b.estado);
-        } else if (params.sortKey === "fecha") {
-          result = parseFecha(a.fecha) - parseFecha(b.fecha);
-        }
-        return params.sortDir === "desc" ? -result : result;
-      });
-    }
-
-    setVisible(visibleRows);
+    // El ordenamiento y filtrado por estado ya vienen del backend.
+    // El filtrado por 'q' también debería delegarse al backend idealmente.
+    setVisible(mapped);
     setLoading(false);
   }, []);
 
@@ -162,8 +134,7 @@ export function useSolicitudes() {
     estado: estado !== "TODAS" ? (estado as EstadoSolicitud) : undefined,
     q: query.trim() || undefined,
     page,
-    sortKey: sort?.key,
-    sortDir: sort?.dir,
+    sort,
   }), [estado, query, page, sort]);
 
   // Efecto único para sincronizar filtros y paginación.
@@ -191,13 +162,9 @@ export function useSolicitudes() {
     setPageRaw(1);
   }
 
-  function toggleSort(key: SortKey) {
+  function setSort(next: SortOrder<SortKey>[]) {
     setPageRaw(1);
-    setSort((current) => {
-      if (!current || current.key !== key) return { key, dir: "asc" };
-      if (current.dir === "asc") return { key, dir: "desc" };
-      return null;
-    });
+    setSortRaw(next);
   }
 
   function setPage(n: number) {
@@ -205,10 +172,27 @@ export function useSolicitudes() {
   }
 
   async function handleDelete(id: string) {
-    const solicitud = items.find((item) => item.id === id);
-    if (!solicitud) return false;
-    // El backend todavía no expone un endpoint para eliminar solicitudes.
-    toast.error("Eliminar solicitud no está disponible aún.");
+    if (!window.confirm("¿Estás seguro de que querés eliminar esta solicitud?"))
+      return false;
+
+    const res = await deleteAdoption(id);
+    if (res.ok) {
+      toast.success("Solicitud eliminada correctamente.");
+      await loadSolicitudes(currentParams);
+      return true;
+    }
+    toast.error("No se pudo eliminar la solicitud.");
+    return false;
+  }
+
+  async function handleUpdateStatus(id: string, newStatus: EstadoSolicitud) {
+    const res = await updateAdoptionStatus(id, newStatus);
+    if (res.ok) {
+      toast.success("Estado de la solicitud actualizado.");
+      await loadSolicitudes(currentParams);
+      return true;
+    }
+    toast.error("No se pudo actualizar el estado.");
     return false;
   }
 
@@ -227,7 +211,7 @@ export function useSolicitudes() {
     setEstado,
     toggleEstado,
     sort,
-    toggleSort,
+    setSort,
     page,
     setPage,
     totalPages,
@@ -235,23 +219,6 @@ export function useSolicitudes() {
     desde,
     hasta,
     handleDelete,
+    handleUpdateStatus,
   };
-}
-
-const ESTADO_ORDER: Record<EstadoSolicitud, number> = {
-  NUEVA: 0,
-  EN_EVALUACION: 1,
-  ENTREVISTA_PENDIENTE: 2,
-  ACEPTADA_CON_SEGUIMIENTO: 3,
-  ACEPTADA: 4,
-  DESCARTADA: 5,
-};
-
-function rankEstado(value: EstadoSolicitud) {
-  return ESTADO_ORDER[value] ?? 99;
-}
-
-function parseFecha(fecha: string) {
-  const [dia, mes, anio] = fecha.split("/").map(Number);
-  return new Date(anio, mes - 1, dia).getTime();
 }

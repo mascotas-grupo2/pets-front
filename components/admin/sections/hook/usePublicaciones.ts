@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import handleToast from "@/components/utils/toast";
 import {
   approvePet,
@@ -11,11 +11,11 @@ import {
   updatePet,
 } from "@/services/mascotas.pets";
 import type { AdminPetSummary, Pet, PetReportStatus } from "@/types/pet";
+import type { SortOrder } from "../../ui/data-table";
 
 export type EstadoFiltro = "todos" | PetReportStatus;
 export type SortKey = "name" | "tipo" | "estado" | "fecha" | "vistas";
 export type SortDir = "asc" | "desc";
-export type Sort = { key: SortKey; dir: SortDir };
 
 const PAGE_SIZE = 6;
 
@@ -23,13 +23,13 @@ const PAGE_SIZE = 6;
 // Cuando el back esté listo, getAdminPets deberá aceptar estos params
 // y devolver PaginatedResponse<AdminPetSummary>
 
-type PaginatedResponse<T> = {
-  data: T[];
-  total: number;
-  page: number;
-  pageSize: number;
-};
-
+// type PaginatedResponse<T> = {
+//   data: T[];
+//   total: number;
+//   page: number;
+//   pageSize: number;
+// };
+//
 type StatsResponse = {
   pendiente: number;
   activo: number;
@@ -42,8 +42,7 @@ type Params = {
   q?: string;
   page: number;
   pageSize: number;
-  sortKey?: SortKey;
-  sortDir?: SortDir;
+  sort?: SortOrder<SortKey>[];
 };
 
 // ── TODO: reemplazar con la firma real cuando el back esté listo ──────────────
@@ -69,19 +68,19 @@ export function usePublicaciones() {
 
   const [query, setQueryRaw] = useState("");
   const [estado, setEstado] = useState<EstadoFiltro>("todos");
-  const [sort, setSort] = useState<Sort | null>(null);
+  const [sort, setSortRaw] = useState<SortOrder<SortKey>[]>([]);
   const [page, setPageRaw] = useState(1);
 
   // ── Fetch de stats (independiente de la tabla) ────────────────────────────
-  const loadStats = useCallback(async () => {
-    setStatsLoading(true);
-    // TODO: reemplazar por llamada real al endpoint de stats
-    // const res = await getAdminPetStats();
-    // if (res.ok && res.data) setCounts(res.data);
-    //
-    // Mientras tanto: calculamos sobre el total (solo funciona sin paginación)
-    setStatsLoading(false);
-  }, []);
+  // const loadStats = useCallback(async () => {
+  //   setStatsLoading(true);
+  //   // TODO: reemplazar por llamada real al endpoint de stats
+  //   // const res = await getAdminPetStats();
+  //   // if (res.ok && res.data) setCounts(res.data);
+  //   //
+  //   // Mientras tanto: calculamos sobre el total (solo funciona sin paginación)
+  //   setStatsLoading(false);
+  // }, []);
 
   // ── Fetch de tabla (con params de filtro/sort/paginación) ─────────────────
   const loadPets = useCallback(async (params: Params) => {
@@ -117,24 +116,25 @@ export function usePublicaciones() {
       }
 
       // Sort
-      if (params.sortKey && params.sortKey !== "vistas") {
+      const activeSort = params.sort?.[0];
+      if (activeSort && activeSort.key !== "vistas") {
         filtered = [...filtered].sort((a, b) => {
           let c = 0;
-          if (params.sortKey === "name")
+          if (activeSort.key === "name")
             c = (a.name ?? "").localeCompare(b.name ?? "", "es", {
               sensitivity: "base",
             });
-          else if (params.sortKey === "tipo")
+          else if (activeSort.key === "tipo")
             c = (a.statusLabel ?? a.status ?? "").localeCompare(
               b.statusLabel ?? b.status ?? "",
               "es",
               { sensitivity: "base" },
             );
-          else if (params.sortKey === "estado")
+          else if (activeSort.key === "estado")
             c = rankEstado(a.reportStatus) - rankEstado(b.reportStatus);
-          else if (params.sortKey === "fecha")
+          else if (activeSort.key === "fecha")
             c = dateVal(a.date) - dateVal(b.date);
-          return params.sortDir === "desc" ? -c : c;
+          return activeSort.direction === "desc" ? -c : c;
         });
       }
 
@@ -153,6 +153,7 @@ export function usePublicaciones() {
       setTotal(filtered.length);
       const from = (params.page - 1) * params.pageSize;
       setPets(filtered.slice(from, from + params.pageSize));
+      setStatsLoading(false);
     } else {
       handleToast("error", "No se pudieron cargar las publicaciones.");
     }
@@ -160,19 +161,20 @@ export function usePublicaciones() {
   }, []);
 
   // Parámetros actuales para el fetch
-  const currentParams: Params = {
+  const currentParams: Params = useMemo(() => ({
     reportStatus: estado !== "todos" ? (estado as PetReportStatus) : undefined,
     q: query.trim() || undefined,
     page,
     pageSize: PAGE_SIZE,
-    sortKey: sort?.key,
-    sortDir: sort?.dir,
-  };
+    sort,
+  }), [estado, query, page, sort]);
 
   useEffect(() => {
-    loadPets(currentParams);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [query, estado, sort, page]);
+    const trigger = async () => {
+      await loadPets(currentParams);
+    };
+    void trigger();
+  }, [loadPets, currentParams]);
 
   // ── Helpers de control ────────────────────────────────────────────────────
   function setQuery(value: string) {
@@ -189,13 +191,9 @@ export function usePublicaciones() {
     handleSetEstado(estado === key ? "todos" : key);
   }
 
-  function toggleSort(key: SortKey) {
+  function setSort(next: SortOrder<SortKey>[]) {
     setPageRaw(1);
-    setSort((s) => {
-      if (!s || s.key !== key) return { key, dir: "asc" };
-      if (s.dir === "asc") return { key, dir: "desc" };
-      return null;
-    });
+    setSortRaw(next);
   }
 
   function setPage(n: number) {
@@ -280,7 +278,7 @@ export function usePublicaciones() {
     setEstado: handleSetEstado,
     toggleEstado,
     sort,
-    toggleSort,
+    setSort,
     page,
     setPage,
     totalPages,

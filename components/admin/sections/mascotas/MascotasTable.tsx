@@ -10,13 +10,13 @@ import { MascotaEstadoPill } from "../../lib/pet-status";
 import { formatEdad } from "../../lib/pet-format";
 import { PetThumb } from "../../ui/pet-thumb";
 import type { AdminPetSummary } from "@/types/pet";
-import type { TableSort } from "../../ui/data-table";
+import type { SortOrder } from "../../ui/data-table";
 
 type Props = {
   data: AdminPetSummary[];
   loading: boolean;
-  sort: TableSort | null;
-  onSort: (key: string) => void;
+  sort: SortOrder<string>[];
+  onSort: (next: SortOrder<string>[]) => void;
   onView: (pet: AdminPetSummary) => void;
   onDelete: (pet: AdminPetSummary) => Promise<boolean>;
   page: number;

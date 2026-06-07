@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import {
   PawPrint,
   X,
@@ -25,6 +26,7 @@ type Props = {
   solicitud: Solicitud;
   onClose: () => void;
   onIrAMensajes: (userId: string) => void;
+  onUpdateStatus?: (id: string, status: Solicitud["estado"]) => Promise<boolean>;
 };
 
 const TABS = [
@@ -342,7 +344,12 @@ function TabHistorial({ history }: { history?: AdoptionHistoryItem[] }) {
 
 /* --- Main drawer component: fetches detail and builds compat criteria dynamically --- */
 
-export function SolicitudDetail({ solicitud, onClose, onIrAMensajes }: Props) {
+export function SolicitudDetail({
+  solicitud,
+  onClose,
+  onIrAMensajes,
+  onUpdateStatus,
+}: Props) {
   const [tab, setTab] = useState<TabId>("evaluacion");
   const [selectedEstado, setSelectedEstado] = useState<Solicitud["estado"]>(
     solicitud.estado,
@@ -365,6 +372,14 @@ export function SolicitudDetail({ solicitud, onClose, onIrAMensajes }: Props) {
       cancelled = true;
     };
   }, [solicitud.id]);
+
+  const [isUpdating, setIsUpdating] = useState(false);
+  const handleCambiarEstado = async () => {
+    if (!onUpdateStatus) return;
+    setIsUpdating(true);
+    await onUpdateStatus(solicitud.id, selectedEstado);
+    setIsUpdating(false);
+  };
 
   const userPhoto = solicitud.userPhoto?.trim() ? solicitud.userPhoto : null;
   const petPhoto = solicitud.petPhoto?.trim() ? solicitud.petPhoto : null;
@@ -450,10 +465,13 @@ export function SolicitudDetail({ solicitud, onClose, onIrAMensajes }: Props) {
                 <p className="sdet-card-eyebrow">Adoptante</p>
                 <div className="sdet-card-profile">
                   {userPhoto ? (
-                    <img
+                    <Image
                       className="sdet-card-avatar"
                       src={userPhoto}
                       alt={solicitud.userName || "Adoptante"}
+                      width={48}
+                      height={48}
+                      unoptimized
                     />
                   ) : (
                     <div className="sdet-card-avatar sdet-card-avatar--empty">
@@ -485,10 +503,13 @@ export function SolicitudDetail({ solicitud, onClose, onIrAMensajes }: Props) {
                 <p className="sdet-card-eyebrow">Mascota</p>
                 <div className="sdet-card-profile">
                   {petPhoto ? (
-                    <img
+                    <Image
                       className="sdet-card-avatar sdet-card-avatar--pet"
                       src={petPhoto}
                       alt={solicitud.petName || "Mascota"}
+                      width={48}
+                      height={48}
+                      unoptimized
                     />
                   ) : (
                     <div className="sdet-card-avatar sdet-card-avatar--empty">
@@ -548,8 +569,10 @@ export function SolicitudDetail({ solicitud, onClose, onIrAMensajes }: Props) {
                 <button
                   type="button"
                   className="btn btn-primary sdet-estado-btn"
+                  onClick={handleCambiarEstado}
+                  disabled={isUpdating || selectedEstado === solicitud.estado}
                 >
-                  Cambiar estado
+                  {isUpdating ? "Cambiando..." : "Cambiar estado"}
                 </button>
               </div>
             </section>

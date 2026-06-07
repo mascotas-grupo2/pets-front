@@ -25,7 +25,7 @@ export function SolicitudesSection() {
     setEstado,
     toggleEstado,
     sort,
-    toggleSort,
+    setSort,
     page,
     setPage,
     totalPages,
@@ -33,6 +33,7 @@ export function SolicitudesSection() {
     desde,
     hasta,
     handleDelete,
+    handleUpdateStatus,
   } = useSolicitudes();
 
   const matchedSolicitud = useMemo(() => {
@@ -70,7 +71,7 @@ export function SolicitudesSection() {
         data={visible}
         loading={loading}
         sort={sort}
-        onSort={toggleSort}
+        onSort={setSort}
         onDelete={handleDelete}
         page={page}
         totalPages={totalPages}
@@ -84,6 +85,7 @@ export function SolicitudesSection() {
     solicitud={detailSolicitud}
     onClose={closeDrawer}
     onIrAMensajes={irAMensajes}
+    onUpdateStatus={handleUpdateStatus}
   />
 ) : null}
       {requestId && !detailSolicitud ? (
