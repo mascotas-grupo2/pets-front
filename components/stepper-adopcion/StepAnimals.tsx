@@ -12,16 +12,43 @@ const StepAnimals = ({ formik }: { formik: F }) => {
       <div className="form-grid">
         <div className="field full">
           <label className="field-label">
-            ¿Alguien del hogar es alérgico a animales?
+            ¿Alguien del hogar es alérgico a animales? *
           </label>
-          <textarea
-            className="textarea"
-            name="allergies"
-            value={formik.values.allergies}
-            onChange={(e) => FormikHandleChange(formik, "allergies", e)}
-            placeholder="Contanos los detalles, si corresponde"
-          />
+          <div className="radio-row">
+            <label className="radio-opt">
+              <input
+                type="radio"
+                name="hasAllergies"
+                checked={formik.values.hasAllergies === "si"}
+                onChange={() => formik.setFieldValue("hasAllergies", "si")}
+              />
+              Sí
+            </label>
+            <label className="radio-opt">
+              <input
+                type="radio"
+                name="hasAllergies"
+                checked={formik.values.hasAllergies === "no"}
+                onChange={() => formik.setFieldValue("hasAllergies", "no")}
+              />
+              No
+            </label>
+          </div>
+          <ShowError message={FormikHandleError(formik, "hasAllergies")} />
         </div>
+
+        {formik.values.hasAllergies === "si" && (
+          <div className="field full">
+            <label className="field-label">Contanos los detalles de las alergias</label>
+            <textarea
+              className="textarea"
+              name="allergies"
+              value={formik.values.allergies}
+              onChange={(e) => FormikHandleChange(formik, "allergies", e)}
+              placeholder="Ej: Alergia leve a los gatos..."
+            />
+          </div>
+        )}
 
         <div className="field full">
           <label className="field-label">
@@ -82,6 +109,9 @@ const StepAnimals = ({ formik }: { formik: F }) => {
               </label>
             ))}
           </div>
+          <small style={{ color: "var(--gray-500)", fontSize: "0.8rem", marginTop: "4px", display: "block" }}>
+            Si no lo están, el porcentaje de compatibilidad puede bajar.
+          </small>
           <ShowError message={FormikHandleError(formik, "neutered")} />
         </div>
 

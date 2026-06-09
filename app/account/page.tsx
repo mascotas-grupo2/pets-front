@@ -10,6 +10,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import AccountSettingsForm from "../../components/nav-account/account-settings-form";
 import { UserDetails } from "../../types/user-details";
+import MessagesPage from "@/components/nav-account/account-message";
 
 export default function AccountPage() {
   const { isLoggedIn, logout } = useUserContext();
@@ -114,6 +115,11 @@ export default function AccountPage() {
               </>
             )}
             {activeSection === "reports" && <MyReportsView pets={pets} />}
+            {activeSection === "messages" && (
+              <div className="bg-white rounded-lg p-4">
+                <MessagesPage />
+              </div>
+            )}
             {activeSection === "settings" && (
               <AccountSettingsForm userDetails={userDetails}/>
             )}

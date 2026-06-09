@@ -95,7 +95,13 @@ const SOLICITUDES_COLS: Column<SolicitudPreviewItem>[] = [
     key: "action",
     ariaLabel: "Acción",
     tdClassName: "dash-cell-action",
-    render: () => <ChevronRight size={16} aria-hidden />,
+    render: (r) => (
+      <ActionButton
+        icon={ChevronRight}
+        href={`/admin/solicitudes?requestId=${r.id}`}
+        ariaLabel="Ver solicitud"
+      />
+    ),
   },
 ];
 
@@ -240,20 +246,21 @@ export function DashboardSection() {
   } = useDashboardPreviews(previewOptions);
 
   // Memorizamos el mapeo para evitar cálculos innecesarios y cambios de referencia en las props de las tablas
-  const solicitudesPreview = useMemo(() =>
-    solicitudesPreviewRaw.map((s) => ({
-      id: s.id,
-      usuario: s.userName,
-      email: s.userEmail,
-      mascota: s.petName,
-      compat: { pct: s.compatPct, label: s.compatLabel },
-      estado: {
-        label: s.estado.replace(/_/g, " "),
-        tone: solicitudEstadoTone(s.estado),
-      },
-      fecha: s.fecha,
-    })),
-    [solicitudesPreviewRaw]
+  const solicitudesPreview = useMemo(
+    () =>
+      solicitudesPreviewRaw.map((s) => ({
+        id: s.id,
+        usuario: s.userName,
+        email: s.userEmail,
+        mascota: s.petName,
+        compat: { pct: s.compatPct, label: s.compatLabel },
+        estado: {
+          label: s.estado.replace(/_/g, " "),
+          tone: solicitudEstadoTone(s.estado),
+        },
+        fecha: s.fecha,
+      })),
+    [solicitudesPreviewRaw],
   );
 
   return (

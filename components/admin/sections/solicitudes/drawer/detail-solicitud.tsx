@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Image from "next/image";
 import {
   PawPrint,
@@ -16,7 +16,7 @@ import {
   ImageIcon,
   Trash2,
 } from "lucide-react";
-import { getAdoptionById } from "@/services/adoptions";
+import { useSolicitudDetail } from "../../hook/useSolicitudDetail";
 import type { AdoptionDetail } from "@/types/adoption-detail";
 import type { Solicitud } from "../solicitudes.data";
 import { AdoptanteModal } from "./adoptante-modal";
@@ -357,21 +357,7 @@ export function SolicitudDetail({
   const [showAdoptante, setShowAdoptante] = useState(false);
   const [showMascota, setShowMascota] = useState(false);
 
-  const [detail, setDetail] = useState<AdoptionDetail | null>(null);
-  const [loadingDetail, setLoadingDetail] = useState(true);
-
-  useEffect(() => {
-    let cancelled = false;
-    void (async () => {
-      const res = await getAdoptionById(solicitud.id);
-      if (cancelled) return;
-      if (res.ok && res.data) setDetail(res.data);
-      setLoadingDetail(false);
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [solicitud.id]);
+  const { data: detail, loading: loadingDetail } = useSolicitudDetail(solicitud.id);
 
   const [isUpdating, setIsUpdating] = useState(false);
   const handleCambiarEstado = async () => {

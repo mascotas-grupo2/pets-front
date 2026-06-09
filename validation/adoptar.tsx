@@ -40,6 +40,7 @@ export const adoptRoommateSchema = Yup.object({
 });
 
 export const adoptOtherAnimalsSchema = Yup.object({
+  hasAllergies: Yup.string().required("Requerido"),
   otherAnimals: Yup.string().required("Requerido"),
   neutered: Yup.string().required("Requerido"),
   vaccinated: Yup.string().required("Requerido"),

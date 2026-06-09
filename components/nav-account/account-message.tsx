@@ -1,14 +1,12 @@
 "use client";
-
+import { useEffect, useMemo, useState, useRef } from "react";
+import { Search, Send, Loader2, MessageSquare } from "lucide-react";
+import { getInbox, getConversation, sendMessage, Message, InboxConversation } from "@/services/messages.services";
 import { useAppSelector } from "@/redux/hooks";
-
-import { Loader2, MessageSquare, Search, Send } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
-import { initials } from "./mensajes.data";
-import { getConversation, getInbox, InboxConversation, Message, sendMessage } from "@/services/messages.services";
+import { initials } from "@/components/admin/sections/mensajes/mensajes.data";
 
-export default function MensajesSection() {
+export default function MessagesPage() {
   const currentUser = useAppSelector((state) => state.user);
   const [inbox, setInbox] = useState<InboxConversation[]>([]);
   const [loadingInbox, setLoadingInbox] = useState(true);
@@ -23,6 +21,7 @@ export default function MensajesSection() {
   const [error, setError] = useState<string | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     if (!currentUser.isLoggedIn) {
       setError("Debes iniciar sesión para ver tus mensajes.");
@@ -34,6 +33,7 @@ export default function MensajesSection() {
     const interval = setInterval(fetchInbox, 15000);
     return () => clearInterval(interval);
   }, [currentUser]);
+
   useEffect(() => {
     if (activaId) {
       fetchChat(activaId);
@@ -41,9 +41,11 @@ export default function MensajesSection() {
       return () => clearInterval(interval);
     }
   }, [activaId]);
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [activaMessages]);
+
   const fetchInbox = async () => {
     try {
       const res = await getInbox();
@@ -56,6 +58,7 @@ export default function MensajesSection() {
       setLoadingInbox(false);
     }
   };
+
   const fetchChat = async (userId: number, showLoading = true) => {
     if (showLoading) setLoadingChat(true);
     try {
@@ -63,7 +66,7 @@ export default function MensajesSection() {
       if (res.ok && res.data) {
         setActivaMessages(res.data.messages || []);
 
-        // Mark as read locally
+        // Marcar como leído localmente
         setInbox(prev => prev.map(c =>
           c.user?.id === userId ? { ...c, unread: 0 } : c
         ));
@@ -74,6 +77,7 @@ export default function MensajesSection() {
       if (showLoading) setLoadingChat(false);
     }
   };
+
   const visibles = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return inbox;
@@ -82,11 +86,14 @@ export default function MensajesSection() {
       c.latestMessage?.content?.toLowerCase().includes(q)
     );
   }, [inbox, query]);
+
   const activaConv = inbox.find((c) => c.user?.id === activaId) ?? null;
+
   function abrir(id: number) {
     if (id === activaId) return;
     setActivaId(id);
   }
+
   async function enviar(e: React.FormEvent) {
     e.preventDefault();
     const texto = draft.trim();
@@ -108,11 +115,13 @@ export default function MensajesSection() {
       setSending(false);
     }
   }
+
   if (error) {
     return (
       <div className="p-4 bg-red-50 text-red-500 rounded-lg m-4">{error}</div>
     );
   }
+
   return (
     <div className="msg h-[600px] border border-gray-200 rounded-xl overflow-hidden shadow-sm">
       {/* ---- Columna izquierda: lista de conversaciones ---- */}
@@ -188,13 +197,6 @@ export default function MensajesSection() {
         ) : (
           <>
             <header className="msg-chat-head shadow-sm z-10">
-              {activaConv.user?.photo ? (
-                <img src={activaConv.user.photo} alt={activaConv.user.name} className="msg-avatar object-cover" />
-              ) : (
-                <span className="msg-avatar" aria-hidden>
-                  {initials(activaConv.user?.name || "U")}
-                </span>
-              )}
               <div className="msg-chat-head-info">
                 <h3>{activaConv.user?.name || "Usuario"}</h3>
               </div>
@@ -208,24 +210,10 @@ export default function MensajesSection() {
                 activaMessages.map((m) => {
                   const isMine = m.senderId === currentUser?.id;
                   return (
-                    <div
-                      key={m.id}
-                      className={`msg-bubble-row ${isMine ? "is-mine" : "is-theirs"}`}
-                    >
-                      {!isMine && (
-                        activaConv.user?.photo ? (
-                          <img src={activaConv.user.photo} alt={activaConv.user.name} className="msg-avatar msg-avatar-sm object-cover" />
-                        ) : (
-                          <span className="msg-avatar msg-avatar-sm" aria-hidden>
-                            {initials(activaConv.user?.name || "U")}
-                          </span>
-                        )
-                      )}
+                    <div key={m.id} className={`msg-bubble-row ${isMine ? "is-mine" : "is-theirs"}`}>
                       <div className="msg-bubble">
                         <p>{m.content}</p>
-                        <time>
-                          {new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </time>
+                        <time>{new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</time>
                       </div>
                     </div>
                   );
@@ -234,21 +222,8 @@ export default function MensajesSection() {
               <div ref={messagesEndRef} />
             </div>
             <form className="msg-composer border-t border-gray-100 bg-white" onSubmit={enviar}>
-              <input
-                type="text"
-                placeholder="Escribí un mensaje..."
-                aria-label="Escribí un mensaje"
-                value={draft}
-                onChange={(e) => setDraft(e.target.value)}
-                disabled={sending}
-                className="flex-1"
-              />
-              <button
-                type="submit"
-                className="msg-send"
-                aria-label="Enviar mensaje"
-                disabled={!draft.trim() || sending}
-              >
+              <input type="text" placeholder="Escribí un mensaje..." value={draft} onChange={(e) => setDraft(e.target.value)} disabled={sending} className="flex-1" />
+              <button type="submit" className="msg-send" disabled={!draft.trim() || sending}>
                 {sending ? <Loader2 className="animate-spin w-4 h-4" /> : <Send size={16} />}
               </button>
             </form>
