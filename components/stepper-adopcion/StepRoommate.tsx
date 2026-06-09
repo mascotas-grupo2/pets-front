@@ -67,6 +67,9 @@ const StepRoommate = ({ formik }: { formik: F }) => {
               No
             </label>
           </div>
+          <small style={{ color: "var(--gray-500)", fontSize: "0.8rem", marginTop: "4px", display: "block" }}>
+            Ciertas mascotas no son aptas para hogares con niños o donde frecuentan niños.
+          </small>
           <ShowError message={FormikHandleError(formik, "visitingChildren")} />
         </div>
 

@@ -71,21 +71,23 @@ const StepStart = ({ formik }: { formik: F }) => {
           <ShowError message={FormikHandleError(formik, "phone")} />
         </div>
 
-        <div className="field full">
-          <label className="field-label">Qué mascota querés adoptar *</label>
-          <select
-            className="select"
-            name="preferredAnimal"
-            value={formik.values.preferredAnimal}
-            onChange={(e) => FormikHandleChange(formik, "preferredAnimal", e)}
-          >
-            <option value="">Seleccionar…</option>
-            <option value="perro">Perro</option>
-            <option value="gato">Gato</option>
-            <option value="otro">Otro</option>
-          </select>
-          <ShowError message={FormikHandleError(formik, "preferredAnimal")} />
-        </div>
+        {!formik.values.petId && (
+          <div className="field full">
+            <label className="field-label">Qué mascota querés adoptar *</label>
+            <select
+              className="select"
+              name="preferredAnimal"
+              value={formik.values.preferredAnimal}
+              onChange={(e) => FormikHandleChange(formik, "preferredAnimal", e)}
+            >
+              <option value="">Seleccionar…</option>
+              <option value="perro">Perro</option>
+              <option value="gato">Gato</option>
+              <option value="otro">Otro</option>
+            </select>
+            <ShowError message={FormikHandleError(formik, "preferredAnimal")} />
+          </div>
+        )}
 
         <div className="field full">
           <label className="terms">

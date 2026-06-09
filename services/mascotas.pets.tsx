@@ -4,7 +4,7 @@ import { request } from "./request";
 
 const axios = axiosInstance;
 
-export const getAllPets = () => request<Pet[]>(() => axios.get(`mascotas/`));
+export const getAllPets = () => request<Pet[]>(() => axios.get(`mascotas`));
 
 export const getIdPets = (id: string) =>
   request<Pet>(() => axios.get(`mascotas/${id}`));

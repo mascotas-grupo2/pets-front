@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
-import { SOLICITUDES, type Solicitud, type EstadoSolicitud } from "../solicitudes/solicitudes.data";
+import { type Solicitud, type EstadoSolicitud } from "../solicitudes/solicitudes.data";
+import { getAdminAdoptions } from "../../../../services/adoptions.services";
 
 export type EstadoFiltro = "TODAS" | EstadoSolicitud;
 export type SortKey = "userName" | "petName" | "compat" | "estado" | "fecha";
@@ -20,7 +21,7 @@ type Params = {
 };
 
 export function useSolicitudes() {
-  const [items, setItems] = useState<Solicitud[]>(SOLICITUDES);
+  const [items, setItems] = useState<Solicitud[]>([]);
   const [visible, setVisible] = useState<Solicitud[]>([]);
   const [total, setTotal] = useState(0);
   const [counts, setCounts] = useState<Record<EstadoSolicitud, number>>({
@@ -40,55 +41,59 @@ export function useSolicitudes() {
   const loadSolicitudes = useCallback(
     async (params: Params) => {
       setLoading(true);
-      let filtered = [...items];
-
-      if (params.estado) {
-        filtered = filtered.filter((item) => item.estado === params.estado);
-      }
-
-      if (params.q) {
-        const q = params.q.toLowerCase();
-        filtered = filtered.filter(
-          (item) =>
-            item.userName.toLowerCase().includes(q) ||
-            item.petName.toLowerCase().includes(q) ||
-            item.userEmail.toLowerCase().includes(q),
-        );
-      }
-
-      if (params.sortKey) {
-        filtered = [...filtered].sort((a, b) => {
-          let result = 0;
-          if (params.sortKey === "userName") {
-            result = a.userName.localeCompare(b.userName, "es", { sensitivity: "base" });
-          } else if (params.sortKey === "petName") {
-            result = a.petName.localeCompare(b.petName, "es", { sensitivity: "base" });
-          } else if (params.sortKey === "compat") {
-            result = a.compatPct - b.compatPct;
-          } else if (params.sortKey === "estado") {
-            result = rankEstado(a.estado) - rankEstado(b.estado);
-          } else if (params.sortKey === "fecha") {
-            result = parseFecha(a.fecha) - parseFecha(b.fecha);
-          }
-          return params.sortDir === "desc" ? -result : result;
-        });
-      }
-
-      setCounts({
-        NUEVA: items.filter((item) => item.estado === "NUEVA").length,
-        EN_EVALUACION: items.filter((item) => item.estado === "EN_EVALUACION").length,
-        ENTREVISTA_PENDIENTE: items.filter((item) => item.estado === "ENTREVISTA_PENDIENTE").length,
-        ACEPTADA_CON_SEGUIMIENTO: items.filter((item) => item.estado === "ACEPTADA_CON_SEGUIMIENTO").length,
-        ACEPTADA: items.filter((item) => item.estado === "ACEPTADA").length,
-        DESCARTADA: items.filter((item) => item.estado === "DESCARTADA").length,
+      
+      const sortParam = params.sortKey ? `${params.sortKey}:${params.sortDir || "desc"}` : undefined;
+      const response = await getAdminAdoptions({
+        page: params.page,
+        pageSize: PAGE_SIZE,
+        statusId: params.estado ? mapEstadoToStatusId(params.estado) : undefined,
+        sort: sortParam,
       });
 
-      setTotal(filtered.length);
-      const from = (params.page - 1) * PAGE_SIZE;
-      setVisible(filtered.slice(from, from + PAGE_SIZE));
+      if (!response || !response.ok || !response.data) {
+        toast.error("Error al cargar las solicitudes de adopción");
+        setLoading(false);
+        return;
+      }
+
+      const { data } = response;
+      setTotal(data.total);
+      
+      setCounts({
+        NUEVA: data.statusTotals["NUEVA"] || 0,
+        EN_EVALUACION: data.statusTotals["EN_EVALUACION"] || 0,
+        ENTREVISTA_PENDIENTE: data.statusTotals["ENTREVISTA_PENDIENTE"] || 0,
+        ACEPTADA_CON_SEGUIMIENTO: data.statusTotals["ACEPTADA_CON_SEGUIMIENTO"] || 0,
+        ACEPTADA: data.statusTotals["ACEPTADA"] || 0,
+        DESCARTADA: data.statusTotals["DESCARTADA"] || 0,
+      });
+
+      const parsedItems: Solicitud[] = data.items.map((item: any) => {
+        const compatPct = item.compatibilityScore ?? 0;
+        let compatLabel = "Moderada";
+        if (compatPct >= 80) compatLabel = "Alta";
+        else if (compatPct >= 90) compatLabel = "Excelente";
+        else if (compatPct <= 40) compatLabel = "Baja";
+        
+        return {
+          id: String(item.id),
+          userName: item.applicantName || item.userName || "Desconocido",
+          userEmail: item.applicantEmail || item.userEmail || "",
+          userPhoto: item.userPhoto || "",
+          petName: item.petName || "Sin nombre",
+          petPhoto: item.petPhoto || "",
+          compatPct: item.compatibilityScore ?? null,
+          compatLabel: item.compatibilityScore == null ? "Sin Evaluar" : compatLabel,
+          estado: item.status as EstadoSolicitud,
+          fecha: new Date(item.createdAt).toLocaleDateString("es-ES"),
+        };
+      });
+
+      setVisible(parsedItems);
+      setItems(parsedItems);
       setLoading(false);
     },
-    [items],
+    [],
   );
 
   const currentParams: Params = {
@@ -102,7 +107,7 @@ export function useSolicitudes() {
   useEffect(() => {
     loadSolicitudes(currentParams);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [query, estado, sort, page, items]);
+  }, [query, estado, sort, page]);
 
   function setQuery(value: string) {
     setQueryRaw(value);
@@ -181,7 +186,14 @@ function rankEstado(value: EstadoSolicitud) {
   return ESTADO_ORDER[value] ?? 99;
 }
 
-function parseFecha(fecha: string) {
-  const [dia, mes, anio] = fecha.split("/").map(Number);
-  return new Date(anio, mes - 1, dia).getTime();
+function mapEstadoToStatusId(estado: EstadoSolicitud): number {
+  const map: Record<EstadoSolicitud, number> = {
+    NUEVA: 1201,
+    EN_EVALUACION: 1202,
+    ENTREVISTA_PENDIENTE: 1203,
+    ACEPTADA_CON_SEGUIMIENTO: 1204,
+    ACEPTADA: 1205,
+    DESCARTADA: 1206,
+  };
+  return map[estado] || 1201;
 }

@@ -1,13 +1,11 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { MoreHorizontal, Search, Send, Smile } from "lucide-react";
-import {
-  CONVERSACIONES,
-  initials,
-  type Conversacion,
-  type SubTab,
-} from "./mensajes.data";
+import { useEffect, useMemo, useState, useRef } from "react";
+import { MoreHorizontal, Search, Send, Smile, Loader2 } from "lucide-react";
+import { initials, type SubTab } from "./mensajes.data";
+import { getAdminInbox, getConversation, sendMessage, AdminInboxConversation, Message, ConversationProfile } from "@/services/messages.services";
+import { useAppSelector } from "@/redux/hooks";
+import { toast } from "sonner";
 
 type Filtro = "todos" | "usuario" | "interno";
 
@@ -20,62 +18,117 @@ const FILTROS: { id: Filtro; label: string }[] = [
 const SUBTABS: { id: SubTab; label: string }[] = [
   { id: "mensajes", label: "Mensajes" },
   { id: "perfil", label: "Perfil" },
-  { id: "evaluacion", label: "Evaluación" },
-  { id: "notas", label: "Notas" },
 ];
 
-/** Marca temporal "dd/mm/aaaa hh:mm" para los mensajes que se envían. */
-function ahora(): string {
-  const d = new Date();
-  const p = (n: number) => String(n).padStart(2, "0");
-  return `${p(d.getDate())}/${p(d.getMonth() + 1)}/${d.getFullYear()} ${p(d.getHours())}:${p(d.getMinutes())}`;
-}
-
 export function MensajesSection() {
-  const [convs, setConvs] = useState<Conversacion[]>(CONVERSACIONES);
-  const [activaId, setActivaId] = useState<string>(CONVERSACIONES[0]?.id ?? "");
+  const currentUser = useAppSelector((state) => state.user);
+  const [inbox, setInbox] = useState<AdminInboxConversation[]>([]);
+  const [loadingInbox, setLoadingInbox] = useState(true);
+  
+  const [activaId, setActivaId] = useState<number | null>(null);
+  const [activaMessages, setActivaMessages] = useState<Message[]>([]);
+  const [activaProfile, setActivaProfile] = useState<ConversationProfile | null>(null);
+  const [loadingChat, setLoadingChat] = useState(false);
+  
   const [filtro, setFiltro] = useState<Filtro>("todos");
   const [query, setQuery] = useState("");
   const [subTab, setSubTab] = useState<SubTab>("mensajes");
   const [draft, setDraft] = useState("");
+  const [sending, setSending] = useState(false);
+  
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    fetchInbox();
+    const interval = setInterval(fetchInbox, 15000);
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    if (activaId) {
+      fetchChat(activaId);
+      const interval = setInterval(() => fetchChat(activaId, false), 5000);
+      return () => clearInterval(interval);
+    }
+  }, [activaId]);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [activaMessages]);
+
+  const fetchInbox = async () => {
+    try {
+      const res = await getAdminInbox(1, 50); // Get up to 50 conversations for now
+      if (res.ok && res.data) {
+        setInbox(res.data.conversations);
+      }
+    } catch (error) {
+      console.error("Error fetching inbox:", error);
+    } finally {
+      setLoadingInbox(false);
+    }
+  };
+
+  const fetchChat = async (userId: number, showLoading = true) => {
+    if (showLoading) setLoadingChat(true);
+    try {
+      const res = await getConversation(userId);
+      if (res.ok && res.data) {
+        setActivaMessages(res.data.messages || []);
+        setActivaProfile(res.data.profile || null);
+        
+        // Mark as read in the local inbox state so the badge disappears
+        setInbox(prev => prev.map(c => 
+          c.user?.id === userId ? { ...c, unread: 0 } : c
+        ));
+      }
+    } catch (error) {
+      console.error("Error fetching chat:", error);
+    } finally {
+      if (showLoading) setLoadingChat(false);
+    }
+  };
 
   const visibles = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return convs.filter((c) => {
-      if (filtro !== "todos" && c.canal !== filtro) return false;
+    return inbox.filter((c) => {
+      // Very basic filtering based on role if available
+      if (filtro === "interno" && c.user?.role !== "admin") return false;
+      if (filtro === "usuario" && c.user?.role === "admin") return false;
+      
       if (!q) return true;
-      return c.nombre.toLowerCase().includes(q) || c.contexto.toLowerCase().includes(q);
+      return c.user?.name?.toLowerCase().includes(q) || c.user?.email?.toLowerCase().includes(q) || c.latestMessage?.content?.toLowerCase().includes(q);
     });
-  }, [convs, filtro, query]);
+  }, [inbox, filtro, query]);
 
-  const activa = convs.find((c) => c.id === activaId) ?? null;
+  const activaConv = inbox.find((c) => c.user?.id === activaId) ?? null;
 
-  /** Abre una conversación y la marca como leída. */
-  function abrir(id: string) {
+  function abrir(id: number) {
+    if (id === activaId) return;
     setActivaId(id);
     setSubTab("mensajes");
-    setConvs((prev) => prev.map((c) => (c.id === id ? { ...c, noLeidos: 0 } : c)));
   }
 
-  /** Agrega el mensaje del admin a la conversación activa (optimista, local). */
-  function enviar(e: React.FormEvent) {
+  async function enviar(e: React.FormEvent) {
     e.preventDefault();
     const texto = draft.trim();
-    if (!texto || !activa) return;
-    setConvs((prev) =>
-      prev.map((c) =>
-        c.id === activa.id
-          ? {
-              ...c,
-              mensajes: [
-                ...c.mensajes,
-                { id: `m${c.mensajes.length + 1}`, autor: "yo", texto, hora: ahora() },
-              ],
-            }
-          : c,
-      ),
-    );
-    setDraft("");
+    if (!texto || !activaId || sending) return;
+    
+    setSending(true);
+    try {
+      const res = await sendMessage(activaId, texto);
+      if (res.ok && res.data) {
+        setActivaMessages(prev => [...prev, res.data!]);
+        setDraft("");
+        fetchInbox(); // Refresh inbox to update latest message
+      } else {
+        toast.error("No se pudo enviar el mensaje");
+      }
+    } catch (error) {
+      toast.error("Error de conexión");
+    } finally {
+      setSending(false);
+    }
   }
 
   return (
@@ -108,52 +161,75 @@ export function MensajesSection() {
           />
         </div>
 
-        <ul className="msg-list">
-          {visibles.length === 0 && (
-            <li className="msg-empty-list">No hay conversaciones.</li>
-          )}
-          {visibles.map((c) => (
-            <li key={c.id}>
-              <button
-                type="button"
-                className={`msg-item${c.id === activaId ? " is-active" : ""}`}
-                onClick={() => abrir(c.id)}
-                aria-current={c.id === activaId}
-              >
-                <span className="msg-avatar" aria-hidden>
-                  {initials(c.nombre)}
-                </span>
-                <span className="msg-item-body">
-                  <span className="msg-item-name">{c.nombre}</span>
-                  <span className="msg-item-sub">{c.contexto}</span>
-                </span>
-                <span className="msg-item-meta">
-                  <span className="msg-item-time">{c.hora}</span>
-                  {c.noLeidos > 0 && (
-                    <span className="msg-unread" aria-label={`${c.noLeidos} sin leer`}>
-                      {c.noLeidos}
+        {loadingInbox ? (
+          <div className="flex justify-center p-8"><Loader2 className="animate-spin text-blue-500 w-8 h-8" /></div>
+        ) : (
+          <ul className="msg-list">
+            {visibles.length === 0 && (
+              <li className="msg-empty-list">No hay conversaciones.</li>
+            )}
+            {visibles.map((c) => {
+              const u = c.user;
+              const isActiva = u?.id === activaId;
+              const name = u?.name || "Usuario Desconocido";
+              return (
+                <li key={u?.id || Math.random()}>
+                  <button
+                    type="button"
+                    className={`msg-item${isActiva ? " is-active" : ""}`}
+                    onClick={() => u && abrir(u.id)}
+                    aria-current={isActiva}
+                  >
+                    {u?.photo ? (
+                      <img src={u.photo} alt={name} className="msg-avatar object-cover" />
+                    ) : (
+                      <span className="msg-avatar" aria-hidden>
+                        {initials(name)}
+                      </span>
+                    )}
+                    
+                    <span className="msg-item-body">
+                      <span className="msg-item-name">{name}</span>
+                      <span className="msg-item-sub truncate w-40">
+                        {c.latestMessage?.senderId === currentUser?.id ? "Tú: " : ""}
+                        {c.latestMessage?.content}
+                      </span>
                     </span>
-                  )}
-                </span>
-              </button>
-            </li>
-          ))}
-        </ul>
+                    <span className="msg-item-meta">
+                      <span className="msg-item-time">
+                        {new Date(c.latestMessage?.createdAt).toLocaleDateString()}
+                      </span>
+                      {c.unread > 0 && (
+                        <span className="msg-unread" aria-label={`${c.unread} sin leer`}>
+                          {c.unread}
+                        </span>
+                      )}
+                    </span>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        )}
       </aside>
 
       {/* ---- Columna derecha: conversación activa ---- */}
       <section className="msg-chat-panel" aria-label="Conversación">
-        {!activa ? (
+        {!activaId || !activaConv ? (
           <div className="msg-empty">Elegí una conversación para ver los mensajes.</div>
         ) : (
           <>
             <header className="msg-chat-head">
-              <span className="msg-avatar" aria-hidden>
-                {initials(activa.nombre)}
-              </span>
+              {activaConv.user?.photo ? (
+                <img src={activaConv.user.photo} alt={activaConv.user.name} className="msg-avatar object-cover" />
+              ) : (
+                <span className="msg-avatar" aria-hidden>
+                  {initials(activaConv.user?.name || "U")}
+                </span>
+              )}
               <div className="msg-chat-head-info">
-                <h3>{activa.nombre}</h3>
-                <p>{activa.asunto}</p>
+                <h3>{activaConv.user?.name || "Usuario"}</h3>
+                <p>{activaConv.user?.email || "Sin email"}</p>
               </div>
               <button type="button" className="msg-icon-btn" aria-label="Más opciones">
                 <MoreHorizontal size={18} />
@@ -178,22 +254,38 @@ export function MensajesSection() {
             {subTab === "mensajes" ? (
               <>
                 <div className="msg-thread">
-                  {activa.mensajes.map((m) => (
-                    <div
-                      key={m.id}
-                      className={`msg-bubble-row ${m.autor === "yo" ? "is-mine" : "is-theirs"}`}
-                    >
-                      {m.autor === "otro" && (
-                        <span className="msg-avatar msg-avatar-sm" aria-hidden>
-                          {initials(activa.nombre)}
-                        </span>
-                      )}
-                      <div className="msg-bubble">
-                        <p>{m.texto}</p>
-                        <time>{m.hora}</time>
-                      </div>
-                    </div>
-                  ))}
+                  {loadingChat ? (
+                    <div className="flex justify-center p-8"><Loader2 className="animate-spin text-blue-500 w-8 h-8" /></div>
+                  ) : activaMessages.length === 0 ? (
+                    <div className="text-center text-gray-500 p-8">No hay mensajes.</div>
+                  ) : (
+                    activaMessages.map((m) => {
+                      const isMine = m.senderId === currentUser?.id;
+                      return (
+                        <div
+                          key={m.id}
+                          className={`msg-bubble-row ${isMine ? "is-mine" : "is-theirs"}`}
+                        >
+                          {!isMine && (
+                            activaConv.user?.photo ? (
+                              <img src={activaConv.user.photo} alt={activaConv.user.name} className="msg-avatar msg-avatar-sm object-cover" />
+                            ) : (
+                              <span className="msg-avatar msg-avatar-sm" aria-hidden>
+                                {initials(activaConv.user?.name || "U")}
+                              </span>
+                            )
+                          )}
+                          <div className="msg-bubble">
+                            <p>{m.content}</p>
+                            <time>
+                              {new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </time>
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                  <div ref={messagesEndRef} />
                 </div>
 
                 <form className="msg-composer" onSubmit={enviar}>
@@ -203,6 +295,7 @@ export function MensajesSection() {
                     aria-label="Escribí un mensaje"
                     value={draft}
                     onChange={(e) => setDraft(e.target.value)}
+                    disabled={sending}
                   />
                   <button type="button" className="msg-icon-btn" aria-label="Emoji">
                     <Smile size={18} />
@@ -211,36 +304,42 @@ export function MensajesSection() {
                     type="submit"
                     className="msg-send"
                     aria-label="Enviar mensaje"
-                    disabled={!draft.trim()}
+                    disabled={!draft.trim() || sending}
                   >
-                    <Send size={16} />
+                    {sending ? <Loader2 className="animate-spin w-4 h-4" /> : <Send size={16} />}
                   </button>
                 </form>
               </>
             ) : subTab === "perfil" ? (
-              <div className="msg-detail">
-                <dl className="msg-profile">
-                  <div>
-                    <dt>Email</dt>
-                    <dd>{activa.perfil.email}</dd>
+              <div className="msg-detail p-6">
+                <dl className="msg-profile space-y-4">
+                  <div className="grid grid-cols-3 gap-4 border-b border-gray-100 pb-4">
+                    <dt className="text-gray-500 font-medium">Email</dt>
+                    <dd className="col-span-2 text-gray-900">{activaConv.user?.email || "—"}</dd>
                   </div>
-                  <div>
-                    <dt>Teléfono</dt>
-                    <dd>{activa.perfil.telefono}</dd>
+                  <div className="grid grid-cols-3 gap-4 border-b border-gray-100 pb-4">
+                    <dt className="text-gray-500 font-medium">Estado del Perfil</dt>
+                    <dd className="col-span-2">
+                      {activaProfile?.status ? (
+                        <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${
+                          activaProfile.status?.toLowerCase() === 'activo' ? 'bg-green-100 text-green-700' :
+                          activaProfile.status?.toLowerCase() === 'bloqueado' ? 'bg-red-100 text-red-700' :
+                          'bg-yellow-100 text-yellow-700'
+                        }`}>
+                          {activaProfile.status}
+                        </span>
+                      ) : "—"}
+                    </dd>
                   </div>
-                  <div>
-                    <dt>Mascota</dt>
-                    <dd>{activa.perfil.mascota}</dd>
+                  <div className="grid grid-cols-3 gap-4 border-b border-gray-100 pb-4">
+                    <dt className="text-gray-500 font-medium">Notas de Evaluación</dt>
+                    <dd className="col-span-2 text-gray-900 whitespace-pre-wrap bg-gray-50 p-3 rounded-lg border border-gray-100">
+                      {activaProfile?.evaluationNote || <span className="italic text-gray-400">Sin notas de evaluación.</span>}
+                    </dd>
                   </div>
                 </dl>
               </div>
-            ) : (
-              <div className="msg-detail msg-detail-empty">
-                {subTab === "evaluacion"
-                  ? "La evaluación de compatibilidad estará disponible próximamente."
-                  : "Todavía no hay notas para esta conversación."}
-              </div>
-            )}
+            ) : null}
           </>
         )}
       </section>

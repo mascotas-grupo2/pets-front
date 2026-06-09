@@ -63,7 +63,7 @@ const SOLICITUDES_COLS: Column<(typeof SOLICITUDES)[number]>[] = [
     render: (r) => (
       <>
         <span className={`dash-compat tone-${compatTone(r.compat.pct)}`}>
-          {r.compat.pct}%
+          {r.compat.pct != null ? `${r.compat.pct}%` : "N/A"}
         </span>
         <span className="dash-compat-label">{r.compat.label}</span>
       </>

@@ -33,6 +33,7 @@ export type AdoptForm = {
   children: number;
   visitingChildren: YesNo;
   hasFlatmates: YesNo;
+  hasAllergies: YesNo;
   allergies: string;
   otherAnimals: YesNo;
   otherAnimalsDetail: string;
@@ -61,6 +62,7 @@ export const adoptInitialValues: AdoptForm = {
   children: 0,
   visitingChildren: "",
   hasFlatmates: "",
+  hasAllergies: "",
   allergies: "",
   otherAnimals: "",
   otherAnimalsDetail: "",

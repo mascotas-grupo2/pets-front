@@ -72,8 +72,8 @@ export function SolicitudesTable({
       label: "Compatibilidad",
       render: (s) => (
         <>
-          <span className={`dash-compat tone-${compatTone(s.compatPct)}`}>
-            {s.compatPct}%
+          <span className={`dash-compat tone-${compatTone(s.compatPct || 0)}`}>
+            {s.compatPct != null ? `${s.compatPct}%` : "N/A"}
           </span>
           <span className="dash-compat-label">{s.compatLabel}</span>
         </>
@@ -104,7 +104,7 @@ export function SolicitudesTable({
         <div className="dash-row-actions">
           <ActionButton
             icon={Eye}
-            href={`/admin/solicitudes?requestId=${item.id}`}
+            href={`/admin/solicitudes/${item.id}`}
             ariaLabel="Ver solicitud"
             title="Ver"
           />

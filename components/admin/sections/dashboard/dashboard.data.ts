@@ -62,7 +62,7 @@ export const STATS: Stat[] = [
   },
 ];
 
-export type Compat = { pct: number; label: string };
+export type Compat = { pct: number | null; label: string };
 
 export type Solicitud = {
   usuario: string;
@@ -247,7 +247,8 @@ export const ACTIVIDAD: Actividad[] = [
 ];
 
 /** Color de la compatibilidad según el porcentaje. */
-export function compatTone(pct: number): Tone {
+export function compatTone(pct: number | null): Tone {
+  if (pct === null) return "gray";
   if (pct >= 85) return "green";
   if (pct >= 60) return "amber";
   return "red";

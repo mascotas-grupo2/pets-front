@@ -82,17 +82,18 @@ export default function LostPetsPage() {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    if (pets.length) return;
+    let mounted = true;
     getAllPets()
       .then((res) => {
-        if (res && res.ok && res.data) {
-          const pets = res.data;
-          setPets(pets);
-          dispatch({ type: "pets/all_pets", payload: pets });
+        if (mounted && res && res.ok && res.data) {
+          const fetchedPets = res.data;
+          setPets(fetchedPets);
+          dispatch({ type: "pets/all_pets", payload: fetchedPets });
         }
       })
       .catch((error: unknown) => console.error(error));
-  }, [pets, dispatch]);
+    return () => { mounted = false; };
+  }, [dispatch]);
 
   const updateFilter = (changes: Partial<FilterCriteria>) => {
     setFilters((prev) => ({ ...prev, ...changes }));

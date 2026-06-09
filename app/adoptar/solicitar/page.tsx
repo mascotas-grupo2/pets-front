@@ -72,25 +72,33 @@ function AdoptarSolicitarContent() {
 
   const formik = useFormik<AdoptForm>({
     enableReinitialize: true,
-    initialValues: { ...adoptInitialValues, petId: targetPetId },
+    initialValues: { ...adoptInitialValues, petId: targetPetId, preferredAnimal: targetPetId ? "otro" : "" },
     validationSchema: adoptFullSchema(step),
     onSubmit: async (values) => {
       try {
-        const res = await submitAdoption({
-          ...values,
-          petId: targetPetId || values.petId || undefined,
-        });
-        if (!res) return;
-        if (res.ok) {
-          dispatch({ type: "user/setFormAdoption", payload: res.data });
-          saveUser(res.data)
-          handleToast("success", "¡Solicitud enviada con éxito!");
-          setSubmitted(true);
+        if (step < STEP_FIELDS.length - 1) {
+          setStep((s) => s + 1);
         } else {
-          handleToast(
-            "error",
-            `Error (${res.status}): No se pudo enviar la solicitud.`,
-          );
+          const finalValues = {
+            ...values,
+            allergies: values.hasAllergies === "si" ? values.allergies : "",
+          };
+          const res = await submitAdoption({
+            ...finalValues,
+            petId: targetPetId || finalValues.petId || undefined,
+          });
+          if (!res) return;
+          if (res.ok) {
+            dispatch({ type: "user/setFormAdoption", payload: res.data });
+            saveUser(res.data)
+            handleToast("success", "¡Solicitud enviada con éxito!");
+            setSubmitted(true);
+          } else {
+            handleToast(
+              "error",
+              `Error (${res.status}): No se pudo enviar la solicitud.`,
+            );
+          }
         }
       } catch (error) {
         ErrorGeneric(error);

@@ -13,7 +13,7 @@ export type Solicitud = {
   userPhoto: string;
   petName: string;
   petPhoto: string;
-  compatPct: number;
+  compatPct: number | null;
   compatLabel: string;
   estado: EstadoSolicitud;
   fecha: string;
