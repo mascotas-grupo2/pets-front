@@ -109,7 +109,7 @@ const StepAnimals = ({ formik }: { formik: F }) => {
               </label>
             ))}
           </div>
-          <small style={{ color: "var(--gray-500)", fontSize: "0.8rem", marginTop: "4px", display: "block" }}>
+          <small className="field-hint">
             Si no lo están, el porcentaje de compatibilidad puede bajar.
           </small>
           <ShowError message={FormikHandleError(formik, "neutered")} />
