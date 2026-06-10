@@ -4,6 +4,7 @@ import "../styles/globals.css";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { Providers } from "@/components/Providers";
+import { ChatbotWidget } from "@/components/chatbot/chatbot-widget";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -34,6 +35,7 @@ export default function RootLayout({
           <SiteHeader />
           {children}
           <SiteFooter />
+          <ChatbotWidget />
         </Providers>
       </body>
     </html>
