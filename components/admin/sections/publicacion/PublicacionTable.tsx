@@ -62,10 +62,11 @@ export function PublicacionTable({
         <div
           style={{
             fontSize: "0.85rem",
-            padding: "0.4rem 0.6rem",
+            padding: "0.2rem 0.4rem",
             display: "inline-block",
             backgroundColor: "#e8d5f7",
-            borderRadius: "0.3rem",
+            borderRadius: "1rem",
+            fontWeight: "500",
             color: "#6d28d9",
           }}
         >

@@ -429,6 +429,43 @@
   font-weight: 600;
 }
 
+.admin-user-menu-wrap {
+  position: relative;
+}
+
+.admin-user-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  min-width: 180px;
+  padding: 6px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  box-shadow: var(--shadow-md);
+  z-index: 30;
+}
+
+.admin-user-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--gray-700);
+  font-family: inherit;
+  font-size: 14px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.admin-user-menu-item:hover {
+  background: var(--gray-100);
+}
+
 /* ===========================================================
    Dashboard
    =========================================================== */
@@ -508,6 +545,10 @@
 .dash-stat-icon.tone-pink {
   background: #fde8f3;
   color: #db2777;
+}
+.dash-stat-icon.tone-red {
+  background: #fde8e8;
+  color: var(--danger);
 }
 
 /* ---------- Grilla de paneles ---------- */
@@ -877,6 +918,7 @@
   flex-direction: column;
   box-shadow: -8px 0 30px rgba(0, 0, 0, 0.18);
   animation: vdrawer-in 0.2s ease;
+
 }
 
 @keyframes vdrawer-in {
@@ -919,6 +961,7 @@
 .vdrawer-body {
   flex: 1;
   overflow-y: auto;
+  overflow-x: hidden;
   padding: 16px 20px;
 }
 
@@ -983,6 +1026,163 @@
 }
 .vdrawer-foot > button {
   flex: 1;
+}
+
+.solicitud-detail-top {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 18px;
+}
+.solicitud-detail-card {
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 16px;
+}
+.solicitud-detail-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.solicitud-detail-card-title {
+  display: inline-block;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--gray-500);
+}
+.solicitud-detail-card-body {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+.solicitud-detail-card-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 999px;
+  object-fit: cover;
+  background: var(--gray-100);
+}
+.solicitud-detail-card-name {
+  margin: 0;
+  font-weight: 700;
+  color: var(--gray-900);
+  font-size: 0.95rem;
+}
+.solicitud-detail-card-email,
+.solicitud-detail-card-meta {
+  margin: 4px 0 0;
+  color: var(--gray-500);
+  font-size: 0.9rem;
+}
+.solicitud-detail-card-meta {
+  color: var(--gray-400);
+}
+.solicitud-detail-header-meta {
+  margin: 6px 0 0;
+  color: var(--gray-500);
+  font-size: 0.9rem;
+}
+.solicitud-detail-main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+  gap: 18px;
+  align-items: start;
+}
+.solicitud-detail-compat {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 18px;
+  background: var(--surface-alt);
+}
+.solicitud-compat-circle {
+  width: 120px;
+  height: 120px;
+  margin: 0 auto 16px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: var(--surface);
+  box-shadow: inset 0 0 0 8px rgba(59, 130, 246, 0.1);
+}
+.solicitud-compat-value {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--gray-900);
+  text-align: center;
+}
+.solicitud-compat-label {
+  font-size: 0.8rem;
+  color: var(--gray-500);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  display: block;
+  margin-top: 4px;
+  text-align: center;
+}
+.solicitud-compat-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+.solicitud-compat-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  color: var(--gray-600);
+  font-size: 0.95rem;
+}
+.solicitud-detail-meta {
+  display: grid;
+  gap: 10px;
+}
+.solicitud-detail-status-row {
+  display: grid;
+  gap: 12px;
+  margin-top: 8px;
+}
+.solicitud-detail-action-btn {
+  min-width: 140px;
+}
+.solicitud-detail-tabs {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+  margin: 16px 0 20px;
+}
+.solicitud-detail-tab {
+  justify-content: center;
+  min-width: 0;
+}
+.solicitud-detail-tab.active {
+  background: var(--primary-500);
+  color: #fff;
+  border-color: transparent;
+}
+.solicitud-detail-summary h3 {
+  margin: 0 0 12px;
+  font-size: 0.95rem;
+  color: var(--gray-500);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.solicitud-detail-paragraph {
+  margin: 0 0 12px;
+  color: var(--gray-700);
+  line-height: 1.6;
+}
+@media (max-width: 760px) {
+  .solicitud-detail-top,
+  .solicitud-detail-main,
+  .solicitud-detail-tabs {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* ---------- Drawer de Mascotas ---------- */
@@ -2061,7 +2261,303 @@
   color: var(--color-text-primary);
 }
 
+/* ============================================================
+   Seguimientos
+   ============================================================ */
+
+/* Pestañas Próximos / Todos / Completados */
+.seg-tabs {
+  display: flex;
+  gap: 6px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 18px;
+}
+.seg-tab {
+  position: relative;
+  border: none;
+  background: transparent;
+  padding: 10px 14px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--gray-500);
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+.seg-tab:hover {
+  color: var(--gray-800);
+}
+.seg-tab.active {
+  color: var(--primary-600);
+  font-weight: 600;
+}
+.seg-tab.active::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 2px;
+  border-radius: 2px 2px 0 0;
+  background: var(--primary-500);
+}
+
+/* Filtros (tipo + estado) */
+.seg-filters {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 14px;
+  margin-bottom: 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+.seg-filter-group {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.seg-filter-label {
+  min-width: 52px;
+  padding-top: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--gray-500);
+}
+
+/* Encabezado del drawer de detalle (mascota + estado) */
+.seg-detail-pet {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 16px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+.seg-detail-pet-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-start;
+}
+.seg-detail-pet-info strong {
+  font-size: 16px;
+  color: var(--gray-900);
+}
+
+/* Formulario del drawer de alta */
+.seg-form {
+  display: flex;
+  flex-direction: column;
+}
+.seg-form-error {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--danger);
+}
+.seg-form .vdrawer-foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+/* Layout de dos columnas: tabla + panel lateral */
+.seg-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 280px;
+  gap: 20px;
+  align-items: start;
+}
+.seg-main {
+  min-width: 0;
+}
+/* La tabla tiene varias columnas: si no entra, scrollea en vez de desbordar.
+   (override del `overflow: visible` que hereda de .pub-table-wrap) */
+.seg .dash-table-wrap {
+  overflow-x: auto;
+}
+.seg .dash-table {
+  min-width: 640px;
+}
+
+/* Columna derecha (calendario + agenda) */
+.seg-side {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ---- Calendario ---- */
+.seg-cal {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: 16px;
+}
+.seg-cal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.seg-cal-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--gray-900);
+}
+.seg-cal-nav {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--gray-500);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.seg-cal-nav:hover {
+  background: var(--gray-100);
+  color: var(--gray-800);
+}
+.seg-cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+.seg-cal-dow {
+  display: grid;
+  place-items: center;
+  height: 26px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--gray-400);
+}
+.seg-cal-cell {
+  position: relative;
+  display: grid;
+  place-items: center;
+  height: 30px;
+  border-radius: var(--radius-full);
+  font-size: 13px;
+  color: var(--gray-700);
+}
+.seg-cal-cell.is-empty {
+  visibility: hidden;
+}
+/* Día clickeable */
+.seg-cal-cell.is-day {
+  border: none;
+  background: transparent;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.seg-cal-cell.is-day:hover:not(.is-disabled):not(.is-selected) {
+  background: var(--primary-50);
+}
+/* Hoy (sin estar seleccionado): solo el borde/anillo */
+.seg-cal-cell.is-today {
+  box-shadow: inset 0 0 0 1.5px var(--primary-300, #a594ff);
+  color: var(--primary-600);
+  font-weight: 600;
+}
+/* Día seleccionado: relleno violeta */
+.seg-cal-cell.is-selected {
+  background: var(--primary-500);
+  color: #fff;
+  font-weight: 600;
+}
+/* Días pasados: no seleccionables */
+.seg-cal-cell.is-disabled {
+  color: var(--gray-300, #d1d5db);
+  cursor: not-allowed;
+}
+.seg-cal-cell.has-events::after {
+  content: "";
+  position: absolute;
+  bottom: 3px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--primary-500);
+}
+
+/* ---- Agenda del día ---- */
+.seg-agenda {
+  background: var(--primary-50);
+  border: 1px solid var(--primary-100, #e2dcff);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+}
+.seg-agenda-title {
+  margin: 0 0 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--gray-900);
+}
+.seg-agenda-empty {
+  margin: 0;
+  font-size: 13px;
+  color: var(--gray-500);
+}
+.seg-agenda-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.seg-agenda-item {
+  display: flex;
+  gap: 12px;
+}
+.seg-agenda-time {
+  flex-shrink: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--primary-600);
+  min-width: 42px;
+}
+.seg-agenda-text {
+  display: flex;
+  flex-direction: column;
+  font-size: 13px;
+  color: var(--gray-800);
+}
+.seg-agenda-sub {
+  font-size: 12px;
+  color: var(--gray-500);
+}
+
 /* ---------- Responsive ---------- */
+/* Con 7 columnas + calendario de 280px, dos columnas dejan de entrar antes:
+   apilamos el calendario debajo y le damos todo el ancho a la tabla. */
+@media (max-width: 1280px) {
+  .seg-layout {
+    grid-template-columns: 1fr;
+  }
+  .seg-side {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+  .seg-cal,
+  .seg-agenda {
+    flex: 1 1 260px;
+    min-width: 260px;
+  }
+}
+
 @media (max-width: 900px) {
   .msg {
     grid-template-columns: 1fr;

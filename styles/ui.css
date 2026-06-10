@@ -99,6 +99,13 @@
   font-size: 0.85rem;
 }
 
+.field-hint {
+  display: block;
+  margin-top: 4px;
+  color: var(--gray-500);
+  font-size: 0.8rem;
+}
+
 .input,
 .textarea,
 .select {

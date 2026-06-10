@@ -1,55 +1,169 @@
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, within, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { MensajesSection } from "@/components/admin/sections/mensajes/mensajes-section";
+import MensajesSection from "@/components/admin/sections/mensajes/mensajes-section";
+import {
+  getConversation,
+  getInbox,
+  sendMessage,
+} from "@/services/messages.services";
+
+jest.mock("@/services/messages.services", () => ({
+  getInbox: jest.fn(),
+  getConversation: jest.fn(),
+  sendMessage: jest.fn(),
+}));
+
+// Estado del usuario logueado; los tests lo mutan para simular logout.
+const mockUser = {
+  isLoggedIn: true,
+  id: 1,
+  name: "Admin",
+  adopter: false,
+  role: "admin",
+  signature: "",
+};
+
+jest.mock("@/redux/hooks", () => ({
+  useAppSelector: (selector: (state: unknown) => unknown) =>
+    selector({ user: mockUser }),
+}));
+
+const INBOX = {
+  ok: true,
+  data: {
+    totalUnread: 2,
+    conversations: [
+      {
+        user: { id: 10, name: "María Gómez", photo: "" },
+        latestMessage: {
+          id: 1,
+          senderId: 10,
+          receiverId: 1,
+          content: "Me gustaría saber más sobre Luna.",
+          read: false,
+          createdAt: "2026-06-01T10:00:00Z",
+        },
+        unread: 2,
+      },
+      {
+        user: { id: 11, name: "Juan Pérez", photo: "" },
+        latestMessage: {
+          id: 2,
+          senderId: 1,
+          receiverId: 11,
+          content: "Gracias por el update.",
+          read: true,
+          createdAt: "2026-06-02T18:00:00Z",
+        },
+        unread: 0,
+      },
+    ],
+  },
+};
+
+const CONVERSATION = {
+  ok: true,
+  data: {
+    messages: [
+      {
+        id: 1,
+        senderId: 10,
+        receiverId: 1,
+        content: "Hola! Quería consultar por la adopción de Luna.",
+        read: false,
+        createdAt: "2026-06-01T10:00:00Z",
+      },
+    ],
+  },
+};
+
+beforeAll(() => {
+  // jsdom no implementa scrollIntoView (lo usa el auto-scroll del hilo).
+  window.HTMLElement.prototype.scrollIntoView = jest.fn();
+});
+
+beforeEach(() => {
+  jest.clearAllMocks();
+  mockUser.isLoggedIn = true;
+  (getInbox as jest.Mock).mockResolvedValue(INBOX);
+  (getConversation as jest.Mock).mockResolvedValue(CONVERSATION);
+});
 
 describe("MensajesSection", () => {
-  it("muestra la lista de conversaciones y abre la primera por defecto", () => {
+  it("muestra las conversaciones de la bandeja", async () => {
     render(<MensajesSection />);
-    // La lista incluye a varios usuarios.
-    expect(screen.getByRole("button", { name: /María Gómez/ })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Juan Pérez/ })).toBeInTheDocument();
-    // La conversación activa por defecto muestra su asunto en la cabecera.
     expect(
-      screen.getByRole("heading", { name: "María Gómez" }),
+      await screen.findByRole("button", { name: /María Gómez/ }),
     ).toBeInTheDocument();
-    expect(screen.getByText("Solicitud de adopción de Luna")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /Juan Pérez/ }),
+    ).toBeInTheDocument();
   });
 
-  it("filtra por canal con la tab 'Internos'", async () => {
+  it("pide iniciar sesión si el usuario no está logueado", () => {
+    mockUser.isLoggedIn = false;
     render(<MensajesSection />);
-    await userEvent.click(screen.getByRole("tab", { name: "Internos" }));
-
-    expect(screen.getByRole("button", { name: /Equipo Veterinario/ })).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /Juan Pérez/ })).not.toBeInTheDocument();
+    expect(
+      screen.getByText("Debes iniciar sesión para ver tus mensajes."),
+    ).toBeInTheDocument();
+    expect(getInbox).not.toHaveBeenCalled();
   });
 
   it("filtra la lista al buscar por nombre", async () => {
     render(<MensajesSection />);
-    await userEvent.type(screen.getByRole("searchbox"), "laura");
+    await screen.findByRole("button", { name: /María Gómez/ });
 
-    expect(screen.getByRole("button", { name: /Laura Martínez/ })).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: /Juan Pérez/ })).not.toBeInTheDocument();
+    await userEvent.type(screen.getByRole("searchbox"), "juan");
+
+    expect(
+      screen.getByRole("button", { name: /Juan Pérez/ }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /María Gómez/ }),
+    ).not.toBeInTheDocument();
   });
 
   it("al abrir una conversación muestra su hilo y limpia los no leídos", async () => {
     render(<MensajesSection />);
-    const item = screen.getByRole("button", { name: /Laura Martínez/ });
+    const item = await screen.findByRole("button", { name: /María Gómez/ });
     // Antes de abrir, tiene un badge de no leídos.
     expect(within(item).getByText("2")).toBeInTheDocument();
 
     await userEvent.click(item);
 
-    expect(screen.getByRole("heading", { name: "Laura Martínez" })).toBeInTheDocument();
+    expect(getConversation).toHaveBeenCalledWith(10);
     expect(
-      screen.getByText("¿Necesitan algún documento adicional para la adopción?"),
+      await screen.findByRole("heading", { name: "María Gómez" }),
+    ).toBeInTheDocument();
+    expect(
+      await screen.findByText("Hola! Quería consultar por la adopción de Luna."),
     ).toBeInTheDocument();
     // El badge desaparece tras abrirla.
-    expect(within(item).queryByText("2")).not.toBeInTheDocument();
+    await waitFor(() =>
+      expect(within(item).queryByText("2")).not.toBeInTheDocument(),
+    );
   });
 
   it("envía un mensaje y lo agrega al hilo", async () => {
+    (sendMessage as jest.Mock).mockResolvedValue({
+      ok: true,
+      data: {
+        id: 99,
+        senderId: 1,
+        receiverId: 10,
+        content: "Coordinamos para mañana 16hs",
+        read: false,
+        createdAt: "2026-06-03T16:00:00Z",
+      },
+    });
     render(<MensajesSection />);
-    const input = screen.getByRole("textbox", { name: "Escribí un mensaje" });
+    await userEvent.click(
+      await screen.findByRole("button", { name: /María Gómez/ }),
+    );
+
+    const input = await screen.findByRole("textbox", {
+      name: "Escribí un mensaje",
+    });
     const enviar = screen.getByRole("button", { name: "Enviar mensaje" });
 
     expect(enviar).toBeDisabled();
@@ -57,14 +171,10 @@ describe("MensajesSection", () => {
     expect(enviar).toBeEnabled();
     await userEvent.click(enviar);
 
-    expect(screen.getByText("Coordinamos para mañana 16hs")).toBeInTheDocument();
+    expect(sendMessage).toHaveBeenCalledWith(10, "Coordinamos para mañana 16hs");
+    expect(
+      await screen.findByText("Coordinamos para mañana 16hs"),
+    ).toBeInTheDocument();
     expect(input).toHaveValue(""); // se limpia el campo
-  });
-
-  it("cambia a la pestaña Perfil y muestra los datos de contacto", async () => {
-    render(<MensajesSection />);
-    await userEvent.click(screen.getByRole("tab", { name: "Perfil" }));
-    expect(screen.getByText("maria@email.com")).toBeInTheDocument();
-    expect(screen.getByText("Luna")).toBeInTheDocument();
   });
 });

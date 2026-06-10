@@ -1,0 +1,854 @@
+.sdet-drawer {
+  width: min(60vw, 100%);
+}
+
+.sdet-top-cards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.sdet-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.sdet-card-eyebrow {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--gray-400);
+}
+
+.sdet-card-profile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.sdet-card-avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 999px;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: var(--gray-100);
+}
+
+.sdet-card-avatar--empty {
+  display: grid;
+  place-items: center;
+  color: var(--gray-400);
+}
+
+/* mascota: avatar cuadrado redondeado */
+.sdet-card-avatar--pet {
+  border-radius: var(--radius-md);
+}
+
+.sdet-card-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.sdet-card-name {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--gray-900);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sdet-card-sub {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--gray-500);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sdet-card-btn {
+  width: 100%;
+  justify-content: center;
+  font-size: 13px;
+}
+
+/* ── Etiqueta de sección ── */
+.sdet-section-label {
+  margin: 0 0 10px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--gray-400);
+}
+
+/* ── Sección Compatibilidad ── */
+.sdet-compat-section {
+  padding: 18px;
+  margin-bottom: 18px;
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.sdet-compat-body {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+/* Círculo SVG */
+.sdet-compat-circle-wrap {
+  position: relative;
+  width: 136px;
+  height: 136px;
+  flex-shrink: 0;
+}
+
+.sdet-compat-circle-wrap svg {
+  transform: rotate(-90deg);
+}
+
+.sdet-compat-inner {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+}
+
+.sdet-compat-value {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: var(--gray-900);
+  line-height: 1;
+}
+
+.sdet-compat-sublabel {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.sdet-compat-sublabel.tone-green { color: #22c55e; }
+.sdet-compat-sublabel.tone-amber { color: var(--warning); }
+.sdet-compat-sublabel.tone-red   { color: var(--danger); }
+
+/* Lista de criterios */
+.sdet-compat-list {
+  flex: 1;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sdet-compat-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 13px;
+  color: var(--gray-600);
+  border-bottom: 1px solid var(--gray-100);
+  padding-bottom: 8px;
+}
+
+.sdet-compat-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.sdet-compat-item strong {
+  color: var(--gray-900);
+  font-weight: 600;
+}
+
+/* ── Sección Estado ── */
+.sdet-estado-section {
+  margin-bottom: 18px;
+}
+
+.sdet-estado-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sdet-estado-select-wrap {
+  flex: 1;
+}
+
+.sdet-estado-btn {
+  white-space: nowrap;
+}
+
+/* ── Tabs (underline style) ── */
+.sdet-tab {
+  padding: 10px 10px;
+  font-size: 12.5px;
+}
+
+.sdet-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.sdet-checklist {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sdet-check-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: transparent;
+  font: inherit;
+  font-size: 13px;
+  color: var(--gray-700);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  text-align: left;
+}
+
+.sdet-check-item:hover {
+  background: var(--gray-50);
+}
+
+.sdet-check-item.is-checked {
+  border-color: var(--secondary-200, #bbf7d0);
+  background: var(--secondary-50, #f0fdf4);
+  color: var(--secondary-700, #15803d);
+}
+
+.sdet-check-empty {
+  width: 16px;
+  height: 16px;
+  border-radius: var(--radius-full);
+  border: 1.5px solid var(--gray-300);
+  flex-shrink: 0;
+}
+
+.sdet-nota-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  font: inherit;
+  font-size: 13px;
+  color: var(--gray-800);
+  background: var(--surface);
+  resize: none;                  /* ← sin resize */
+  height: 90px;                  /* ← altura fija */
+  outline: none;
+  transition: border-color 0.15s;
+  box-sizing: border-box;
+}
+
+.sdet-nota-input:focus {
+  border-color: var(--primary-400);
+}
+
+/* ── Fix: lista de notas guardadas ── */
+.sdet-notas-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.sdet-nota-item {
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  background: var(--gray-50);
+  border-left: 3px solid var(--primary-300);
+}
+
+.sdet-nota-texto {
+  margin: 0 0 4px;
+  font-size: 13px;
+  color: var(--gray-700);
+  line-height: 1.5;
+}
+
+.sdet-nota-fecha {
+  font-size: 11px;
+  color: var(--gray-400);
+}
+
+.sdet-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 14px;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  background: transparent;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--gray-500);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.sdet-tab:hover {
+  color: var(--gray-800);
+}
+
+.sdet-tab.active {
+  color: var(--primary-600);
+  font-weight: 600;
+  border-bottom-color: var(--primary-500);
+}
+
+.sdet-tab-badge {
+  display: inline-grid;
+  place-items: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: var(--radius-full);
+  background: var(--primary-100);
+  color: var(--primary-700);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.sdet-tab.active .sdet-tab-badge {
+  background: var(--primary-500);
+  color: #fff;
+}
+
+/* ── Contenido de tabs ── */
+.sdet-tab-content {
+  padding: 4px 0 8px;
+}
+
+/* Resumen: pregunta + respuesta */
+.sdet-qa {
+  margin-bottom: 16px;
+}
+
+.sdet-qa-q {
+  margin: 0 0 3px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--gray-700);
+}
+
+.sdet-qa-a {
+  margin: 0;
+  font-size: 14px;
+  color: var(--gray-600);
+  line-height: 1.5;
+}
+
+/* Tabs vacías */
+.sdet-tab-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 40px 20px;
+  color: var(--gray-400);
+  font-size: 13px;
+  text-align: center;
+}
+
+.sdet-tab-empty p {
+  margin: 0;
+}
+
+.sdet-nota-composer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.sdet-nota-composer .btn {
+  align-self: flex-end;
+}
+
+
+.sdet-nota-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  font: inherit;
+  font-size: 13px;
+  color: var(--gray-800);
+  background: var(--surface);
+  resize: vertical;
+  outline: none;
+  transition: border-color 0.15s;
+  box-sizing: border-box;
+}
+
+.sdet-nota-input:focus {
+  border-color: var(--primary-400);
+}
+
+/* ── Fix: lista de notas guardadas ── */
+.sdet-notas-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.sdet-nota-item {
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  background: var(--gray-50);
+  border-left: 3px solid var(--primary-300);
+}
+
+.sdet-nota-texto {
+  margin: 0 0 4px;
+  font-size: 13px;
+  color: var(--gray-700);
+  line-height: 1.5;
+}
+
+.sdet-nota-fecha {
+  font-size: 11px;
+  color: var(--gray-400);
+}
+
+/* ── Fix: mensajes readonly — quitar height fija, scroll natural ── */
+.sdet-mensajes-readonly {
+  padding: 0;
+}
+
+.sdet-thread {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 4px 0 8px;
+}
+
+/* ── Fix: archivos — layout horizontal en una fila ── */
+.sdet-archivos {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.sdet-archivos-grupo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sdet-archivo-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  transition: background 0.12s;
+}
+
+.sdet-archivo-row:hover {
+  background: var(--gray-50);
+}
+
+.sdet-archivo-mime {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  background: var(--primary-50);
+  color: var(--primary-500);
+  flex-shrink: 0;
+}
+
+/* PDF en tono rojo suave */
+.sdet-archivo-mime--pdf {
+  background: #fde8e8;
+  color: var(--danger);
+}
+
+.sdet-archivo-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.sdet-archivo-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--gray-800);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sdet-archivo-meta {
+  font-size: 11px;
+  color: var(--gray-400);
+}
+
+/* Badge de estado inline */
+.sdet-archivo-status {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.sdet-archivo-status.tone-green {
+  background: var(--secondary-50);
+  color: var(--secondary-700);
+}
+
+.sdet-archivo-status.tone-amber {
+  background: #fdf0db;
+  color: #b9770e;
+}
+
+.sdet-archivo-status.tone-red {
+  background: #fde8e8;
+  color: var(--danger);
+}
+
+.sdet-archivo-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+/* Botones icono pequeños dentro de archivo */
+.sdet-archivo-actions .btn-xs {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  font-size: 11px;
+  border-radius: var(--radius-sm);
+}
+
+/* ── Fix: historial sin bullets ── */
+.sdet-historial-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.sdet-historial-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--gray-100);
+  font-size: 13px;
+}
+
+.sdet-historial-item:last-child {
+  border-bottom: none;
+}
+
+.sdet-historial-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-full);
+  background: var(--gray-100);
+  color: var(--gray-500);
+  flex-shrink: 0;
+}
+
+.sdet-historial-texto {
+  flex: 1;
+  color: var(--gray-700);
+  line-height: 1.4;
+}
+
+.sdet-historial-fecha {
+  color: var(--gray-400);
+  font-size: 11px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ── Fix: sección label consistente ── */
+.sdet-section-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--gray-400);
+  margin: 0 0 6px;
+}
+
+/* ── Fix: footer del drawer — un solo botón ancho completo ── */
+.vdrawer-foot {
+  display: flex;
+  gap: 10px;
+  padding: 14px 20px;
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+  flex-shrink: 0;
+}
+
+.vdrawer-foot .btn {
+  flex: 1;
+}
+
+/* ── Responsive ── */
+@media (max-width: 600px) {
+  .sdet-top-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .sdet-compat-body {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+
+.sdet-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.sdet-chip-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  background: var(--surface);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--gray-600);
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.sdet-chip-check:hover {
+  background: var(--gray-50);
+  border-color: var(--gray-300);
+}
+
+.sdet-chip-check.is-checked {
+  background: var(--secondary-50);
+  border-color: var(--secondary-300);
+  color: var(--secondary-700);
+  font-weight: 600;
+}
+
+/* Botón Ir al mensaje — al final del thread, ancho completo */
+.sdet-ir-mensajes {
+  width: 100%;
+  margin-top: 16px;
+  justify-content: center;
+}
+
+/* ══════════════════════════════════════════
+   Modales del panel admin (sdet-modal-*)
+   ══════════════════════════════════════════ */
+
+.sdet-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(31, 25, 87, 0.4);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
+}
+
+.sdet-modal {
+  position: relative;
+  background: #fff;
+  border-radius: 1rem;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.18);
+  width: 100%;
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.sdet-modal--md { max-width: 480px; }
+.sdet-modal--lg { max-width: 640px; }
+
+/* Head */
+.sdet-modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--gray-100);
+  flex-shrink: 0;
+}
+
+.sdet-modal-head h2 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--gray-900);
+  margin: 0;
+}
+
+/* Body */
+.sdet-modal-body {
+  overflow-y: auto;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* Sección */
+.sdet-modal-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.sdet-modal-section--row {
+  flex-direction: row;
+  gap: 1.25rem;
+  align-items: flex-start;
+}
+
+/* Título de sección */
+.sdet-modal-section-title {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--gray-400);
+  margin: 0 0 2px;
+}
+
+/* Definition list */
+.sdet-modal-dl {
+  display: flex;
+  flex-direction: column;
+}
+
+.sdet-modal-dl-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+  padding: 0.45rem 0;
+  border-bottom: 1px solid var(--gray-100);
+}
+
+.sdet-modal-dl-row:last-child {
+  border-bottom: none;
+}
+
+.sdet-modal-dl-row dt {
+  font-size: 0.82rem;
+  color: var(--gray-500);
+  flex-shrink: 0;
+}
+
+.sdet-modal-dl-row dd {
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--gray-800);
+  text-align: right;
+  margin: 0;
+}
+
+/* Texto largo (experiencia, descripción) */
+.sdet-modal-text {
+  font-size: 0.85rem;
+  color: var(--gray-700);
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Foto mascota */
+.sdet-mascota-photo {
+  width: 96px;
+  height: 96px;
+  border-radius: 0.75rem;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.sdet-mascota-photo--empty {
+  width: 96px;
+  height: 96px;
+  border-radius: 0.75rem;
+  background: var(--gray-100);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--gray-400);
+  flex-shrink: 0;
+}
+
+.sdet-modal-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1.5rem;
+  font-size: 0.875rem;
+  color: var(--gray-400);
+}

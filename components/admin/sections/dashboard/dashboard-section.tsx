@@ -11,7 +11,6 @@ import { EstadoPill } from "../../lib/pet-status";
 import type { AdminPetSummary } from "@/types/pet";
 
 import {
-  SOLICITUDES,
   SEGUIMIENTOS,
   ACTIVIDAD,
   compatTone,
@@ -40,7 +39,19 @@ function VerTodas({
   );
 }
 
-const SOLICITUDES_COLS: Column<(typeof SOLICITUDES)[number]>[] = [
+type SolicitudPreviewItem = {
+  id: string;
+  usuario: string;
+  email: string;
+  mascota: string | null | undefined;
+  compat: { pct: number; label: string };
+  estado: { label: string; tone: Tone };
+  fecha: string;
+};
+
+import type { Tone } from "../../ui/types";
+
+const SOLICITUDES_COLS: Column<SolicitudPreviewItem>[] = [
   {
     key: "usuario",
     label: "Usuario",
@@ -84,7 +95,13 @@ const SOLICITUDES_COLS: Column<(typeof SOLICITUDES)[number]>[] = [
     key: "action",
     ariaLabel: "Acción",
     tdClassName: "dash-cell-action",
-    render: () => <ChevronRight size={16} aria-hidden />,
+    render: (r) => (
+      <ActionButton
+        icon={ChevronRight}
+        href={`/admin/solicitudes?requestId=${r.id}`}
+        ariaLabel="Ver solicitud"
+      />
+    ),
   },
 ];
 
@@ -216,26 +233,35 @@ function PublicacionesPanel({
 }
 
 export function DashboardSection() {
+  // Memorizamos las opciones para evitar que el hook dispare peticiones en bucle
+  // al recibir una nueva referencia de objeto en cada render.
+  const previewOptions = useMemo(() => ({ pageSize: 5 }), []);
+
   const {
     publicaciones: publicacionesPreview,
     publicacionesCount,
     solicitudes: solicitudesPreviewRaw,
     pubsLoading,
     solicitudesLoading,
-  } = useDashboardPreviews({ pageSize: 5 });
+  } = useDashboardPreviews(previewOptions);
 
-  // map solicitudes to dashboard shape
-  const solicitudesPreview = solicitudesPreviewRaw.map((s) => ({
-    usuario: s.userName,
-    email: s.userEmail,
-    mascota: s.petName,
-    compat: { pct: s.compatPct, label: s.compatLabel },
-    estado: {
-      label: s.estado.replace(/_/g, " "),
-      tone: solicitudEstadoTone(s.estado),
-    },
-    fecha: s.fecha,
-  }));
+  // Memorizamos el mapeo para evitar cálculos innecesarios y cambios de referencia en las props de las tablas
+  const solicitudesPreview = useMemo(
+    () =>
+      solicitudesPreviewRaw.map((s) => ({
+        id: s.id,
+        usuario: s.userName,
+        email: s.userEmail,
+        mascota: s.petName,
+        compat: { pct: s.compatPct, label: s.compatLabel },
+        estado: {
+          label: s.estado.replace(/_/g, " "),
+          tone: solicitudEstadoTone(s.estado),
+        },
+        fecha: s.fecha,
+      })),
+    [solicitudesPreviewRaw],
+  );
 
   return (
     <div className="dash">
@@ -248,7 +274,7 @@ export function DashboardSection() {
           href="/admin/solicitudes"
           columns={SOLICITUDES_COLS}
           data={solicitudesPreview}
-          rowKey={(r) => r.usuario}
+          rowKey={(r) => r.id}
           loading={solicitudesLoading}
         />
         <SeguimientosPanel />

@@ -3,7 +3,16 @@ import { User } from "@/types/user";
 
 export const verifyUserSignature = async (user: User) => {
   try {
-    const response = await axios.post("/api/auth/verify", user);
+    // Filtramos el payload para enviar solo los campos que fueron firmados originalmente.
+    // Esto evita que campos como 'id' o 'email' (que no estaban en la firma) rompan la validación.
+    const payload = {
+      isLoggedIn: user.isLoggedIn,
+      name: user.name,
+      role: user.role,
+      adopter: user.adopter,
+      signature: user.signature,
+    };
+    const response = await axios.post("/api/auth/verify", payload);
     return {
       ok: response.status === 200,
       valid: response.data.valid,

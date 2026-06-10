@@ -1,6 +1,6 @@
 "use client";
 
-import { Eye, Pencil, MoreVertical } from "lucide-react";
+import { Eye, Pencil, ShieldCheck, ShieldOff } from "lucide-react";
 import { toast } from "sonner";
 import { DataTable, type Column } from "../../ui/data-table";
 import { TablePagination } from "../../ui/table-pagination";
@@ -33,9 +33,11 @@ type Props = {
   desde: number;
   hasta: number;
   onPage: (n: number) => void;
+  onPromote: (u: AdminUser) => void;
+  onDemote: (u: AdminUser) => void;
 };
 
-export function PersonasTable({ data, loading, page, totalPages, total, desde, hasta, onPage }: Props) {
+export function PersonasTable({ data, loading, page, totalPages, total, desde, hasta, onPage, onPromote, onDemote }: Props) {
   function placeholder() { toast.info("Próximamente."); }
 
   const columns: Column<AdminUser>[] = [
@@ -69,19 +71,38 @@ export function PersonasTable({ data, loading, page, totalPages, total, desde, h
       label: "Acciones",
       align: "right",
       tdClassName: "dash-cell-action",
-      render: () => (
-        <div className="dash-row-actions">
-          <button type="button" aria-label="Ver" title="Ver" onClick={placeholder}>
-            <Eye size={15} />
-          </button>
-          <button type="button" aria-label="Editar" title="Editar" onClick={placeholder}>
-            <Pencil size={15} />
-          </button>
-          <button type="button" aria-label="Más" title="Más" onClick={placeholder}>
-            <MoreVertical size={15} />
-          </button>
-        </div>
-      ),
+      render: (u) => {
+        const esAdmin = categoriaUsuario(u) === "admin";
+        return (
+          <div className="dash-row-actions">
+            <button type="button" aria-label="Ver" title="Ver" onClick={placeholder}>
+              <Eye size={15} />
+            </button>
+            <button type="button" aria-label="Editar" title="Editar" onClick={placeholder}>
+              <Pencil size={15} />
+            </button>
+            {esAdmin ? (
+              <button
+                type="button"
+                aria-label="Quitar administrador"
+                title="Quitar administrador"
+                onClick={() => onDemote(u)}
+              >
+                <ShieldOff size={15} />
+              </button>
+            ) : (
+              <button
+                type="button"
+                aria-label="Hacer administrador"
+                title="Hacer administrador"
+                onClick={() => onPromote(u)}
+              >
+                <ShieldCheck size={15} />
+              </button>
+            )}
+          </div>
+        );
+      },
     },
   ];
 

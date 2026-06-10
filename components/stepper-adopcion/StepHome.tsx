@@ -50,6 +50,9 @@ const StepHome = ({ formik }: { formik: F }) => {
             <option value="quinta">Quinta</option>
             <option value="otro">Otro</option>
           </select>
+          <small className="field-hint">
+            Los perros grandes requieren jardín, pero pueden adaptarse a departamentos si hay espacio.
+          </small>
           <ShowError message={FormikHandleError(formik, "livingSituation")} />
         </div>
 
@@ -78,10 +81,13 @@ const StepHome = ({ formik }: { formik: F }) => {
             onChange={(e) => FormikHandleChange(formik, "activityLevel", e)}
           >
             <option value="">Seleccionar…</option>
-            <option value="tranquilo">Tranquilo</option>
-            <option value="moderado">Moderado</option>
-            <option value="activo">Muy activo</option>
+            <option value="tranquilo">Tranquilo (Paseos cortos, vida calmada)</option>
+            <option value="moderado">Moderado (Paseos regulares, actividad normal)</option>
+            <option value="activo">Muy activo (Deportistas, salir a correr)</option>
           </select>
+          <small className="field-hint">
+            Para cachorros o mascotas jóvenes sugerimos actividad moderada o alta.
+          </small>
           <ShowError message={FormikHandleError(formik, "activityLevel")} />
         </div>
       </div>

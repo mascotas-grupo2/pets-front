@@ -10,10 +10,14 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import type { Tone } from "../../ui/types";
+import type { Solicitud } from "../solicitudes/solicitudes.data";
 
 /**
  * Datos mock del dashboard. Aislados de la presentación: cuando exista el
  * backend, sólo se reemplaza este módulo por las llamadas reales.
+ *
+ * Nota: `SOLICITUDES` ahora usa el shape genérico `Solicitud` que espera la UI,
+ * con campos compatibles con la respuesta de `GET /adoptions/admin/paged`.
  */
 
 export type Stat = {
@@ -64,55 +68,95 @@ export const STATS: Stat[] = [
 
 export type Compat = { pct: number; label: string };
 
-export type Solicitud = {
-  usuario: string;
-  email: string;
-  mascota: string;
-  compat: Compat;
-  estado: { label: string; tone: Tone };
-  fecha: string;
-};
-
+/**
+ * SOLICITUDES: ahora exporta mocks en el mismo shape `Solicitud` que consume la UI.
+ * Campos clave:
+ * - `id` (string)
+ * - `userName`, `userEmail`, `userPhoto`
+ * - `petName`, `petPhoto`
+ * - `compatPct`, `compatLabel`
+ * - `estado` (código con guiones bajos como en backend: e.g. "NUEVA")
+ * - `fecha` (string display)
+ *
+ * Cuando la API esté disponible simplemente reemplazá este array por los datos
+ * mapeados desde `getAdminAdoptions().items`.
+ */
 export const SOLICITUDES: Solicitud[] = [
   {
-    usuario: "Juan Pérez",
-    email: "jperez@email.com",
-    mascota: "Toby",
-    compat: { pct: 92, label: "Buena" },
-    estado: { label: "En evaluación", tone: "violet" },
+    id: "1",
+    userName: "Juan Pérez",
+    userEmail: "jperez@email.com",
+    userPhoto: null,
+    petName: "Toby",
+    petPhoto: null,
+    compatPct: 92,
+    compatLabel: "Excelente",
+    estado: "EN_EVALUACION",
     fecha: "20/05/2026",
+    // campos opcionales para detalle (vacíos en el mock)
+    messages: [],
+    history: [],
+    files: [],
   },
   {
-    usuario: "María Gómez",
-    email: "maria@email.com",
-    mascota: "Luna",
-    compat: { pct: 72, label: "Buena" },
-    estado: { label: "Entrevista pendiente", tone: "amber" },
+    id: "2",
+    userName: "María Gómez",
+    userEmail: "maria@email.com",
+    userPhoto: null,
+    petName: "Luna",
+    petPhoto: null,
+    compatPct: 72,
+    compatLabel: "Buena",
+    estado: "ENTREVISTA_PENDIENTE",
     fecha: "20/05/2026",
+    messages: [],
+    history: [],
+    files: [],
   },
   {
-    usuario: "Laura Martínez",
-    email: "laura@email.com",
-    mascota: "Simba",
-    compat: { pct: 65, label: "Buena" },
-    estado: { label: "Nueva", tone: "blue" },
+    id: "3",
+    userName: "Laura Martínez",
+    userEmail: "laura@email.com",
+    userPhoto: null,
+    petName: "Simba",
+    petPhoto: null,
+    compatPct: 65,
+    compatLabel: "Buena",
+    estado: "NUEVA",
     fecha: "19/05/2026",
+    messages: [],
+    history: [],
+    files: [],
   },
   {
-    usuario: "Carlos Ruiz",
-    email: "cruiz@email.com",
-    mascota: "Nina",
-    compat: { pct: 45, label: "Baja" },
-    estado: { label: "Descartada", tone: "gray" },
+    id: "4",
+    userName: "Carlos Ruiz",
+    userEmail: "cruiz@email.com",
+    userPhoto: null,
+    petName: "Nina",
+    petPhoto: null,
+    compatPct: 45,
+    compatLabel: "Baja",
+    estado: "DESCARTADA",
     fecha: "19/05/2026",
+    messages: [],
+    history: [],
+    files: [],
   },
   {
-    usuario: "Ana López",
-    email: "ana@email.com",
-    mascota: "Coco",
-    compat: { pct: 88, label: "Excelente" },
-    estado: { label: "En evaluación", tone: "violet" },
+    id: "5",
+    userName: "Ana López",
+    userEmail: "ana@email.com",
+    userPhoto: null,
+    petName: "Coco",
+    petPhoto: null,
+    compatPct: 88,
+    compatLabel: "Excelente",
+    estado: "EN_EVALUACION",
     fecha: "18/05/2026",
+    messages: [],
+    history: [],
+    files: [],
   },
 ];
 

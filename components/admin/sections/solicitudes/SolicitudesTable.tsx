@@ -1,10 +1,10 @@
 "use client";
 
 import { Eye, Trash2 } from "lucide-react";
-import type { Sort, SortKey } from "../hook/useSolicitudes";
+import type { SortKey } from "../hook/useSolicitudes";
 import type { Solicitud } from "./solicitudes.data";
 import { ActionButton } from "../../ui/button";
-import { DataTable, type Column } from "../../ui/data-table";
+import { DataTable, type Column, type SortOrder } from "../../ui/data-table";
 import { Pill } from "../../ui/pill";
 import { TablePagination } from "../../ui/table-pagination";
 import { initials, compatTone } from "../dashboard/dashboard.data";
@@ -14,8 +14,8 @@ import { solicitudEstadoTone } from "../../lib/solicitud-status";
 type Props = {
   data: Solicitud[];
   loading: boolean;
-  sort: Sort | null;
-  onSort: (key: SortKey) => void;
+  sort: SortOrder<SortKey>[];
+  onSort: (next: SortOrder<SortKey>[]) => void;
   onDelete: (id: string) => void;
   page: number;
   totalPages: number;
@@ -40,8 +40,9 @@ export function SolicitudesTable({
 }: Props) {
   const columns: Column<Solicitud>[] = [
     {
-      key: "name",
-      label: "Nombre",
+      key: "userName",
+      label: "Solicitante",
+      sortable: true,
       render: (u) => (
         <div className="dash-user">
           {u.userPhoto ? (
@@ -57,8 +58,8 @@ export function SolicitudesTable({
       ),
     },
     {
-      key: "name",
-      label: "Nombre",
+      key: "petName",
+      label: "Mascota",
       sortable: true,
       render: (p) => (
         <div className="dash-user">
@@ -129,7 +130,7 @@ export function SolicitudesTable({
         loadingLabel="Cargando solicitudes…"
         empty="No hay solicitudes para mostrar."
         sort={sort}
-        onSort={(key) => onSort(key as SortKey)}
+        onSort={(next) => onSort(next as SortOrder<SortKey>[])}
         tableClassName="pub-table"
         wrapClassName="pub-table-wrap"
       />

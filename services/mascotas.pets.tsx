@@ -37,5 +37,5 @@ export const finalizePet = (id: string) =>
 export const deletePet = (id: string) =>
   request<null>(() => axios.delete(`mascotas/${id}`));
 
-export const getAdminPets = () =>
-  request<AdminPetSummary[]>(() => axios.get(`mascotas/admin/list`));
+export const getAdminPets = (params?: { sort?: string }) =>
+  request<AdminPetSummary[]>(() => axios.get(`mascotas/admin/list`, { params }));
