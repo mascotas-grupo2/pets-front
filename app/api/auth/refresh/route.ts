@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
 
     const response = NextResponse.json({ ok: true });
 
-    // Actualizamos las cookies
+    // auth_token NO httpOnly: el front lo lee desde JS (UserContext).
     response.cookies.set("auth_token", access_token, {
       path: "/",
       maxAge: 3600,

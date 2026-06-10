@@ -1,14 +1,8 @@
-import { ErrorGeneric } from "@/components/utils/catchErrors";
 import axiosInstance from "./axios";
-import { Pet } from "@/types/pet";
+import { requestSafe } from "./request";
 import { ReportForm } from "@/types/reportar";
 
 const axios = axiosInstance;
-type ResponseAxiosGetAll = {
-  ok: boolean;
-  data: object | null;
-  status: number;
-};
 
 /** Procesa un Data URL (base64) y lo convierte a Blob para el FormData */
 const dataURLtoBlob = (dataUrl: string) => {
@@ -21,33 +15,26 @@ const dataURLtoBlob = (dataUrl: string) => {
   return new Blob([u8arr], { type: mime });
 };
 
-export const reportPet: (
-  values: ReportForm,
-) => Promise<ResponseAxiosGetAll | undefined> = async (values: ReportForm) => {
-  try {
-    const formData = new FormData();
+export const reportPet = (values: ReportForm) => {
+  const formData = new FormData();
 
-    (values.photos || []).forEach((p) => {
-      if (p.file) {
-        formData.append("photo", p.file, p.name);
-      } else if (typeof p.url === "string" && p.url.startsWith("data:")) {
-        formData.append("photo", dataURLtoBlob(p.url), p.name || "photo.png");
-      }
-    });
+  (values.photos || []).forEach((p) => {
+    if (p.file) {
+      formData.append("photo", p.file, p.name);
+    } else if (typeof p.url === "string" && p.url.startsWith("data:")) {
+      formData.append("photo", dataURLtoBlob(p.url), p.name || "photo.png");
+    }
+  });
 
-    Object.entries(values).forEach(([key, value]) => {
-      if (key === "photos" || value === null || value === undefined) return;
+  Object.entries(values).forEach(([key, value]) => {
+    if (key === "photos" || value === null || value === undefined) return;
 
-      if (Array.isArray(value)) {
-        value.forEach((v) => formData.append(key, String(v)));
-      } else {
-        formData.append(key, String(value));
-      }
-    });
+    if (Array.isArray(value)) {
+      value.forEach((v) => formData.append(key, String(v)));
+    } else {
+      formData.append(key, String(value));
+    }
+  });
 
-    const response = await axios.post("pet/reportar", formData);
-    return { ok: true, data: response.data, status: response.status };
-  } catch (error) {
-    ErrorGeneric(error);
-  }
+  return requestSafe<object>(() => axios.post("pet/reportar", formData));
 };

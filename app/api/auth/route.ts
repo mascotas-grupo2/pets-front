@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
     process.env.KEYCLOAK_CLIENT_ID || process.env.KEYCLOAK_AUDIENCE;
   const clientSecret = process.env.KEYCLOAK_CLIENT_SECRET;
   const backendUrl = process.env.BACKEND_URL || "http://localhost:3001/api";
-  const baseUrl = process.env.BASE_URL || "http://localhost:3000";
+  const baseUrl = process.env.FRONTEND_URL || "http://localhost:3000";
   const redirectUri = `${baseUrl}/api/auth`;
 
   // Si ya tenemos un token activo, ignoramos el proceso de intercambio
@@ -117,7 +117,7 @@ export async function GET(request: NextRequest) {
     const response = NextResponse.redirect(new URL("/account", baseUrl));
     console.log("Redirecting to /account - Session established");
 
-    // Guardamos el token en una cookie (puedes ponerla HttpOnly si tenés un endpoint /api/me)
+    // auth_token NO httpOnly: el front lo lee desde JS (UserContext).
     response.cookies.set("auth_token", access_token, {
       path: "/",
       maxAge: 3600, // 1 hora

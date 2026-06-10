@@ -1,167 +1,41 @@
-import { AxiosError } from "axios";
 import { AdminPetSummary, Pet, PetNote, PetNoteKind } from "@/types/pet";
 import axiosInstance from "./axios";
+import { request } from "./request";
 
 const axios = axiosInstance;
-type ResponseAxiosGetAll = {
-  ok: boolean;
-  data: Pet[] | null;
-  status: number;
-};
-export const getAllPets: () => Promise<ResponseAxiosGetAll> = async () => {
-  try {
-    const response = await axios.get(`mascotas/`);
-    return { ok: true, data: response.data, status: response.status };
-  } catch (error) {
-    console.error(error);
-    const err = error as AxiosError;
-    return {
-      ok: false,
-      data: null,
-      status: err.response?.status || 500,
-      error: err.message,
-    };
-  }
-};
-type ResponseAxiosGetId = {
-  ok: boolean;
-  data: Pet | null;
-  status: number;
-};
-export const getIdPets: (id: string) => Promise<ResponseAxiosGetId> = async (
-  id: string,
-) => {
-  try {
-    const response = await axios.get(`mascotas/${id}`);
-    return { ok: true, data: response.data, status: response.status };
-  } catch (error) {
-    console.error(error);
-    const err = error as AxiosError;
-    return {
-      ok: false,
-      data: null,
-      status: err.response?.status || 500,
-      error: err.message,
-    };
-  }
-};
 
-type ResponseAxiosGetIds = {
-  ok: boolean;
-  data: Pet[] | null;
-  status: number;
-};
-export const getIdsPets: (
-  ids: string[],
-) => Promise<ResponseAxiosGetIds> = async (ids: string[]) => {
-  try {
-    const response = await axios.post(`mascotas/petsByIds`, { ids });
-    return { ok: true, data: response.data, status: response.status };
-  } catch (error) {
-    console.error(error);
-    const err = error as AxiosError;
-    return {
-      ok: false,
-      data: null,
-      status: err.response?.status || 500,
-      error: err.message,
-    };
-  }
-};
+export const getAllPets = () => request<Pet[]>(() => axios.get(`mascotas/`));
 
-type ResponseAxiosUpdate = {
-  ok: boolean;
-  data: Pet | null;
-  status: number;
-  error?: string;
-};
-export const updatePet: (
-  id: string,
-  patch: Partial<Pet>,
-) => Promise<ResponseAxiosUpdate> = async (id, patch) => {
-  try {
-    const response = await axios.put(`mascotas/${id}`, patch);
-    return { ok: true, data: response.data, status: response.status };
-  } catch (error) {
-    console.error(error);
-    const err = error as AxiosError<{ error?: unknown }>;
-    return {
-      ok: false,
-      data: null,
-      status: err.response?.status || 500,
-      error: err.message,
-    };
-  }
-};
+export const getIdPets = (id: string) =>
+  request<Pet>(() => axios.get(`mascotas/${id}`));
 
-type ResponseAxiosNotes = {
-  ok: boolean;
-  data: PetNote[] | null;
-  status: number;
-  error?: string;
-};
-export const listPetNotes: (
-  id: string,
-) => Promise<ResponseAxiosNotes> = async (id) => {
-  try {
-    const response = await axios.get(`mascotas/${id}/notes`);
-    return { ok: true, data: response.data, status: response.status };
-  } catch (error) {
-    console.error(error);
-    const err = error as AxiosError;
-    return {
-      ok: false,
-      data: null,
-      status: err.response?.status || 500,
-      error: err.message,
-    };
-  }
-};
+export const getIdsPets = (ids: string[]) =>
+  request<Pet[]>(() => axios.post(`mascotas/petsByIds`, { ids }));
 
-type ResponseAxiosCreateNote = {
-  ok: boolean;
-  data: PetNote | null;
-  status: number;
-  error?: string;
-};
-export const createPetNote: (
-  id: string,
-  text: string,
-  kind?: PetNoteKind,
-) => Promise<ResponseAxiosCreateNote> = async (id, text, kind) => {
-  try {
-    const response = await axios.post(`mascotas/${id}/notes`, { text, kind });
-    return { ok: true, data: response.data, status: response.status };
-  } catch (error) {
-    console.error(error);
-    const err = error as AxiosError;
-    return {
-      ok: false,
-      data: null,
-      status: err.response?.status || 500,
-      error: err.message,
-    };
-  }
-};
+export const updatePet = (id: string, patch: Partial<Pet>) =>
+  request<Pet>(() => axios.put(`mascotas/${id}`, patch));
 
-type ResponseAxiosAdminList = {
-  ok: boolean;
-  data: AdminPetSummary[] | null;
-  status: number;
-  error?: string;
-};
-export const getAdminPets: () => Promise<ResponseAxiosAdminList> = async () => {
-  try {
-    const response = await axios.get(`mascotas/admin/list`);
-    return { ok: true, data: response.data, status: response.status };
-  } catch (error) {
-    console.error(error);
-    const err = error as AxiosError;
-    return {
-      ok: false,
-      data: null,
-      status: err.response?.status || 500,
-      error: err.message,
-    };
-  }
-};
+export const listPetNotes = (id: string) =>
+  request<PetNote[]>(() => axios.get(`mascotas/${id}/notes`));
+
+export const createPetNote = (id: string, text: string, kind?: PetNoteKind) =>
+  request<PetNote>(() => axios.post(`mascotas/${id}/notes`, { text, kind }));
+
+/** Aprueba una publicación pendiente: el back la pasa a reportStatus = activo. */
+export const approvePet = (id: string) =>
+  request<Pet>(() => axios.post(`mascotas/${id}/approve`));
+
+/** Rechaza una publicación pendiente: el back la pasa a reportStatus = rechazado. */
+export const rejectPet = (id: string) =>
+  request<Pet>(() => axios.post(`mascotas/${id}/reject`));
+
+/** Finaliza una publicación: el back la pasa a reportStatus = finalizado. */
+export const finalizePet = (id: string) =>
+  request<Pet>(() => axios.post(`mascotas/${id}/finalize`));
+
+/** Elimina una publicación (solo admin). */
+export const deletePet = (id: string) =>
+  request<null>(() => axios.delete(`mascotas/${id}`));
+
+export const getAdminPets = () =>
+  request<AdminPetSummary[]>(() => axios.get(`mascotas/admin/list`));

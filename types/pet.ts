@@ -16,6 +16,12 @@ export type PetMedicalStatus =
   | "recuperándose"
   | "crítico";
 
+export type PetReportStatus =
+  | "pendiente"
+  | "activo"
+  | "finalizado"
+  | "rechazado";
+
 export type PetNoteKind = "general" | "medica" | "adopcion";
 
 export type PetNote = {
@@ -30,6 +36,9 @@ export type PetNote = {
 
 export type AdminPetSummary = Pet & {
   medicalStatus: PetMedicalStatus;
+  /** Usuario registrado que creó la publicación (null si fue anónimo). */
+  ownerName: string | null;
+  ownerEmail: string | null;
   adoptionInterestCount: number;
   medicalNoteCount: number;
   generalNoteCount: number;
@@ -39,10 +48,19 @@ export type AdminPetSummary = Pet & {
 export type Pet = {
   id: string;
   ownerId?: number;
+  userId?: number;
   name?: string;
   status: PetStatus;
   medicalStatus?: PetMedicalStatus;
+  /** Estado de validación de la publicación (lo controla el admin). */
+  reportStatus?: PetReportStatus;
+  reportStatusLabel?: string;
+  statusLabel?: string;
+  sexLabel?: string;
+  medicalStatusLabel?: string;
+  photo?: string | null;
   photos: string[] | null;
+  animalTypeLabel?: string;
   description: string;
   animalType: AnimalType;
   date: string;

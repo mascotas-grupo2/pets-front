@@ -3,6 +3,7 @@
 @import "./layout.css";
 @import "./ui.css";
 @import "./navigation.css";
+@import "./admin.css";
 
 /* ===== Hero ===== */
 .hero {
@@ -156,6 +157,24 @@
   border-radius: var(--radius-full);
   text-transform: uppercase;
 }
+
+.pet-report-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+}
+
+.pet-report-badge--pending { background: #d97706; }
+.pet-report-badge--active { background: #16a34a; }
+.pet-report-badge--done { background: #6b7280; }
+.pet-report-badge--rejected { background: #dc2626; }
 
 .pet-body {
   padding: 1rem 1.1rem 1.25rem;
@@ -1792,6 +1811,24 @@
 .pet-breadcrumb > span:last-child {
   color: var(--primary-900);
   font-weight: 600;
+}
+
+.pet-detail-header {
+  position: relative;
+}
+
+.pet-edit-btn {
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+@media (max-width: 640px) {
+  .pet-edit-btn {
+    position: static;
+    display: inline-flex;
+    margin-bottom: 1rem;
+  }
 }
 
 .pet-detail-header h1 {

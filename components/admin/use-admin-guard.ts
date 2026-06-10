@@ -4,24 +4,27 @@ import { useAppSelector } from "@/redux/hooks";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
-/**
- * Redirige a "/" si el usuario está logueado y no es admin.
- * El chequeo real de permisos lo hace el backend (`requireAdmin`):
- * este hook es sólo UX para no mostrar la pantalla.
- */
 export function useAdminGuard() {
   const router = useRouter();
   const user = useAppSelector((state) => state.user);
+  const isAdmin = user.isLoggedIn && user.role === "admin";
 
   useEffect(() => {
-    if (user.isLoggedIn && user.role !== "admin") {
+    if (isAdmin) return;
+
+    // Logueado pero no admin: fuera ya.
+    if (user.isLoggedIn) {
       router.replace("/");
+      return;
     }
-  }, [user, router]);
+
+    const t = setTimeout(() => router.replace("/login"), 600);
+    return () => clearTimeout(t);
+  }, [isAdmin, user.isLoggedIn, router]);
 
   return {
     user,
-    isAdmin: user.role === "admin",
-    blocked: user.isLoggedIn && user.role !== "admin",
+    isAdmin,
+    blocked: !isAdmin,
   };
 }

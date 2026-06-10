@@ -100,7 +100,11 @@ export default function Home() {
           ) : (
             <ul className="pet-grid">
               {pets.slice(0, 4).map((pet) => (
-                <PetCard key={pet.id} pet={pet} />
+                <PetCard
+                  key={pet.id}
+                  pet={pet}
+                  showReportStatus={pet.reportStatus !== "activo"}
+                />
               ))}
             </ul>
           )}

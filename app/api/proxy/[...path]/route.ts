@@ -144,7 +144,9 @@ async function handleRequest(request: Request) {
         // Esto evita exponer datos sensibles o innecesarios en el cliente
         const cleanUser = {
           isLoggedIn: true,
+          id: userObj.id,
           name: userObj.name || "",
+          email: userObj.email || "",
           role: userObj.role || "user",
           adopter: !!userObj.adopter,
         };
@@ -183,6 +185,7 @@ async function handleRequest(request: Request) {
       nextResponse.cookies.set("auth_token", accessToSet, {
         path: "/",
         maxAge: 3600,
+        // auth_token NO httpOnly: el front lo lee desde JS (UserContext).
         secure: process.env.NODE_ENV === "production",
       });
     }

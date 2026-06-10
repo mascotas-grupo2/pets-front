@@ -2,10 +2,15 @@
 
 import { useUserContext } from "@/context/UserContext";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Brand } from "./brand";
 
 export function SiteFooter() {
-  const { isLoggedIn } = useUserContext(); 
+  const { isLoggedIn } = useUserContext();
+  const pathname = usePathname();
+  // El panel de administración usa su propio layout, sin el footer público.
+  if (pathname?.startsWith("/admin")) return null;
+
   return (
     <footer className="site-footer">
       <div className="container footer-main">
@@ -23,7 +28,7 @@ export function SiteFooter() {
             <li>
               <Link href="/mascotas-perdidas">Mascotas perdidas</Link>
             </li>
-            {isLoggedIn ? ( 
+            {isLoggedIn ? (
               <li>
                 <Link href="/mascotas-perdidas/reportar">Reportar</Link>
               </li>
