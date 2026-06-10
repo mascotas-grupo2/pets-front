@@ -429,6 +429,43 @@
   font-weight: 600;
 }
 
+.admin-user-menu-wrap {
+  position: relative;
+}
+
+.admin-user-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  min-width: 180px;
+  padding: 6px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  box-shadow: var(--shadow-md);
+  z-index: 30;
+}
+
+.admin-user-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--gray-700);
+  font-family: inherit;
+  font-size: 14px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.admin-user-menu-item:hover {
+  background: var(--gray-100);
+}
+
 /* ===========================================================
    Dashboard
    =========================================================== */
@@ -2224,7 +2261,303 @@
   color: var(--color-text-primary);
 }
 
+/* ============================================================
+   Seguimientos
+   ============================================================ */
+
+/* Pestañas Próximos / Todos / Completados */
+.seg-tabs {
+  display: flex;
+  gap: 6px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 18px;
+}
+.seg-tab {
+  position: relative;
+  border: none;
+  background: transparent;
+  padding: 10px 14px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--gray-500);
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+.seg-tab:hover {
+  color: var(--gray-800);
+}
+.seg-tab.active {
+  color: var(--primary-600);
+  font-weight: 600;
+}
+.seg-tab.active::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 2px;
+  border-radius: 2px 2px 0 0;
+  background: var(--primary-500);
+}
+
+/* Filtros (tipo + estado) */
+.seg-filters {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 14px;
+  margin-bottom: 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+.seg-filter-group {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.seg-filter-label {
+  min-width: 52px;
+  padding-top: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--gray-500);
+}
+
+/* Encabezado del drawer de detalle (mascota + estado) */
+.seg-detail-pet {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 16px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+.seg-detail-pet-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-start;
+}
+.seg-detail-pet-info strong {
+  font-size: 16px;
+  color: var(--gray-900);
+}
+
+/* Formulario del drawer de alta */
+.seg-form {
+  display: flex;
+  flex-direction: column;
+}
+.seg-form-error {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--danger);
+}
+.seg-form .vdrawer-foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+/* Layout de dos columnas: tabla + panel lateral */
+.seg-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 280px;
+  gap: 20px;
+  align-items: start;
+}
+.seg-main {
+  min-width: 0;
+}
+/* La tabla tiene varias columnas: si no entra, scrollea en vez de desbordar.
+   (override del `overflow: visible` que hereda de .pub-table-wrap) */
+.seg .dash-table-wrap {
+  overflow-x: auto;
+}
+.seg .dash-table {
+  min-width: 640px;
+}
+
+/* Columna derecha (calendario + agenda) */
+.seg-side {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ---- Calendario ---- */
+.seg-cal {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: 16px;
+}
+.seg-cal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.seg-cal-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--gray-900);
+}
+.seg-cal-nav {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--gray-500);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.seg-cal-nav:hover {
+  background: var(--gray-100);
+  color: var(--gray-800);
+}
+.seg-cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+.seg-cal-dow {
+  display: grid;
+  place-items: center;
+  height: 26px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--gray-400);
+}
+.seg-cal-cell {
+  position: relative;
+  display: grid;
+  place-items: center;
+  height: 30px;
+  border-radius: var(--radius-full);
+  font-size: 13px;
+  color: var(--gray-700);
+}
+.seg-cal-cell.is-empty {
+  visibility: hidden;
+}
+/* Día clickeable */
+.seg-cal-cell.is-day {
+  border: none;
+  background: transparent;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.seg-cal-cell.is-day:hover:not(.is-disabled):not(.is-selected) {
+  background: var(--primary-50);
+}
+/* Hoy (sin estar seleccionado): solo el borde/anillo */
+.seg-cal-cell.is-today {
+  box-shadow: inset 0 0 0 1.5px var(--primary-300, #a594ff);
+  color: var(--primary-600);
+  font-weight: 600;
+}
+/* Día seleccionado: relleno violeta */
+.seg-cal-cell.is-selected {
+  background: var(--primary-500);
+  color: #fff;
+  font-weight: 600;
+}
+/* Días pasados: no seleccionables */
+.seg-cal-cell.is-disabled {
+  color: var(--gray-300, #d1d5db);
+  cursor: not-allowed;
+}
+.seg-cal-cell.has-events::after {
+  content: "";
+  position: absolute;
+  bottom: 3px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--primary-500);
+}
+
+/* ---- Agenda del día ---- */
+.seg-agenda {
+  background: var(--primary-50);
+  border: 1px solid var(--primary-100, #e2dcff);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+}
+.seg-agenda-title {
+  margin: 0 0 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--gray-900);
+}
+.seg-agenda-empty {
+  margin: 0;
+  font-size: 13px;
+  color: var(--gray-500);
+}
+.seg-agenda-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.seg-agenda-item {
+  display: flex;
+  gap: 12px;
+}
+.seg-agenda-time {
+  flex-shrink: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--primary-600);
+  min-width: 42px;
+}
+.seg-agenda-text {
+  display: flex;
+  flex-direction: column;
+  font-size: 13px;
+  color: var(--gray-800);
+}
+.seg-agenda-sub {
+  font-size: 12px;
+  color: var(--gray-500);
+}
+
 /* ---------- Responsive ---------- */
+/* Con 7 columnas + calendario de 280px, dos columnas dejan de entrar antes:
+   apilamos el calendario debajo y le damos todo el ancho a la tabla. */
+@media (max-width: 1280px) {
+  .seg-layout {
+    grid-template-columns: 1fr;
+  }
+  .seg-side {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+  .seg-cal,
+  .seg-agenda {
+    flex: 1 1 260px;
+    min-width: 260px;
+  }
+}
+
 @media (max-width: 900px) {
   .msg {
     grid-template-columns: 1fr;

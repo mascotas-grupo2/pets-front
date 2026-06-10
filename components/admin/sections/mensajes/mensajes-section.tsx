@@ -8,8 +8,13 @@ import NewMessageView from "./NewMessageView";
 export default function MensajesSection() {
   const inbox = useInbox();
 
-  const { panelMode, activeUserId, openConversation, openNewMessage, closePanel } =
-    useMessages();
+  const {
+    panelMode,
+    activeUserId,
+    openConversation,
+    openNewMessage,
+    closePanel,
+  } = useMessages();
 
   const conversation = useConversation(activeUserId);
 
@@ -44,7 +49,10 @@ export default function MensajesSection() {
       {panelMode === "chat" && activeUserId && (
         <ConversationView
           conversationData={conversation}
-          activeUserMessage={inbox.conversations.find(c => c.user.id === activeUserId)?.user || null}
+          activeUserMessage={
+            inbox.conversations.find((c) => c.user.id === activeUserId)?.user ||
+            null
+          }
         />
       )}
     </div>
