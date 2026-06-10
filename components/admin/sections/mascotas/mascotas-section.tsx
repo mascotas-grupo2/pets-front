@@ -19,7 +19,7 @@ export function MascotasSection() {
     query, setQuery,
     filtro, setFiltro,
     especie, setEspecie,
-    sort, toggleSort,
+    sort, setSort,
     page, setPage, totalPages, total, desde, hasta,
     handleDelete,
   } = useMascotas();
@@ -45,7 +45,7 @@ export function MascotasSection() {
         data={visible}
         loading={loading}
         sort={sort}
-        onSort={toggleSort}
+        onSort={setSort}
         onView={setSelected}
         onDelete={handleDelete}
         page={page}

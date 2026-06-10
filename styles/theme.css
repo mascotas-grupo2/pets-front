@@ -54,4 +54,121 @@
   /* Container */
   --container-max: 1200px;
   --container-pad: 24px;
+
+  color-scheme: light;
+}
+
+/* ===========================================================
+   Dark mode
+   Se activa con <html data-theme="dark"> (toggle manual) o,
+   si el usuario no eligió tema, según la preferencia del SO.
+   La escala de grises se invierte para que los componentes que
+   usan --gray-900 como texto y --gray-100 como fondo sigan
+   funcionando sin tocar cada hoja de estilos.
+   =========================================================== */
+:root[data-theme="dark"] {
+  /* Marca: tonos más claros para contrastar sobre fondo oscuro */
+  --primary-50: #241f3d;
+  --primary-100: #2f2857;
+  --primary-200: #3d3470;
+  --primary-300: #6c5ce7;
+  --primary-400: #8b73ff;
+  --primary-500: #9d8bff;
+  --primary-600: #b3a4ff;
+  --primary-700: #c8bcff;
+  --primary-800: #ddd4ff;
+  --primary-900: #efeaff;
+
+  --secondary-50: #0f2a22;
+  --secondary-100: #14463a;
+  --secondary-300: #2c9a78;
+  --secondary-500: #3ec79f;
+  --secondary-700: #7fe0c2;
+
+  /* Escala de grises invertida */
+  --gray-50: #15171e;
+  --gray-100: #1d212b;
+  --gray-200: #272b36;
+  --gray-300: #353b48;
+  --gray-400: #565d6b;
+  --gray-500: #8b92a0;
+  --gray-600: #aeb4c0;
+  --gray-700: #c7ccd6;
+  --gray-800: #dde1e8;
+  --gray-900: #f3f4f6;
+
+  --danger: #ff6b66;
+  --warning: #f7b955;
+  --success: #3ec79f;
+
+  --background: #0f1117;
+  --surface: #181b23;
+  --surface-alt: #11131a;
+  --foreground: #e6e7eb;
+  --muted: #9aa0ac;
+  --border: #2a2e3a;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.6);
+
+  color-scheme: dark;
+}
+
+/* Si no hay tema elegido explícitamente, seguir al sistema */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --primary-50: #241f3d;
+    --primary-100: #2f2857;
+    --primary-200: #3d3470;
+    --primary-300: #6c5ce7;
+    --primary-400: #8b73ff;
+    --primary-500: #9d8bff;
+    --primary-600: #b3a4ff;
+    --primary-700: #c8bcff;
+    --primary-800: #ddd4ff;
+    --primary-900: #efeaff;
+
+    --secondary-50: #0f2a22;
+    --secondary-100: #14463a;
+    --secondary-300: #2c9a78;
+    --secondary-500: #3ec79f;
+    --secondary-700: #7fe0c2;
+
+    --gray-50: #15171e;
+    --gray-100: #1d212b;
+    --gray-200: #272b36;
+    --gray-300: #353b48;
+    --gray-400: #565d6b;
+    --gray-500: #8b92a0;
+    --gray-600: #aeb4c0;
+    --gray-700: #c7ccd6;
+    --gray-800: #dde1e8;
+    --gray-900: #f3f4f6;
+
+    --danger: #ff6b66;
+    --warning: #f7b955;
+    --success: #3ec79f;
+
+    --background: #0f1117;
+    --surface: #181b23;
+    --surface-alt: #11131a;
+    --foreground: #e6e7eb;
+    --muted: #9aa0ac;
+    --border: #2a2e3a;
+
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5);
+    --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.6);
+
+    color-scheme: dark;
+  }
+}
+
+/* Transición suave al cambiar de tema */
+:root,
+body {
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
 }

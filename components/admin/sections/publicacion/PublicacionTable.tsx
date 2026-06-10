@@ -1,19 +1,19 @@
 "use client";
 
 import { Eye, Pencil } from "lucide-react";
-import { DataTable, type Column } from "../../ui/data-table";
+import { DataTable, type Column, type SortOrder } from "../../ui/data-table";
 import { TablePagination } from "../../ui/table-pagination";
 import { ActionButton } from "../../ui/button";
 import { EstadoPill } from "../../lib/pet-status";
 import { PetThumb } from "../../ui/pet-thumb";
 import type { AdminPetSummary } from "@/types/pet";
-import type { Sort, SortKey } from "../hook/usePublicaciones";
+import type { SortKey } from "../hook/usePublicaciones";
 
 type Props = {
   data: AdminPetSummary[];
   loading: boolean;
-  sort: Sort | null;
-  onSort: (key: SortKey) => void;
+  sort: SortOrder<SortKey>[];
+  onSort: (next: SortOrder<SortKey>[]) => void;
   onView: (id: string) => void;
   onEdit: (id: string) => void;
   // paginación
@@ -127,7 +127,7 @@ export function PublicacionTable({
         loadingLabel="Cargando publicaciones…"
         empty="No hay publicaciones para mostrar."
         sort={sort}
-        onSort={(k) => onSort(k as SortKey)}
+        onSort={(next) => onSort(next as SortOrder<SortKey>[])}
         tableClassName="pub-table"
         wrapClassName="pub-table-wrap"
       />

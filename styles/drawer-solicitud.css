@@ -717,7 +717,7 @@
 
 .sdet-modal {
   position: relative;
-  background: #fff;
+  background: var(--surface);
   border-radius: 1rem;
   box-shadow: 0 8px 40px rgba(0, 0, 0, 0.18);
   width: 100%;

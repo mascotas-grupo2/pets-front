@@ -3,7 +3,7 @@
   position: sticky;
   top: 0;
   z-index: 50;
-  background: rgba(255, 255, 255, 0.92);
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
   backdrop-filter: saturate(1.2) blur(8px);
   border-bottom: 1px solid var(--border);
 }
@@ -76,7 +76,7 @@
   place-items: center;
   color: var(--gray-700);
   border: 1px solid var(--border);
-  background: #fff;
+  background: var(--surface);
 }
 .icon-btn:hover {
   color: var(--primary-500);

@@ -5,6 +5,7 @@ import { useAppSelector } from "@/redux/hooks";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Brand } from "./brand";
+import { ThemeToggle } from "./theme-toggle";
 
 const NAV = [
   { href: "/", label: "Inicio" },
@@ -50,6 +51,7 @@ export function SiteHeader() {
         </nav>
 
         <div className="header-actions">
+          <ThemeToggle />
           {isAdmin && (
             <Link
               href="/admin"

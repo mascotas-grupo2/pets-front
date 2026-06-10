@@ -85,6 +85,29 @@
   color: #fff;
 }
 
+/* ===== Theme toggle ===== */
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--gray-700);
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    color 0.15s,
+    border-color 0.15s;
+}
+.theme-toggle:hover {
+  background: var(--gray-100);
+  color: var(--primary-500);
+  border-color: var(--primary-500);
+}
+
 /* ===== Input ===== */
 .field {
   display: flex;
@@ -113,7 +136,7 @@
   padding: 0.7rem 0.9rem;
   border-radius: var(--radius-sm);
   border: 1px solid var(--gray-200);
-  background: #fff;
+  background: var(--surface);
   color: var(--gray-900);
   font-family: inherit;
   font-size: 0.95rem;
