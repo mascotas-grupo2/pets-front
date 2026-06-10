@@ -38,7 +38,7 @@ export function PublicacionSection() {
     setEstado,
     toggleEstado,
     sort,
-    toggleSort,
+    setSort,
     page,
     setPage,
     totalPages,
@@ -93,7 +93,7 @@ export function PublicacionSection() {
         data={visible}
         loading={loading}
         sort={sort}
-        onSort={toggleSort}
+        onSort={setSort}
         onView={handleView}
         onEdit={handleEdit}
         page={page}
