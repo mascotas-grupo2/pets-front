@@ -47,6 +47,10 @@ export function ChatbotWidget() {
   const [input, setInput] = useState("");
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [isTyping, setIsTyping] = useState(false);
+  // Quick replies CONTEXTUALES (las que vienen del backend, ej: cuando se
+  // activa el auth gate y queremos ofrecer "Buscar reportes" / "Iniciar
+  // sesión"). Se muestran hasta que el usuario manda un nuevo mensaje.
+  const [contextualReplies, setContextualReplies] = useState<QuickReply[]>([]);
   const bodyRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -83,6 +87,9 @@ export function ChatbotWidget() {
       ]);
       setInput("");
       setIsTyping(true);
+      // Las quick replies contextuales previas dejan de aplicar apenas el
+      // usuario decide enviar algo, sea tocando un botón o tipeando.
+      setContextualReplies([]);
 
       const result = await sendChatbotMessage({
         sessionId,
@@ -117,6 +124,12 @@ export function ChatbotWidget() {
       // Agregar respuesta del asistente
       const assistantMessages = result.data.messages || [];
       setMessages((prev) => [...prev, ...assistantMessages]);
+
+      // Si el backend mandó quick replies contextuales (ej. auth gate),
+      // las guardamos para mostrarlas debajo del último mensaje.
+      if (result.data.quickReplies && result.data.quickReplies.length > 0) {
+        setContextualReplies(result.data.quickReplies);
+      }
     },
     [sessionId, isTyping],
   );
@@ -137,6 +150,7 @@ export function ChatbotWidget() {
     setSessionId(null);
     setMessages([]);
     setInput("");
+    setContextualReplies([]);
     toast.info("Conversación reiniciada");
   };
 
@@ -224,6 +238,22 @@ export function ChatbotWidget() {
           {showWelcomeReplies && (
             <div className="chatbot-quick-replies">
               {WELCOME_QUICK_REPLIES.map((qr) => (
+                <button
+                  key={qr.value}
+                  className="chatbot-quick-reply"
+                  onClick={() => handleQuickReply(qr)}
+                  disabled={isTyping}
+                >
+                  {qr.label}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Quick replies CONTEXTUALES enviadas por el backend (ej. auth gate). */}
+          {contextualReplies.length > 0 && !isTyping && (
+            <div className="chatbot-quick-replies">
+              {contextualReplies.map((qr) => (
                 <button
                   key={qr.value}
                   className="chatbot-quick-reply"
