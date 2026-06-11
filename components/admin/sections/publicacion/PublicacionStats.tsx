@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCircle2, Clock, XCircle, Flag } from "lucide-react";
+import { CheckCircle2, Clock, XCircle, Flag, Bookmark } from "lucide-react";
 import type { EstadoFiltro } from "../hook/usePublicaciones";
 import type { PetReportStatus } from "@/types/pet";
 
@@ -10,6 +10,7 @@ type Props = {
     activo: number;
     rechazado: number;
     finalizado: number;
+    reservada: number;
   };
   loading: boolean;
   estado: EstadoFiltro;
@@ -20,7 +21,7 @@ type StatCardProps = {
   icon: React.ReactNode;
   label: string;
   value: number | string;
-  tone: "violet" | "green" | "red" | "blue";
+  tone: "violet" | "green" | "red" | "blue" | "amber";
   active: boolean;
   onClick: () => void;
 };
@@ -55,7 +56,7 @@ export function PublicacionStats({ counts, loading, estado, onToggle }: Props) {
   return (
     <div
       className="pub-stats"
-      style={{ gridTemplateColumns: "repeat(4, minmax(0, 1fr))" }}
+      style={{ gridTemplateColumns: "repeat(5, minmax(0, 1fr))" }}
     >
       <StatCard
         icon={<Clock size={22} aria-hidden />}
@@ -80,6 +81,14 @@ export function PublicacionStats({ counts, loading, estado, onToggle }: Props) {
         tone="red"
         active={estado === "rechazado"}
         onClick={() => onToggle("rechazado")}
+      />
+      <StatCard
+        icon={<Bookmark size={22} aria-hidden />}
+        label="Reservadas"
+        value={val(counts.reservada)}
+        tone="amber"
+        active={estado === "reservada"}
+        onClick={() => onToggle("reservada")}
       />
       <StatCard
         icon={<Flag size={22} aria-hidden />}
