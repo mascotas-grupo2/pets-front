@@ -187,26 +187,33 @@ function TabEvaluacion({ adoptionId }: { adoptionId: number }) {
 function TabMensajes({
   nombre,
   onIrAMensajes,
-  solicitudId,
+  userId,
   messages,
 }: {
   nombre?: string;
-  onIrAMensajes: (id: string) => void;
-  solicitudId: string;
+  onIrAMensajes: (userId: string) => void;
+  userId?: string;
   messages?: AdoptionMessage[];
 }) {
   const msgs = messages ?? [];
+  const irBtn = (
+    <button
+      type="button"
+      className="btn btn-primary sdet-ir-mensajes"
+      onClick={() => userId && onIrAMensajes(userId)}
+      disabled={!userId}
+      title={!userId ? "No se pudo identificar al solicitante" : undefined}
+    >
+      <MessageSquare size={15} /> Ir a la conversación
+    </button>
+  );
   if (msgs.length === 0) {
     return (
       <div className="sdet-tab-content sdet-mensajes-readonly">
-        <div className="sdet-empty">No hay mensajes disponibles.</div>
-        <button
-          type="button"
-          className="btn btn-primary sdet-ir-mensajes"
-          onClick={() => onIrAMensajes(solicitudId)}
-        >
-          <MessageSquare size={15} /> Ir al mensaje
-        </button>
+        <div className="sdet-empty">
+          Todavía no hay mensajes con este solicitante.
+        </div>
+        {irBtn}
       </div>
     );
   }
@@ -230,13 +237,7 @@ function TabMensajes({
           </div>
         ))}
       </div>
-      <button
-        type="button"
-        className="btn btn-primary sdet-ir-mensajes"
-        onClick={() => onIrAMensajes(solicitudId)}
-      >
-        <MessageSquare size={15} /> Ir al mensaje
-      </button>
+      {irBtn}
     </div>
   );
 }
@@ -689,7 +690,7 @@ export function SolicitudDetail({
               <TabMensajes
                 nombre={detail?.user?.name ?? solicitud.userName}
                 onIrAMensajes={onIrAMensajes}
-                solicitudId={solicitud.id}
+                userId={detail?.user?.id ? String(detail.user.id) : undefined}
                 messages={detail?.messages}
               />
             )}

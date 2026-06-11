@@ -730,10 +730,20 @@
 }
 
 /* Botón Ir al mensaje — al final del thread, ancho completo */
+.sdet-empty {
+  text-align: center;
+  color: var(--gray-500);
+  font-size: 0.9rem;
+  padding: 1.25rem 0 0.25rem;
+}
+
 .sdet-ir-mensajes {
   width: 100%;
-  margin-top: 16px;
+  margin-top: 12px;
+  display: inline-flex;
+  align-items: center;
   justify-content: center;
+  gap: 0.45rem;
 }
 
 /* ══════════════════════════════════════════
@@ -765,7 +775,7 @@
 
 .sdet-modal--sm { max-width: 420px; }
 .sdet-modal--md { max-width: 480px; }
-.sdet-modal--lg { max-width: 640px; }
+.sdet-modal--lg { max-width: 760px; }
 
 /* Footer de acciones (modal de confirmación) */
 .sdet-modal-foot {
@@ -840,6 +850,15 @@
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
+  /* Scroll-shadow: sombra sutil arriba/abajo que indica que hay más contenido. */
+  background:
+    linear-gradient(#fff 30%, rgba(255, 255, 255, 0)) center top,
+    linear-gradient(rgba(255, 255, 255, 0), #fff 70%) center bottom,
+    radial-gradient(farthest-side at 50% 0, rgba(31, 25, 87, 0.12), rgba(31, 25, 87, 0)) center top,
+    radial-gradient(farthest-side at 50% 100%, rgba(31, 25, 87, 0.12), rgba(31, 25, 87, 0)) center bottom;
+  background-repeat: no-repeat;
+  background-size: 100% 28px, 100% 28px, 100% 9px, 100% 9px;
+  background-attachment: local, local, scroll, scroll;
 }
 
 /* Sección */
@@ -868,10 +887,12 @@
   margin: 0 0 2px;
 }
 
-/* Definition list */
+/* Definition list: 2 columnas cuando el modal es ancho (menos scroll vertical),
+   1 columna cuando no entra. */
 .sdet-modal-dl {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  column-gap: 1.75rem;
 }
 
 .sdet-modal-dl-row {
