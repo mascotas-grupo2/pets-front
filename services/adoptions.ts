@@ -12,6 +12,7 @@ export type AdminAdoptionItem = {
   status: string;
   compatibilityScore: number | null;
   createdAt: string;
+  updatedAt: string;
   applicantName: string;
   applicantEmail: string;
   userName: string | null;
