@@ -40,6 +40,7 @@ export function SeguimientosSection() {
     now,
     handleConfirm,
     handleComplete,
+    handleDelete,
   } = useSeguimientos();
 
   const [showFilters, setShowFilters] = useState(false);
@@ -101,6 +102,7 @@ export function SeguimientosSection() {
             onView={setDetail}
             onConfirm={handleConfirm}
             onComplete={handleComplete}
+            onDelete={handleDelete}
           />
         </div>
 

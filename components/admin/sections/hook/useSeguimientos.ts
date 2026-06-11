@@ -6,6 +6,7 @@ import {
   getFollowups,
   confirmFollowup,
   completeFollowup,
+  deleteFollowup,
   createFollowup,
   type FollowupItem,
   type CreateFollowupInput,
@@ -236,6 +237,20 @@ export function useSeguimientos() {
     return false;
   }
 
+  async function handleDelete(s: Seguimiento) {
+    if (!window.confirm("¿Estás seguro que deseas eliminar este seguimiento?")) {
+      return false;
+    }
+    const res = await deleteFollowup(s.id);
+    if (res.ok) {
+      toast.success("Seguimiento eliminado.");
+      await load();
+      return true;
+    }
+    toast.error("No se pudo eliminar.");
+    return false;
+  }
+
   return {
     loading,
     tab,
@@ -264,5 +279,6 @@ export function useSeguimientos() {
     reload: load,
     handleConfirm,
     handleComplete,
+    handleDelete,
   };
 }

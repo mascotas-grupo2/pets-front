@@ -1,6 +1,6 @@
 "use client";
 
-import { Eye, CheckCircle2, CheckSquare } from "lucide-react";
+import { Eye, CheckCircle2, CheckSquare, Trash2 } from "lucide-react";
 import type { Seguimiento } from "./seguimientos.data";
 import { seguimientoEstadoTone, FOLLOWUP_STATUS } from "./seguimientos.data";
 import { ActionButton } from "../../ui/button";
@@ -25,6 +25,7 @@ type Props = {
   onView: (s: Seguimiento) => void;
   onConfirm: (s: Seguimiento) => void;
   onComplete: (s: Seguimiento) => void;
+  onDelete: (s: Seguimiento) => void;
 };
 
 export function SeguimientosTable({
@@ -41,6 +42,7 @@ export function SeguimientosTable({
   onView,
   onConfirm,
   onComplete,
+  onDelete,
 }: Props) {
   const columns: Column<Seguimiento>[] = [
     {
@@ -116,6 +118,12 @@ export function SeguimientosTable({
               title="Completar"
             />
           )}
+          <ActionButton
+            icon={Trash2}
+            onClick={() => onDelete(s)}
+            ariaLabel="Eliminar seguimiento"
+            title="Eliminar"
+          />
         </div>
       ),
     },
