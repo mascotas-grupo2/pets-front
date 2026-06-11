@@ -19,6 +19,8 @@ export type Solicitud = {
   compatLabel: string;
   estado: "NUEVA" | "EN_EVALUACION" | "ENTREVISTA_PENDIENTE" | "ACEPTADA_CON_SEGUIMIENTO" | "ACEPTADA" | "DESCARTADA";
   fecha: string;
+  /** Fecha de última modificación (updatedAt). La completa el mapeo real; opcional en mocks. */
+  fechaModificacion?: string;
 
   // detail fields (optional, populated when fetching detail)
   messages?: AdoptionMessage[];
