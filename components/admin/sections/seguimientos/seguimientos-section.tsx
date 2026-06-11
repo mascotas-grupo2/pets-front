@@ -41,7 +41,8 @@ export function SeguimientosSection() {
     hasta,
     items,
     now,
-    handleToggleEstado,
+    handleConfirm,
+    handleComplete,
   } = useSeguimientos();
 
   const [showFilters, setShowFilters] = useState(false);
@@ -114,7 +115,8 @@ export function SeguimientosSection() {
             hasta={hasta}
             onPage={setPage}
             onView={setDetail}
-            onToggleEstado={handleToggleEstado}
+            onConfirm={handleConfirm}
+            onComplete={handleComplete}
           />
         </div>
 

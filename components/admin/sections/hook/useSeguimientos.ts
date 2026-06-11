@@ -4,7 +4,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import {
   getFollowups,
-  changeFollowupStatus,
+  confirmFollowup,
+  completeFollowup,
   createFollowup,
   type FollowupItem,
   type CreateFollowupInput,
@@ -94,7 +95,7 @@ async function loadLookups() {
 /** Filtra según la pestaña activa (próximos / todos / completados). */
 function filterByTab(items: Seguimiento[], tab: SeguimientoTab, now: Date): Seguimiento[] {
   if (tab === "completados") {
-    return items.filter((s) => s.estadoId === FOLLOWUP_STATUS.confirmado);
+    return items.filter((s) => s.estadoId === FOLLOWUP_STATUS.completado);
   }
   if (tab === "proximos") {
     return items.filter((s) => new Date(s.appointmentAt).getTime() >= now.getTime());
@@ -205,18 +206,29 @@ export function useSeguimientos() {
     return false;
   }
 
-  async function handleToggleEstado(s: Seguimiento) {
-    const nextStatus =
-      s.estadoId === FOLLOWUP_STATUS.confirmado
-        ? FOLLOWUP_STATUS.pendiente
-        : FOLLOWUP_STATUS.confirmado;
-    const res = await changeFollowupStatus(s.id, nextStatus);
+  async function handleConfirm(s: Seguimiento) {
+    const res = await confirmFollowup(s.id);
     if (res.ok) {
-      toast.success("Estado del seguimiento actualizado.");
+      toast.success("Seguimiento confirmado.");
       await load();
       return true;
     }
-    toast.error("No se pudo actualizar el estado.");
+    toast.error("No se pudo confirmar.");
+    return false;
+  }
+
+  async function handleComplete(s: Seguimiento) {
+    if (s.estadoId !== FOLLOWUP_STATUS.confirmado) {
+      toast.error("Solo se pueden completar seguimientos confirmados.");
+      return false;
+    }
+    const res = await completeFollowup(s.id);
+    if (res.ok) {
+      toast.success("Seguimiento completado.");
+      await load();
+      return true;
+    }
+    toast.error("No se pudo completar.");
     return false;
   }
 
@@ -245,6 +257,7 @@ export function useSeguimientos() {
     items: all,
     now,
     reload: load,
-    handleToggleEstado,
+    handleConfirm,
+    handleComplete,
   };
 }

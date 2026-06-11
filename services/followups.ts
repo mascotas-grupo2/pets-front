@@ -52,6 +52,10 @@ export type CreateFollowupInput = {
 export const createFollowup = (input: CreateFollowupInput) =>
   request<FollowupItem>(() => axios.post("followups", input));
 
-/** Cambia el estado de un seguimiento (Admin). */
-export const changeFollowupStatus = (id: number, statusId: number) =>
-  request<FollowupItem>(() => axios.post(`followups/${id}/status`, { statusId }));
+/** Confirma un seguimiento (Admin). */
+export const confirmFollowup = (id: number) =>
+  request<FollowupItem>(() => axios.post(`followups/${id}/confirmar`));
+
+/** Completa un seguimiento (Admin). */
+export const completeFollowup = (id: number) =>
+  request<FollowupItem>(() => axios.post(`followups/${id}/completar`));

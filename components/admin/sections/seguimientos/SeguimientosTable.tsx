@@ -1,8 +1,8 @@
 "use client";
 
-import { Eye, CheckCircle2 } from "lucide-react";
+import { Eye, CheckCircle2, CheckSquare } from "lucide-react";
 import type { Seguimiento } from "./seguimientos.data";
-import { seguimientoEstadoTone } from "./seguimientos.data";
+import { seguimientoEstadoTone, FOLLOWUP_STATUS } from "./seguimientos.data";
 import { ActionButton } from "../../ui/button";
 import { DataTable, type Column, type SortOrder } from "../../ui/data-table";
 import { Pill } from "../../ui/pill";
@@ -23,7 +23,8 @@ type Props = {
   hasta: number;
   onPage: (page: number) => void;
   onView: (s: Seguimiento) => void;
-  onToggleEstado: (s: Seguimiento) => void;
+  onConfirm: (s: Seguimiento) => void;
+  onComplete: (s: Seguimiento) => void;
 };
 
 export function SeguimientosTable({
@@ -38,7 +39,8 @@ export function SeguimientosTable({
   hasta,
   onPage,
   onView,
-  onToggleEstado,
+  onConfirm,
+  onComplete,
 }: Props) {
   const columns: Column<Seguimiento>[] = [
     {
@@ -98,12 +100,22 @@ export function SeguimientosTable({
             ariaLabel="Ver seguimiento"
             title="Ver"
           />
-          <ActionButton
-            icon={CheckCircle2}
-            onClick={() => onToggleEstado(s)}
-            ariaLabel="Cambiar estado"
-            title="Confirmar / marcar pendiente"
-          />
+          {s.estadoId === FOLLOWUP_STATUS.pendiente && (
+            <ActionButton
+              icon={CheckCircle2}
+              onClick={() => onConfirm(s)}
+              ariaLabel="Confirmar seguimiento"
+              title="Confirmar"
+            />
+          )}
+          {s.estadoId === FOLLOWUP_STATUS.confirmado && (
+            <ActionButton
+              icon={CheckSquare}
+              onClick={() => onComplete(s)}
+              ariaLabel="Completar seguimiento"
+              title="Completar"
+            />
+          )}
         </div>
       ),
     },

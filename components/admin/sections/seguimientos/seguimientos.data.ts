@@ -5,6 +5,7 @@ import type { FollowupItem } from "@/services/followups";
 export const FOLLOWUP_STATUS = {
   pendiente: 1311,
   confirmado: 1312,
+  completado: 1313,
 } as const;
 
 /** Tipos posibles de un seguimiento (catálogo `followup_type`). */
@@ -59,6 +60,8 @@ export function seguimientoEstadoTone(estadoId: number): Tone {
       return "green";
     case FOLLOWUP_STATUS.pendiente:
       return "blue";
+    case FOLLOWUP_STATUS.completado:
+      return "gray";
     default:
       return "gray";
   }
