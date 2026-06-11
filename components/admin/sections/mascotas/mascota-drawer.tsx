@@ -7,6 +7,7 @@ import { X, PawPrint, Heart } from "lucide-react";
 import { MascotaEstadoPill } from "../../lib/pet-status";
 import { formatEdad } from "../../lib/pet-format";
 import { updatePet, entregaDirectaPet } from "@/services/mascotas.pets";
+import { useMascotaDetalle } from "../hook/useMascotaDetalle";
 import type { AdminPetSummary, PetStatus } from "@/types/pet";
 
 type Props = {
@@ -51,20 +52,21 @@ const TABS: { id: Tab; label: string }[] = [
   { id: "notas", label: "Notas" },
 ];
 
-/**
- * MOCK: datos de ejemplo para las secciones sin backend (compatibilidad,
- * próximo seguimiento, notas rápidas). Reemplazar cuando existan los endpoints.
- */
-const MOCK_COMPAT = 78;
-const MOCK_SEGUIMIENTO = {
-  tipo: "Control veterinario",
-  fecha: "25/05/2026 15:30",
-  responsable: "Laura Martínez",
+const NOTE_KIND_LABEL: Record<string, string> = {
+  general: "General",
+  medica: "Médica",
+  adopcion: "Adopción",
 };
-const MOCK_NOTAS = [
-  "Le gusta dormir en lugares altos.",
-  "Convive bien con gatos tranquilos.",
-];
+
+function fmtFecha(d: string) {
+  return new Date(d).toLocaleString("es-AR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
 
 function boolText(v?: boolean) {
   if (v === undefined) return "—";
@@ -74,6 +76,8 @@ function boolText(v?: boolean) {
 /** Drawer lateral con el detalle de una mascota. */
 export function MascotaDrawer({ pet, onClose, onChanged }: Props) {
   const [tab, setTab] = useState<Tab>("overview");
+  const { loading: loadingDetalle, notas, proximo, compat } =
+    useMascotaDetalle(pet.id);
   const [estado, setEstado] = useState<PetStatus>(pet.status);
   const [recipient, setRecipient] = useState("");
   const [showEntrega, setShowEntrega] = useState(false);
@@ -245,38 +249,75 @@ export function MascotaDrawer({ pet, onClose, onChanged }: Props) {
                 )}
               </div>
 
-              {/* MOCK: sin backend todavía */}
               <div className="vdrawer-section">
                 <h3>Compatibilidad promedio</h3>
-                <div className="mdrawer-compat">
-                  <div className="mdrawer-compat-bar">
-                    <div
-                      className="mdrawer-compat-fill"
-                      style={{ width: `${MOCK_COMPAT}%` }}
-                    />
-                  </div>
-                  <span className="mdrawer-compat-val">{MOCK_COMPAT}%</span>
-                </div>
+                {loadingDetalle ? (
+                  <p className="vdrawer-desc mdrawer-muted">Cargando…</p>
+                ) : compat.promedio == null ? (
+                  <p className="vdrawer-desc mdrawer-muted">
+                    Sin solicitudes de adopción todavía.
+                  </p>
+                ) : (
+                  <>
+                    <div className="mdrawer-compat">
+                      <div className="mdrawer-compat-bar">
+                        <div
+                          className="mdrawer-compat-fill"
+                          style={{ width: `${compat.promedio}%` }}
+                        />
+                      </div>
+                      <span className="mdrawer-compat-val">
+                        {compat.promedio}%
+                      </span>
+                    </div>
+                    <p className="mdrawer-seg-meta">
+                      Promedio de {compat.solicitudes} solicitud
+                      {compat.solicitudes === 1 ? "" : "es"}.
+                    </p>
+                  </>
+                )}
               </div>
 
-              {/* MOCK: sin backend todavía */}
               <div className="vdrawer-section">
                 <h3>Próximo seguimiento</h3>
-                <p className="mdrawer-seg-tipo">{MOCK_SEGUIMIENTO.tipo}</p>
-                <p className="mdrawer-seg-meta">{MOCK_SEGUIMIENTO.fecha}</p>
-                <p className="mdrawer-seg-meta">
-                  {MOCK_SEGUIMIENTO.responsable}
-                </p>
+                {loadingDetalle ? (
+                  <p className="vdrawer-desc mdrawer-muted">Cargando…</p>
+                ) : !proximo ? (
+                  <p className="vdrawer-desc mdrawer-muted">
+                    Sin seguimientos programados.
+                  </p>
+                ) : (
+                  <>
+                    <p className="mdrawer-seg-tipo">
+                      {proximo.type?.label ?? "Seguimiento"}
+                    </p>
+                    <p className="mdrawer-seg-meta">
+                      {fmtFecha(proximo.appointmentAt)}
+                    </p>
+                    {proximo.status?.label && (
+                      <p className="mdrawer-seg-meta">{proximo.status.label}</p>
+                    )}
+                  </>
+                )}
               </div>
 
-              {/* MOCK: sin backend todavía */}
               <div className="vdrawer-section">
-                <h3>Notas rápidas</h3>
-                {MOCK_NOTAS.map((n, i) => (
-                  <p key={i} className="vdrawer-desc">
-                    {n}
-                  </p>
-                ))}
+                <h3>Notas</h3>
+                {loadingDetalle ? (
+                  <p className="vdrawer-desc mdrawer-muted">Cargando…</p>
+                ) : notas.length === 0 ? (
+                  <p className="vdrawer-desc mdrawer-muted">Sin notas.</p>
+                ) : (
+                  notas.map((n) => (
+                    <div key={n.id} className="mdrawer-nota">
+                      <p className="vdrawer-desc">{n.text}</p>
+                      <span className="mdrawer-seg-meta">
+                        {NOTE_KIND_LABEL[n.kind] ? `${NOTE_KIND_LABEL[n.kind]} · ` : ""}
+                        {fmtFecha(n.createdAt)}
+                      </span>
+                    </div>
+                  ))
+                )}
               </div>
             </>
           ) : (

@@ -66,12 +66,6 @@ export function SeguimientosTable({
       render: (s) => s.fechaLabel,
     },
     {
-      // MOCK: "tipo de cita" no existe en el back (valor derivado del id).
-      key: "tipoCita",
-      label: "Tipo de cita",
-      render: (s) => s.tipoCita,
-    },
-    {
       key: "responsable",
       label: "Responsable",
       sortable: true,

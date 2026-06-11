@@ -72,7 +72,6 @@ export function SeguimientoDetailDrawer({ seguimiento: s, onClose }: Props) {
           </div>
 
           <Field label="Tipo">{s.tipo}</Field>
-          <Field label="Tipo de cita">{s.tipoCita}</Field>
           <Field label="Fecha y hora">{fullDate(s.appointmentAt)}</Field>
           <Field label="Responsable">{s.responsable}</Field>
           <Field label="Agendado el">{fullDate(s.createdAt)}</Field>

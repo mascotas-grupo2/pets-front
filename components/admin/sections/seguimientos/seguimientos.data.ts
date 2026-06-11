@@ -27,9 +27,6 @@ export const TIPO_OPTIONS: { id: number; label: string }[] = [
   { id: FOLLOWUP_TYPE.postAdopcion, label: "Post adopción" },
 ];
 
-/** MOCK: el back no maneja "tipo de cita". Opciones solo para la UI. */
-export const TIPO_CITA_OPTIONS = ["Programada", "Agendada"] as const;
-
 /** Pestañas del listado. */
 export type SeguimientoTab = "proximos" | "todos" | "completados";
 
@@ -43,8 +40,6 @@ export type Seguimiento = {
   responsable: string;
   tipo: string;
   typeId: number;
-  /** MOCK: no existe en el back. Derivado del id para la columna "Tipo de cita". */
-  tipoCita: string;
   estado: string;
   estadoId: number;
   /** Fecha original (ISO) para ordenar/agrupar. */
@@ -120,8 +115,6 @@ export function toSeguimiento(
     responsable: userMap.get(f.userId) ?? `Usuario #${f.userId}`,
     tipo: f.type?.label ?? "—",
     typeId: f.typeId,
-    // MOCK: el back no tiene "tipo de cita". Lo derivamos del id de forma estable.
-    tipoCita: f.id % 2 === 0 ? "Agendada" : "Programada",
     estado: f.status?.label ?? "—",
     estadoId: f.statusId,
     appointmentAt: f.appointmentAt,

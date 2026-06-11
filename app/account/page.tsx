@@ -50,6 +50,21 @@ export default function AccountPage() {
     return activeSection === tab ? solid : outline;
   };
 
+  if (!isLoggedIn) {
+    return (
+      <main className="container" style={{ padding: "3rem 0", textAlign: "center" }}>
+        <p>Iniciá sesión para ver tu cuenta.</p>
+      </main>
+    );
+  }
+  if (!userDetails) {
+    return (
+      <main className="container" style={{ padding: "3rem 0", textAlign: "center" }}>
+        <p>Cargando tu cuenta…</p>
+      </main>
+    );
+  }
+
   return (
     userDetails && (
       <main>

@@ -81,8 +81,13 @@ export default function LostPetsPage() {
 
   const dispatch = useDispatch();
 
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
-    if (pets.length) return;
+    if (pets.length) {
+      setLoading(false);
+      return;
+    }
     getAllPets()
       .then((res) => {
         if (res && res.ok && res.data) {
@@ -91,7 +96,8 @@ export default function LostPetsPage() {
           dispatch({ type: "pets/all_pets", payload: pets });
         }
       })
-      .catch((error: unknown) => console.error(error));
+      .catch((error: unknown) => console.error(error))
+      .finally(() => setLoading(false));
   }, [pets, dispatch]);
 
   const updateFilter = (changes: Partial<FilterCriteria>) => {
@@ -416,7 +422,11 @@ export default function LostPetsPage() {
             </button>
           </div>
 
-          {filtered.length === 0 ? (
+          {loading ? (
+            <div className="listing-empty">
+              <p>Cargando publicaciones…</p>
+            </div>
+          ) : filtered.length === 0 ? (
             <div className="listing-empty">
               <p>No hay mascotas que coincidan con tu búsqueda.</p>
               <Link
