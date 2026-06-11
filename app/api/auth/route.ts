@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
   // Esto evita errores de "code already used" si el navegador reintenta la petición
   const existingToken = request.cookies.get("auth_token");
   if (existingToken && !errorKeycloak && code) {
-    return NextResponse.redirect(new URL("/account", baseUrl));
+    return NextResponse.redirect(new URL("/", baseUrl));
   }
 
   if (errorKeycloak) {
@@ -114,8 +114,8 @@ export async function GET(request: NextRequest) {
 
     // 2. Redirigimos al usuario a la app con el token
     // Lo más común es ponerlo en una cookie para que Redux lo lea al cargar
-    const response = NextResponse.redirect(new URL("/account", baseUrl));
-    console.log("Redirecting to /account - Session established");
+    const response = NextResponse.redirect(new URL("/", baseUrl));
+    console.log("Redirecting to / (home) - Session established");
 
     // auth_token NO httpOnly: el front lo lee desde JS (UserContext).
     response.cookies.set("auth_token", access_token, {
