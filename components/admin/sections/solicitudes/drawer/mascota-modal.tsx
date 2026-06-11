@@ -76,20 +76,23 @@ export function MascotaModal({ solicitud, onClose }: Props) {
             <>
               {/* Foto + datos básicos */}
               <section className="sdet-modal-section sdet-modal-section--row">
-                {pet.photo ? (
-                  <Image
-                    className="sdet-mascota-photo"
-                    src={pet.photo}
-                    alt={pet.name ?? "Mascota"}
-                    width={120}
-                    height={120}
-                    unoptimized
-                  />
-                ) : (
-                  <div className="sdet-mascota-photo sdet-mascota-photo--empty">
-                    <PawPrint size={28} />
-                  </div>
-                )}
+                {(() => {
+                  const photoUrl = fullPet?.photos?.[0] ?? fullPet?.photo ?? pet.photo;
+                  return photoUrl ? (
+                    <Image
+                      className="sdet-mascota-photo"
+                      src={photoUrl}
+                      alt={pet.name ?? "Mascota"}
+                      width={120}
+                      height={120}
+                      unoptimized
+                    />
+                  ) : (
+                    <div className="sdet-mascota-photo sdet-mascota-photo--empty">
+                      <PawPrint size={28} />
+                    </div>
+                  );
+                })()}
                 <dl className="sdet-modal-dl" style={{ flex: 1 }}>
                   <div className="sdet-modal-dl-row">
                     <dt>Nombre</dt>
