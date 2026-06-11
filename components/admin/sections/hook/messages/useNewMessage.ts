@@ -11,6 +11,7 @@ export interface UserItem {
   name: string;
   email?: string;
   photo?: string;
+  role?: string;
 }
 
 export function useNewMessage(existingUserIds: number[]) {
@@ -30,18 +31,23 @@ export function useNewMessage(existingUserIds: number[]) {
       setLoadingUsers(true);
 
       try {
-        const res = await getAdminUsers({
-          search,
-        });
+        const res = await getAdminUsers({ search });
 
         if (res.ok && res.data) {
           const blocked = new Set(existingUserIds);
-
-          // setResults(
-          //   (res.data.items ?? res.data).filter(
-          //     (u: UserItem) => !blocked.has(u.id),
-          //   ),
-          // );
+          // Trae usuarios Y admins (sin filtro de rol); excluye los que ya
+          // tienen conversación abierta para no duplicar.
+          setResults(
+            res.data.items
+              .filter((u) => !blocked.has(u.id))
+              .map((u) => ({
+                id: u.id,
+                name: u.name,
+                email: u.email,
+                photo: u.photo ?? undefined,
+                role: u.role,
+              })),
+          );
         }
       } finally {
         setLoadingUsers(false);

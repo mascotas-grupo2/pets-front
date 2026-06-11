@@ -6,6 +6,11 @@ export type userMessage = {
   id: number;
   photo: string;
   name: string;
+  /** Rol del otro participante (lo incluye el back vía publicUser). */
+  role?: string;
+  email?: string;
+  /** Contexto de la última solicitud ("Solicitud de adopción de <mascota>"). */
+  context?: string | null;
 };
 export interface Message {
   id: number; // Unique ID of the message
@@ -27,6 +32,13 @@ export interface InboxResponse {
   conversations: InboxConversation[];
 }
 
+export interface ConversationNote {
+  id: string;
+  text: string;
+  author: string | null;
+  createdAt: string;
+}
+
 export interface ConversationProfile {
   id: number;
   name: string;
@@ -34,6 +46,11 @@ export interface ConversationProfile {
   photo: string | null;
   status: string;
   evaluationNote: string | null;
+  /** "Solicitud de adopción de <mascota>" (de la última solicitud del usuario). */
+  context?: string | null;
+  phone?: string | null;
+  town?: string | null;
+  notes?: ConversationNote[];
 }
 
 export interface ConversationResponse {
@@ -78,3 +95,7 @@ export const sendMessage = (receiverId: number, content: string) =>
 
 export const deleteConversation = (userId: number) =>
   request<void>(() => axios.delete(`messages/conversation/${userId}`));
+
+/** Elimina un mensaje puntual (lo puede borrar un participante o un admin). */
+export const deleteMessage = (id: number) =>
+  request<void>(() => axios.delete(`messages/${id}`));

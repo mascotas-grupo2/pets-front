@@ -25,6 +25,9 @@ export default function MensajesSection() {
         loading={inbox.loading}
         query={inbox.query}
         setQuery={inbox.setQuery}
+        tipo={inbox.tipo}
+        setTipo={inbox.setTipo}
+        counts={inbox.counts}
         activeUserId={activeUserId}
         onSelect={openConversation}
         onNew={openNewMessage}

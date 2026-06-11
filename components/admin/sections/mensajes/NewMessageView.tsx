@@ -140,7 +140,7 @@ export default function NewMessageView({
                       </span>
                     )}
 
-                    <div className="flex flex-col min-w-0">
+                    <div className="flex flex-col min-w-0 flex-1">
                       <span className="text-sm font-medium truncate">
                         {u.name}
                       </span>
@@ -151,6 +151,10 @@ export default function NewMessageView({
                         </span>
                       )}
                     </div>
+
+                    <span className={`nm-role nm-role--${u.role ?? "user"}`}>
+                      {u.role === "admin" ? "Admin" : "Usuario"}
+                    </span>
                   </button>
                 </li>
               ))}

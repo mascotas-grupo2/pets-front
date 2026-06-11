@@ -6,8 +6,10 @@ import {
   getConversation,
   getInbox,
   sendMessage,
+  deleteMessage,
   type InboxConversation,
   type Message,
+  type userMessage,
 } from "@/services/messages.services";
 import { useAppSelector } from "@/redux/hooks";
 
@@ -25,6 +27,9 @@ export function useMessages() {
   const [loadingInbox, setLoadingInbox] = useState(true);
 
   const [activaId, setActivaId] = useState<number | null>(null);
+  // Usuario de la conversación activa. Se mantiene aparte del inbox para poder
+  // abrir una conversación nueva con alguien que todavía no está en la bandeja.
+  const [activaUser, setActivaUser] = useState<userMessage | null>(null);
   const [activaMessages, setActivaMessages] = useState<Message[]>([]);
   const [loadingChat, setLoadingChat] = useState(false);
 
@@ -90,11 +95,28 @@ export function useMessages() {
     );
   }, [inbox, query]);
 
-  const activaConv = inbox.find((c) => c.user?.id === activaId) ?? null;
-
   function abrir(id: number) {
     if (id === activaId) return;
+    const conv = inbox.find((c) => c.user?.id === id);
+    if (conv?.user) setActivaUser(conv.user);
     setActivaId(id);
+  }
+
+  /** Abre (o crea) una conversación con un usuario elegido desde "Nuevo mensaje". */
+  function abrirConUsuario(user: userMessage) {
+    setActivaUser(user);
+    setActivaId(user.id);
+    if (!inbox.some((c) => c.user?.id === user.id)) setActivaMessages([]);
+  }
+
+  async function eliminar(messageId: number) {
+    const res = await deleteMessage(messageId);
+    if (res.ok) {
+      setActivaMessages((prev) => prev.filter((m) => m.id !== messageId));
+      void fetchInbox();
+    } else {
+      toast.error("No se pudo eliminar el mensaje.");
+    }
   }
 
   async function enviar(e: React.FormEvent) {
@@ -122,6 +144,7 @@ export function useMessages() {
   return {
     isLoggedIn: currentUser.isLoggedIn,
     currentUserId: currentUser.id,
+    isAdmin: currentUser.role === "admin",
     loadingInbox,
     activaId,
     activaMessages,
@@ -132,8 +155,10 @@ export function useMessages() {
     setDraft,
     sending,
     visibles,
-    activaConv,
+    activaUser,
     abrir,
+    abrirConUsuario,
     enviar,
+    eliminar,
   };
 }

@@ -1,10 +1,23 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import { Loader2, MessageSquare, Search, Send } from "lucide-react";
-import type { InboxConversation, Message } from "@/services/messages.services";
+import { useEffect, useRef, useState } from "react";
+import {
+  Loader2,
+  MessageSquare,
+  Search,
+  Send,
+  Plus,
+  Trash2,
+  X,
+} from "lucide-react";
+import type {
+  InboxConversation,
+  Message,
+  userMessage,
+} from "@/services/messages.services";
 import { useMessages } from "./useMessages";
 import { initials } from "./messages.data";
+import { NuevoMensaje } from "./nuevo-mensaje";
 
 function Avatar({ user, small = false }: { user: InboxConversation["user"] | null; small?: boolean }) {
   const name = user?.name || "Usuario";
@@ -26,7 +39,17 @@ function Spinner() {
   );
 }
 
-function Burbuja({ m, isMine, user }: { m: Message; isMine: boolean; user: InboxConversation["user"] | null }) {
+function Burbuja({
+  m,
+  isMine,
+  user,
+  onDelete,
+}: {
+  m: Message;
+  isMine: boolean;
+  user: userMessage | null;
+  onDelete: (id: number) => void;
+}) {
   return (
     <div className={`msg-bubble-row ${isMine ? "is-mine" : "is-theirs"}`}>
       {!isMine && <Avatar user={user} small />}
@@ -36,6 +59,15 @@ function Burbuja({ m, isMine, user }: { m: Message; isMine: boolean; user: Inbox
           {new Date(m.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
         </time>
       </div>
+      <button
+        type="button"
+        className="msg-delete"
+        aria-label="Eliminar mensaje"
+        title="Eliminar mensaje"
+        onClick={() => onDelete(m.id)}
+      >
+        <Trash2 size={14} />
+      </button>
     </div>
   );
 }
@@ -48,6 +80,7 @@ export function MessagesPanel() {
   const {
     isLoggedIn,
     currentUserId,
+    isAdmin,
     loadingInbox,
     activaId,
     activaMessages,
@@ -58,11 +91,14 @@ export function MessagesPanel() {
     setDraft,
     sending,
     visibles,
-    activaConv,
+    activaUser,
     abrir,
+    abrirConUsuario,
     enviar,
+    eliminar,
   } = useMessages();
 
+  const [showNuevo, setShowNuevo] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -80,7 +116,19 @@ export function MessagesPanel() {
     <div className="msg h-[600px] border border-gray-200 rounded-xl overflow-hidden shadow-sm">
       {/* ---- Columna izquierda: lista de conversaciones ---- */}
       <aside className="msg-list-panel" aria-label="Conversaciones">
-        <div className="admin-search msg-search m-4 mt-4">
+        <div className="msg-list-head">
+          <h3>Mensajes</h3>
+          {isAdmin && (
+            <button
+              type="button"
+              className="btn btn-primary btn-sm"
+              onClick={() => setShowNuevo(true)}
+            >
+              <Plus size={15} aria-hidden /> Nuevo
+            </button>
+          )}
+        </div>
+        <div className="admin-search msg-search m-4 mt-2">
           <Search size={16} aria-hidden />
           <input
             type="search"
@@ -136,31 +184,34 @@ export function MessagesPanel() {
       </aside>
       {/* ---- Columna derecha: conversación activa ---- */}
       <section className="msg-chat-panel" aria-label="Conversación">
-        {!activaId || !activaConv ? (
+        {!activaId || !activaUser ? (
           <div className="msg-empty">
             <MessageSquare className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-            <p>Elegí una conversación para ver los mensajes.</p>
+            <p>Elegí una conversación o empezá una nueva.</p>
           </div>
         ) : (
           <>
             <header className="msg-chat-head shadow-sm z-10">
-              <Avatar user={activaConv.user} />
+              <Avatar user={activaUser} />
               <div className="msg-chat-head-info">
-                <h3>{activaConv.user?.name || "Usuario"}</h3>
+                <h3>{activaUser?.name || "Usuario"}</h3>
               </div>
             </header>
             <div className="msg-thread">
               {loadingChat ? (
                 <Spinner />
               ) : activaMessages.length === 0 ? (
-                <div className="text-center text-gray-500 p-8">No hay mensajes.</div>
+                <div className="text-center text-gray-500 p-8">
+                  No hay mensajes. Escribí el primero.
+                </div>
               ) : (
                 activaMessages.map((m) => (
                   <Burbuja
                     key={m.id}
                     m={m}
                     isMine={m.senderId === currentUserId}
-                    user={activaConv.user}
+                    user={activaUser}
+                    onDelete={eliminar}
                   />
                 ))
               )}
@@ -188,6 +239,17 @@ export function MessagesPanel() {
           </>
         )}
       </section>
+
+      {showNuevo && (
+        <NuevoMensaje
+          currentUserId={currentUserId}
+          onSelect={(user) => {
+            abrirConUsuario(user);
+            setShowNuevo(false);
+          }}
+          onClose={() => setShowNuevo(false)}
+        />
+      )}
     </div>
   );
 }

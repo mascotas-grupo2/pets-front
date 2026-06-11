@@ -1,9 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { toast } from "sonner";
 import {
   getConversation,
   sendMessage,
+  deleteMessage,
   Message,
   ConversationProfile,
 } from "@/services/messages.services";
@@ -63,11 +65,21 @@ export function useConversation(userId: number | null) {
     return true;
   }
 
+  async function remove(messageId: number) {
+    const res = await deleteMessage(messageId);
+    if (res.ok) {
+      setMessages((prev) => prev.filter((m) => m.id !== messageId));
+    } else {
+      toast.error("No se pudo eliminar el mensaje.");
+    }
+  }
+
   return {
     loading,
     messages,
     profile,
     send,
+    remove,
     reload: loadConversation,
   };
 }

@@ -5,11 +5,14 @@ import { useAppSelector } from "@/redux/hooks";
 import { getInbox, InboxConversation } from "@/services/messages.services";
 import { toast } from "sonner";
 
+export type TipoConversacion = "todas" | "usuarios" | "internos";
+
 export function useInbox() {
   const currentUser = useAppSelector((state) => state.user);
   const [conversations, setConversations] = useState<InboxConversation[]>([]);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
+  const [tipo, setTipo] = useState<TipoConversacion>("todas");
 
   const fetchInbox = useCallback(async () => {
     if (!currentUser.isLoggedIn) {
@@ -39,14 +42,29 @@ export function useInbox() {
     return () => clearInterval(interval);
   }, [fetchInbox]);
 
+  // Conteos por tipo (sobre el total, no sobre el filtro de búsqueda).
+  const counts = useMemo(() => {
+    let usuarios = 0;
+    let internos = 0;
+    for (const c of conversations) {
+      if (c.user?.role === "admin") internos++;
+      else usuarios++;
+    }
+    return { todas: conversations.length, usuarios, internos };
+  }, [conversations]);
+
   const filteredConversations = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return conversations;
-    return conversations.filter((c) =>
-      c.user?.name?.toLowerCase().includes(q) ||
-      c.latestMessage?.content?.toLowerCase().includes(q)
-    );
-  }, [conversations, query]);
+    return conversations.filter((c) => {
+      if (tipo === "usuarios" && c.user?.role === "admin") return false;
+      if (tipo === "internos" && c.user?.role !== "admin") return false;
+      if (!q) return true;
+      return (
+        c.user?.name?.toLowerCase().includes(q) ||
+        c.latestMessage?.content?.toLowerCase().includes(q)
+      );
+    });
+  }, [conversations, query, tipo]);
 
   const updateUnreadCount = useCallback((userId: number, newUnreadCount: number) => {
     setConversations(prev => prev.map(c =>
@@ -56,6 +74,9 @@ export function useInbox() {
 
   return {
     conversations: filteredConversations,
+    counts,
+    tipo,
+    setTipo,
     loading,
     query,
     setQuery,
