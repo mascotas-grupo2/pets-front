@@ -47,6 +47,16 @@ export const getAdminAdoptions = (params?: {
 export const getAdoptionById = (id: number | string) =>
   request<AdoptionDetail>(() => axios.get(`adoptions/${id}`));
 
+/** Solicitudes del usuario logueado (el back filtra por su userId). */
+export type MyAdoption = {
+  id: number;
+  petId: string | null;
+  statusId: number;
+  status: string;
+};
+export const getMyAdoptions = () =>
+  request<MyAdoption[]>(() => axios.get("adoptions"));
+
 /** Elimina una solicitud (solo admin). */
 export const deleteAdoption = (id: number | string) =>
   request<void>(() => axios.delete(`adoptions/${id}`));

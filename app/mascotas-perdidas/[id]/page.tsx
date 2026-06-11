@@ -3,6 +3,7 @@
 import { useUserContext } from "@/context/UserContext";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import { getIdPets, getAllPets } from "@/services/mascotas.pets";
+import { getMyAdoptions } from "@/services/adoptions";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
@@ -23,6 +24,8 @@ export default function PetDetailPage() {
   const { adopter } = useUserContext();
   const [activePhoto, setActivePhoto] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  // Si el usuario ya envió una solicitud para esta mascota, deshabilitamos el CTA.
+  const [alreadyApplied, setAlreadyApplied] = useState(false);
 
   const pet = useAppSelector((state) => state.pet);
   const pets = useAppSelector((state) => state.allPets);
@@ -54,6 +57,21 @@ export default function PetDetailPage() {
       })
       .catch((error) => console.error(error));
   }, [dispatch]);
+
+  // ¿El usuario ya envió una solicitud para esta mascota?
+  useEffect(() => {
+    if (!id || !user.isLoggedIn) {
+      setAlreadyApplied(false);
+      return;
+    }
+    getMyAdoptions()
+      .then((res) => {
+        if (res && res.ok && Array.isArray(res.data)) {
+          setAlreadyApplied(res.data.some((a) => a.petId === id));
+        }
+      })
+      .catch(() => {});
+  }, [id, user.isLoggedIn]);
 
   // Similares = misma especie, que todavía buscan familia (no adoptadas) y
   // distintas a la actual. Sin relleno con otras especies.
@@ -281,38 +299,32 @@ export default function PetDetailPage() {
               </ul>
             </section>
 
-            {adopter && pet.status === "en adopción" && (
+            {pet.status === "en adopción" && (
               <section className="pet-detail-cta">
-                <p>¿Me querés adoptar?</p>
-                <Link
-                  href={{
-                    pathname: "/adoptar/solicitar",
-                    query: {
-                      pet: pet.id,
-                      name: pet.name ?? detail.animalLabel,
-                    },
-                  }}
-                  className="btn btn-primary"
-                >
-                  Empezar
-                </Link>
-              </section>
-            )}
-             {!adopter && (
-              <section className="pet-detail-cta">
-                <p>¿Te interesa adoptar?</p>
-                <Link
-                  href={{
-                    pathname: "/adoptar/solicitar",
-                    query: {
-                      pet: pet.id,
-                      name: pet.name ?? detail.animalLabel,
-                    },
-                  }}
-                  className="btn btn-primary"
-                >
-                  Empezar
-                </Link>
+                <p>{adopter ? "¿Me querés adoptar?" : "¿Te interesa adoptar?"}</p>
+                {alreadyApplied ? (
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    disabled
+                    title="Ya enviaste una solicitud para esta mascota"
+                  >
+                    Solicitud enviada
+                  </button>
+                ) : (
+                  <Link
+                    href={{
+                      pathname: "/adoptar/solicitar",
+                      query: {
+                        pet: pet.id,
+                        name: pet.name ?? detail.animalLabel,
+                      },
+                    }}
+                    className="btn btn-primary"
+                  >
+                    Empezar
+                  </Link>
+                )}
               </section>
             )}
           </aside>

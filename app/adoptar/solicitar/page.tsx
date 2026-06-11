@@ -69,6 +69,8 @@ function AdoptarSolicitarContent() {
   const targetPetName = searchParams.get("name") ?? "";
   const [step, setStep] = useState(0);
   const [submitted, setSubmitted] = useState(false);
+  // True cuando precargamos los datos de una solicitud anterior y saltamos a "Confirmar".
+  const [prefilledFromPrevious, setPrefilledFromPrevious] = useState(false);
 
   const formik = useFormik<AdoptForm>({
     enableReinitialize: true,
@@ -111,6 +113,38 @@ function AdoptarSolicitarContent() {
           v = v === null ? "" : v;
           formik.setFieldValue(k, v);
         });
+
+        // Si ya hay una solicitud anterior COMPLETA y estamos aplicando a una
+        // mascota puntual, saltamos directo a "Confirmar": el usuario ya cargó
+        // todos sus datos, solo tiene que revisarlos, aceptar términos y enviar.
+        const required = [
+          "firstName", "lastName", "email", "phone",
+          "addressLine1", "postcode", "town",
+          "hasGarden", "livingSituation", "householdSetting", "activityLevel",
+          "visitingChildren", "hasFlatmates",
+          "otherAnimals", "neutered", "vaccinated",
+        ];
+        const r = rest as Record<string, unknown>;
+
+        // `hasAllergies` (Sí/No) es solo del front: el back guarda únicamente el
+        // texto `allergies`. Si hay una solicitud previa, derivamos el Sí/No del
+        // texto para que el radio quede marcado al revisar este paso.
+        const hasPrior = r.addressLine1 != null && r.addressLine1 !== "";
+        if (hasPrior) {
+          const a = r.allergies;
+          formik.setFieldValue(
+            "hasAllergies",
+            typeof a === "string" && a.trim() ? "si" : "no",
+          );
+        }
+
+        const complete =
+          r.adults != null &&
+          required.every((k) => r[k] != null && r[k] !== "");
+        if (complete && targetPetId) {
+          setPrefilledFromPrevious(true);
+          setStep(STEPS.length - 1);
+        }
       }
     });
   }, [isLoggedIn]);
@@ -184,6 +218,26 @@ function AdoptarSolicitarContent() {
           {step === 4 && <StepAnimals formik={formik} />}
           {step === 5 && <StepConfirm values={formik.values} />}
 
+          {step === 5 && prefilledFromPrevious && (
+            <div className="adopt-target-chip">
+              Cargamos tus datos de una solicitud anterior. Revisá que esté todo
+              bien, aceptá los términos y enviá — podés volver atrás para editar.
+            </div>
+          )}
+
+          {step === 5 && prefilledFromPrevious && (
+            <label className="adopt-confirm-terms">
+              <input
+                type="checkbox"
+                checked={!!formik.values.acceptsTerms}
+                onChange={(e) =>
+                  formik.setFieldValue("acceptsTerms", e.target.checked)
+                }
+              />{" "}
+              Leí y acepto los términos y la Política de privacidad.
+            </label>
+          )}
+
           <div className="wizard-nav">
             <button
               type="button"
@@ -206,7 +260,7 @@ function AdoptarSolicitarContent() {
                 type="submit"
                 className="btn btn-primary"
                 onClick={() => formik.handleSubmit()}
-                disabled={formik.isSubmitting}
+                disabled={formik.isSubmitting || !formik.values.acceptsTerms}
               >
                 {formik.isSubmitting ? "Enviando…" : "Enviar solicitud"}
               </button>
