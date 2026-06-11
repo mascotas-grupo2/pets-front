@@ -135,7 +135,7 @@ export function usePublicaciones() {
       await reload();
       return true;
     }
-    handleToast("error", "No se pudo aprobar. Probá de nuevo.");
+    handleToast("error", res.error || "No se pudo aprobar. Probá de nuevo.");
     return false;
   }
 
@@ -146,7 +146,7 @@ export function usePublicaciones() {
       await reload();
       return true;
     }
-    handleToast("error", "No se pudo rechazar. Probá de nuevo.");
+    handleToast("error", res.error || "No se pudo rechazar. Probá de nuevo.");
     return false;
   }
 
@@ -168,7 +168,7 @@ export function usePublicaciones() {
       await reload();
       return true;
     }
-    handleToast("error", "No se pudo eliminar. Probá de nuevo.");
+    handleToast("error", res.error || "No se pudo eliminar. Probá de nuevo.");
     return false;
   }
 

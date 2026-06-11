@@ -127,7 +127,7 @@ export function useMascotas() {
       await reload();
       return true;
     }
-    toast.error("No se pudo eliminar. Probá de nuevo.");
+    toast.error(res.error || "No se pudo eliminar. Probá de nuevo.");
     return false;
   }
 

@@ -54,10 +54,7 @@ export function PublicacionStats({ counts, loading, estado, onToggle }: Props) {
   const val = (n: number) => (loading ? "…" : n);
 
   return (
-    <div
-      className="pub-stats"
-      style={{ gridTemplateColumns: "repeat(5, minmax(0, 1fr))" }}
-    >
+    <div className="pub-stats pub-stats--5">
       <StatCard
         icon={<Clock size={22} aria-hidden />}
         label="Nuevas (pendientes)"

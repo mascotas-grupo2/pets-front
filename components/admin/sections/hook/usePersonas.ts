@@ -135,9 +135,10 @@ export function usePersonas() {
     }
     // El back devuelve 400 si es el último admin del sistema.
     toast.error(
-      res.status === 400
-        ? "No se puede: es el único administrador."
-        : "No se pudo cambiar el rol.",
+      res.error ||
+        (res.status === 400
+          ? "No se puede: es el único administrador."
+          : "No se pudo cambiar el rol."),
     );
     return false;
   }

@@ -91,7 +91,7 @@ export function MascotaDrawer({ pet, onClose, onChanged }: Props) {
       onChanged?.();
       onClose();
     } else {
-      toast.error("No se pudo cambiar el estado.");
+      toast.error(res.error || "No se pudo cambiar el estado.");
     }
   }
 
@@ -105,7 +105,7 @@ export function MascotaDrawer({ pet, onClose, onChanged }: Props) {
       onChanged?.();
       onClose();
     } else {
-      toast.error("No se pudo registrar la entrega.");
+      toast.error(res.error || "No se pudo registrar la entrega.");
     }
   }
   const especie = pet.animalTypeLabel ?? pet.animalType ?? "—";

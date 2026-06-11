@@ -193,7 +193,7 @@ export function useSolicitudes() {
       await loadSolicitudes(currentParams);
       return true;
     }
-    toast.error("No se pudo actualizar el estado.");
+    toast.error(res.error || "No se pudo actualizar el estado.");
     return false;
   }
 

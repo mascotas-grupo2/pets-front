@@ -29,10 +29,7 @@ const CARDS: {
 export function MascotasStats({ counts, filtro, onFiltro, loading }: Props) {
   const val = (n: number) => (loading ? "…" : n);
   return (
-    <div
-      className="pub-stats"
-      style={{ gridTemplateColumns: "repeat(5, minmax(0, 1fr))" }}
-    >
+    <div className="pub-stats pub-stats--5">
       {CARDS.map((c) => (
         <button
           key={c.id}

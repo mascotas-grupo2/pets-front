@@ -23,9 +23,22 @@ export async function request<T>(
       ok: false,
       data: null,
       status: err.response?.status || 500,
-      error: err.message,
+      // Mensaje específico del backend ({ error: "..." }) si existe; sino el genérico.
+      error: extractBackendError(err) ?? err.message,
     };
   }
+}
+
+/** Extrae el mensaje legible que devuelve el backend en el body de error. */
+export function extractBackendError(err: AxiosError): string | undefined {
+  const data = err.response?.data as
+    | { error?: unknown; message?: unknown }
+    | string
+    | undefined;
+  if (typeof data === "string") return data || undefined;
+  if (data && typeof data.error === "string") return data.error;
+  if (data && typeof data.message === "string") return data.message;
+  return undefined;
 }
 
 export async function requestSafe<T>(
