@@ -2,14 +2,36 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { X, PawPrint } from "lucide-react";
+import { toast } from "sonner";
+import { X, PawPrint, Heart } from "lucide-react";
 import { MascotaEstadoPill } from "../../lib/pet-status";
 import { formatEdad } from "../../lib/pet-format";
-import type { AdminPetSummary } from "@/types/pet";
+import { updatePet, entregaDirectaPet } from "@/services/mascotas.pets";
+import type { AdminPetSummary, PetStatus } from "@/types/pet";
 
 type Props = {
   pet: AdminPetSummary;
   onClose: () => void;
+  /** Se llama tras cambiar el estado o registrar una entrega, para recargar la lista. */
+  onChanged?: () => void;
+};
+
+/** Estados operativos que el admin puede setear a mano (sin "adoptado"). */
+const ESTADOS_OPERATIVOS: PetStatus[] = [
+  "perdido",
+  "encontrado",
+  "en tránsito",
+  "en tratamiento médico",
+  "en adopción",
+];
+
+const STATUS_LABEL: Record<PetStatus, string> = {
+  perdido: "Perdido",
+  encontrado: "En refugio",
+  "en tránsito": "En tránsito",
+  "en tratamiento médico": "En tratamiento médico",
+  "en adopción": "En adopción",
+  adoptado: "Adoptado",
 };
 
 type Tab =
@@ -50,9 +72,42 @@ function boolText(v?: boolean) {
 }
 
 /** Drawer lateral con el detalle de una mascota. */
-export function MascotaDrawer({ pet, onClose }: Props) {
+export function MascotaDrawer({ pet, onClose, onChanged }: Props) {
   const [tab, setTab] = useState<Tab>("overview");
+  const [estado, setEstado] = useState<PetStatus>(pet.status);
+  const [recipient, setRecipient] = useState("");
+  const [showEntrega, setShowEntrega] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const yaAdoptada = pet.status === "adoptado";
   const thumb = pet.photos?.[0] ?? pet.photo ?? null;
+
+  async function guardarEstado() {
+    if (estado === pet.status) return;
+    setBusy(true);
+    const res = await updatePet(pet.id, { status: estado });
+    setBusy(false);
+    if (res.ok) {
+      toast.success("Estado actualizado.");
+      onChanged?.();
+      onClose();
+    } else {
+      toast.error("No se pudo cambiar el estado.");
+    }
+  }
+
+  async function registrarEntrega() {
+    if (!recipient.trim()) return;
+    setBusy(true);
+    const res = await entregaDirectaPet(pet.id, recipient.trim());
+    setBusy(false);
+    if (res.ok) {
+      toast.success("Adopción directa registrada.");
+      onChanged?.();
+      onClose();
+    } else {
+      toast.error("No se pudo registrar la entrega.");
+    }
+  }
   const especie = pet.animalTypeLabel ?? pet.animalType ?? "—";
   const sub = [especie, pet.breed, formatEdad(pet.ageMonths)]
     .filter(Boolean)
@@ -158,6 +213,38 @@ export function MascotaDrawer({ pet, onClose }: Props) {
                 )}
               </div>
 
+              <div className="vdrawer-section">
+                <h3>Gestionar estado</h3>
+                {yaAdoptada ? (
+                  <p className="vdrawer-desc mdrawer-muted">
+                    La mascota está adoptada (estado final).
+                  </p>
+                ) : (
+                  <div className="mdrawer-estado-row">
+                    <select
+                      className="input"
+                      value={estado}
+                      onChange={(e) => setEstado(e.target.value as PetStatus)}
+                      disabled={busy}
+                    >
+                      {ESTADOS_OPERATIVOS.map((s) => (
+                        <option key={s} value={s}>
+                          {STATUS_LABEL[s]}
+                        </option>
+                      ))}
+                    </select>
+                    <button
+                      type="button"
+                      className="btn btn-primary"
+                      onClick={guardarEstado}
+                      disabled={busy || estado === pet.status}
+                    >
+                      Guardar
+                    </button>
+                  </div>
+                )}
+              </div>
+
               {/* MOCK: sin backend todavía */}
               <div className="vdrawer-section">
                 <h3>Compatibilidad promedio</h3>
@@ -199,11 +286,51 @@ export function MascotaDrawer({ pet, onClose }: Props) {
           )}
         </div>
 
-        <div className="vdrawer-foot">
+        <div
+          className="vdrawer-foot"
+          style={{ flexDirection: "column", alignItems: "stretch", gap: "0.5rem" }}
+        >
+          {!yaAdoptada &&
+            (showEntrega ? (
+              <div className="mdrawer-estado-row">
+                <input
+                  className="input"
+                  placeholder="¿A quién se entregó?"
+                  value={recipient}
+                  onChange={(e) => setRecipient(e.target.value)}
+                  disabled={busy}
+                  autoFocus
+                />
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  onClick={registrarEntrega}
+                  disabled={busy || !recipient.trim()}
+                >
+                  Confirmar
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-outline"
+                  onClick={() => setShowEntrega(false)}
+                  disabled={busy}
+                >
+                  Cancelar
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                className="btn btn-outline"
+                onClick={() => setShowEntrega(true)}
+              >
+                <Heart size={16} aria-hidden /> Registrar adopción directa
+              </button>
+            ))}
           <Link
             href={`/mascotas-perdidas/${pet.id}`}
             className="btn btn-primary"
-            style={{ flex: 1, textAlign: "center" }}
+            style={{ textAlign: "center" }}
           >
             Ver perfil completo
           </Link>
