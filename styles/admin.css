@@ -1898,6 +1898,109 @@
   border-bottom-color: var(--primary-500);
 }
 
+.msg-tab-count {
+  display: inline-block;
+  min-width: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--gray-100);
+  color: var(--gray-500);
+  font-size: 11px;
+  line-height: 18px;
+  text-align: center;
+}
+.msg-tab.is-active .msg-tab-count {
+  background: var(--primary-50, #f1eeff);
+  color: var(--primary-600);
+}
+
+/* Header de la bandeja (estilo mock) */
+.msg-panel-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+.msg-panel-title {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.msg-panel-icon {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--primary-50, #f1eeff);
+  color: var(--primary-600);
+  flex-shrink: 0;
+}
+.msg-panel-title h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--gray-900);
+}
+.msg-panel-title p {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--gray-500);
+}
+.msg-search-block {
+  width: 100%;
+}
+
+/* Tabs dentro de la conversación */
+.msg-chat-tabs {
+  padding: 0 16px;
+  flex-shrink: 0;
+}
+
+/* Contenido de las pestañas Perfil / Evaluación / Notas */
+.msg-tab-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+}
+.msg-tab-empty {
+  color: var(--gray-400);
+  font-size: 0.9rem;
+  padding: 8px 0;
+}
+.msg-eval-note {
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: 0.6rem;
+  padding: 0.8rem;
+  color: #92400e;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+.msg-notes {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+.msg-note {
+  background: var(--gray-50, #fafafa);
+  border: 1px solid var(--border);
+  border-radius: 0.6rem;
+  padding: 0.7rem 0.8rem;
+}
+.msg-note p {
+  margin: 0 0 0.3rem;
+  font-size: 0.88rem;
+  color: var(--gray-800);
+}
+.msg-note-meta {
+  font-size: 0.72rem;
+  color: var(--gray-400);
+}
+
 .msg-search {
   width: 100%;
 }
