@@ -2,15 +2,15 @@ import axiosInstance from "./axios";
 import { request } from "./request";
 const axios = axiosInstance;
 
-type userMessage = {
+export type userMessage = {
   id: number;
   photo: string;
   name: string;
 };
 export interface Message {
-  id: number;
-  senderId: number;
-  receiverId: number;
+  id: number; // Unique ID of the message
+  senderId: number; // ID del remitente
+  receiverId: number; // ID del destinatario
   content: string;
   read: boolean;
   createdAt: string;
@@ -63,6 +63,11 @@ export const getAdminInbox = (page = 1, limit = 20) =>
     axios.get(`messages/admin/inbox`, { params: { page, limit } }),
   );
 
+export const getAdminConversations = (page = 1, limit = 20) =>
+  request<AdminInboxResponse>(() =>
+    axios.get(`messages/admin/conversations`, { params: { page, limit } }),
+  );
+
 export const getConversation = (userId: number) =>
   request<ConversationResponse>(() =>
     axios.get(`messages/conversation/${userId}`),
@@ -70,3 +75,6 @@ export const getConversation = (userId: number) =>
 
 export const sendMessage = (receiverId: number, content: string) =>
   request<Message>(() => axios.post(`messages/`, { receiverId, content }));
+
+export const deleteConversation = (userId: number) =>
+  request<void>(() => axios.delete(`messages/conversation/${userId}`));

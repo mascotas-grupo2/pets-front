@@ -1,7 +1,60 @@
-"use client";
-
-import { MessagesPanel } from "@/components/messages/messages-panel";
-
+import { useConversation } from "../hook/messages/useConversation";
+import { useInbox } from "../hook/messages/useInbox";
+import { useMessages } from "../hook/messages/useMessages";
+import ConversationView from "./ConversationView";
+import EmptyState from "./EmptyState";
+import InboxList from "./InboxList";
+import NewMessageView from "./NewMessageView";
 export default function MensajesSection() {
-  return <MessagesPanel />;
+  const inbox = useInbox();
+
+  const {
+    panelMode,
+    activeUserId,
+    openConversation,
+    openNewMessage,
+    closePanel,
+  } = useMessages();
+
+  const conversation = useConversation(activeUserId);
+
+  return (
+    <div className="msg-layout">
+      <InboxList
+        conversations={inbox.conversations}
+        loading={inbox.loading}
+        query={inbox.query}
+        setQuery={inbox.setQuery}
+        activeUserId={activeUserId}
+        onSelect={openConversation}
+        onNew={openNewMessage}
+      />
+
+      {panelMode === "idle" && <EmptyState />}
+
+      {panelMode === "new" && (
+        <NewMessageView
+          inboxUserIds={inbox.conversations.map((c) => c.user.id)}
+          onCancel={() => {
+            closePanel();
+          }}
+          onCreated={(user) => {
+            inbox.reload();
+
+            openConversation(user.id);
+          }}
+        />
+      )}
+
+      {panelMode === "chat" && activeUserId && (
+        <ConversationView
+          conversationData={conversation}
+          activeUserMessage={
+            inbox.conversations.find((c) => c.user.id === activeUserId)?.user ||
+            null
+          }
+        />
+      )}
+    </div>
+  );
 }
