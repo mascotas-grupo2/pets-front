@@ -11,6 +11,15 @@ import {
 export type TipoFiltro = "todos" | "admin" | "adoptante" | "comun";
 
 const PAGE_SIZE = 8;
+const ROLE_ID = { admin: 502, user: 501 } as const;
+
+/** Traduce el filtro de tipo a los params que entiende el back. */
+function tipoToParams(tipo: TipoFiltro): { roleId?: number; adopter?: boolean } {
+  if (tipo === "admin") return { roleId: ROLE_ID.admin };
+  if (tipo === "adoptante") return { adopter: true };
+  if (tipo === "comun") return { roleId: ROLE_ID.user, adopter: false };
+  return {};
+}
 
 export function categoriaUsuario(u: AdminUser): Exclude<TipoFiltro, "todos"> {
   if (u.role === "admin") return "admin";
@@ -39,40 +48,24 @@ export function usePersonas() {
   const [tipo, setTipoRaw] = useState<TipoFiltro>("todos");
   const [page, setPageRaw] = useState(1);
 
-  // ── Fetch + filtrado cliente (temporal hasta que el back soporte params) ──
-  // TODO: reemplazar por:
-  // const res = await getAdminUsers({ tipo, q, page, pageSize: PAGE_SIZE });
-  // setVisible(res.data.items); setTotal(res.data.total); setCounts(res.data.counts);
+  // El back pagina, filtra y devuelve los conteos globales (cards correctas).
   const loadUsers = useCallback(async (params: Params) => {
     setLoading(true);
-    // Traemos toda la base (cap 100 del back) y contamos/filtramos/paginamos en
-    // el cliente, así los conteos por categoría son sobre toda la base y no sobre
-    // una sola página.
-    const res = await getAdminUsers({ pageSize: PAGE_SIZE });
+    const res = await getAdminUsers({
+      ...tipoToParams(params.tipo),
+      search: params.q.trim() || undefined,
+      page: params.page,
+      pageSize: PAGE_SIZE,
+    });
     if (res.ok && res.data) {
-      const all = res.data.items;
-
+      setVisible(res.data.items);
+      setTotal(res.data.total);
       setCounts({
-        todos: res.data.total,
-        admin: all.filter((u) => categoriaUsuario(u) === "admin").length,
-        adoptante: all.filter((u) => categoriaUsuario(u) === "adoptante")
-          .length,
-        comun: all.filter((u) => categoriaUsuario(u) === "comun").length,
+        todos: res.data.totals.total,
+        admin: res.data.totals.admins,
+        adoptante: res.data.totals.adopters,
+        comun: res.data.totals.comunes,
       });
-
-      const q = params.q.trim().toLowerCase();
-      const filtered = all.filter((u) => {
-        if (params.tipo !== "todos" && categoriaUsuario(u) !== params.tipo)
-          return false;
-        if (!q) return true;
-        return (
-          u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)
-        );
-      });
-
-      setTotal(filtered.length);
-      const from = (params.page - 1) * PAGE_SIZE;
-      setVisible(filtered.slice(from, from + PAGE_SIZE));
     } else {
       toast.error("No se pudieron cargar las personas.");
     }
