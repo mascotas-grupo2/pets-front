@@ -167,6 +167,10 @@ export default function ConversationView({
 
   const { messages, profile, hasMore, loadingOlder, loadOlder } = conversationData;
   const esInterno = activeUserMessage?.role === "admin";
+  // Si el solicitante no está en la bandeja (nunca escribió), usamos el perfil
+  // que devuelve la conversación para mostrar nombre/foto igual.
+  const headName = activeUserMessage?.name || profile?.name || "Usuario";
+  const headPhoto = activeUserMessage?.photo || profile?.photo || null;
 
   // Conversación admin↔admin: solo Mensajes + Perfil. Con usuario: + Evaluación
   // (la Evaluación concentra checklist, impresiones y notas de la mascota).
@@ -256,17 +260,17 @@ export default function ConversationView({
   return (
     <section className="msg-chat-panel">
       <header className="msg-chat-head">
-        {activeUserMessage?.photo ? (
+        {headPhoto ? (
           <img
-            src={activeUserMessage.photo}
-            alt={activeUserMessage.name}
+            src={headPhoto}
+            alt={headName}
             className="msg-avatar object-cover"
           />
         ) : (
-          <span className="msg-avatar">{initials(activeUserMessage?.name || "U")}</span>
+          <span className="msg-avatar">{initials(headName)}</span>
         )}
         <div className="msg-chat-head-info">
-          <h3>{activeUserMessage?.name || "Usuario"}</h3>
+          <h3>{headName}</h3>
           {(profile?.context || activeUserMessage?.context) && (
             <p>{profile?.context ?? activeUserMessage?.context}</p>
           )}
