@@ -7,6 +7,8 @@ import { X, PawPrint,  Info } from "lucide-react";
 import type { AdoptionDetail } from "@/types/adoption-detail";
 import type { Solicitud } from "../solicitudes.data";
 import { getAdoptionById } from "@/services/adoptions";
+import { getIdPets } from "@/services/mascotas.pets";
+import type { Pet } from "@/types/pet";
 
 type Props = { solicitud: Solicitud; onClose: () => void };
 
@@ -19,12 +21,26 @@ function val(v: string | number | boolean | null | undefined): string {
 export function MascotaModal({ solicitud, onClose }: Props) {
   const [detail, setDetail] = useState<AdoptionDetail | null>(null);
   const [loading, setLoading] = useState(true);
+  const [fullPet, setFullPet] = useState<Pet | null>(null);
 
   useEffect(() => {
     let cancelled = false;
+    setLoading(true);
     void getAdoptionById(solicitud.id).then((res) => {
       if (cancelled) return;
-      if (res.ok && res.data) setDetail(res.data as AdoptionDetail);
+      if (res.ok && res.data) {
+        setDetail(res.data as AdoptionDetail);
+        const pid = res.data.pet?.id;
+        if (pid) {
+          getIdPets(pid).then((pRes) => {
+            if (!cancelled && pRes.ok && pRes.data) {
+              setFullPet(pRes.data);
+            }
+            setLoading(false);
+          });
+          return;
+        }
+      }
       setLoading(false);
     });
     return () => { cancelled = true; };
@@ -77,7 +93,55 @@ export function MascotaModal({ solicitud, onClose }: Props) {
                 <dl className="sdet-modal-dl" style={{ flex: 1 }}>
                   <div className="sdet-modal-dl-row">
                     <dt>Nombre</dt>
-                    <dd>{val(pet.name)}</dd>
+                    <dd>{val(fullPet?.name ?? pet.name)}</dd>
+                  </div>
+                  <div className="sdet-modal-dl-row">
+                    <dt>Tipo</dt>
+                    <dd>{val(fullPet?.animalTypeLabel ?? fullPet?.animalType)}</dd>
+                  </div>
+                  <div className="sdet-modal-dl-row">
+                    <dt>Sexo</dt>
+                    <dd>{val(fullPet?.sexLabel ?? fullPet?.sex)}</dd>
+                  </div>
+                  <div className="sdet-modal-dl-row">
+                    <dt>Edad</dt>
+                    <dd>{fullPet?.ageMonths ? `${fullPet.ageMonths} meses` : "—"}</dd>
+                  </div>
+                  <div className="sdet-modal-dl-row">
+                    <dt>Raza</dt>
+                    <dd>{val(fullPet?.breed)}</dd>
+                  </div>
+                  <div className="sdet-modal-dl-row">
+                    <dt>Peso</dt>
+                    <dd>{fullPet?.weightKg ? `${fullPet.weightKg} Kg` : "—"}</dd>
+                  </div>
+                  <div className="sdet-modal-dl-row">
+                    <dt>Ubicación</dt>
+                    <dd>{val(fullPet?.location)}</dd>
+                  </div>
+                  <div className="sdet-modal-dl-row">
+                    <dt>Estado médico</dt>
+                    <dd>{val(fullPet?.medicalStatusLabel ?? fullPet?.medicalStatus)}</dd>
+                  </div>
+                  <div className="sdet-modal-dl-row">
+                    <dt>Amigable con niños</dt>
+                    <dd>{val(fullPet?.friendlyWithKids)}</dd>
+                  </div>
+                  <div className="sdet-modal-dl-row">
+                    <dt>Amigable con mascotas</dt>
+                    <dd>{val(fullPet?.friendlyWithPets)}</dd>
+                  </div>
+                  <div className="sdet-modal-dl-row">
+                    <dt>Entrenado/Educado</dt>
+                    <dd>{val(fullPet?.trained)}</dd>
+                  </div>
+                  <div className="sdet-modal-dl-row">
+                    <dt>Castrado</dt>
+                    <dd>{val(fullPet?.neutered)}</dd>
+                  </div>
+                  <div className="sdet-modal-dl-row">
+                    <dt>Vacunado</dt>
+                    <dd>{val(fullPet?.vaccinated)}</dd>
                   </div>
                   <div className="sdet-modal-dl-row">
                     <dt>ID</dt>

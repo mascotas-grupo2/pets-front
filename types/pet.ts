@@ -90,5 +90,6 @@ export type Pet = {
     22: string[];
   };
   friendlyWithKids?: boolean;
+  friendlyWithPets?: boolean;
   trained?: boolean;
 };
