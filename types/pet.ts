@@ -20,7 +20,8 @@ export type PetReportStatus =
   | "pendiente"
   | "activo"
   | "finalizado"
-  | "rechazado";
+  | "rechazado"
+  | "reservada";
 
 export type PetNoteKind = "general" | "medica" | "adopcion";
 
@@ -39,6 +40,8 @@ export type AdminPetSummary = Pet & {
   /** Usuario registrado que creó la publicación (null si fue anónimo). */
   ownerName: string | null;
   ownerEmail: string | null;
+  /** True si la publicación fue creada por un admin (solo esas son editables). */
+  ownerIsAdmin?: boolean;
   adoptionInterestCount: number;
   medicalNoteCount: number;
   generalNoteCount: number;
@@ -55,6 +58,8 @@ export type Pet = {
   /** Estado de validación de la publicación (lo controla el admin). */
   reportStatus?: PetReportStatus;
   reportStatusLabel?: string;
+  /** Motivo del último rechazo (solo se incluye en publicaciones rechazadas). */
+  rejectionReason?: string;
   statusLabel?: string;
   sexLabel?: string;
   medicalStatusLabel?: string;
