@@ -28,8 +28,8 @@ export const TIPO_OPTIONS: { id: number; label: string }[] = [
   { id: FOLLOWUP_TYPE.postAdopcion, label: "Post adopción" },
 ];
 
-/** Pestañas del listado. */
-export type SeguimientoTab = "proximos" | "todos" | "completados";
+/** Pestañas/Filtros del listado (cards). */
+export type SeguimientoTab = "todas" | "pendientes" | "confirmadas" | "completadas";
 
 /** Shape que consume la tabla / agenda del panel. */
 export type Seguimiento = {

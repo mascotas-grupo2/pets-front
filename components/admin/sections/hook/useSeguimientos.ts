@@ -92,21 +92,18 @@ async function loadLookups() {
   return { petMap, userMap, petOptions, userOptions };
 }
 
-/** Filtra según la pestaña activa (próximos / todos / completados). */
+/** Filtra según la pestaña activa (cards). */
 function filterByTab(items: Seguimiento[], tab: SeguimientoTab, now: Date): Seguimiento[] {
-  if (tab === "completados") {
-    return items.filter((s) => s.estadoId === FOLLOWUP_STATUS.completado);
-  }
-  if (tab === "proximos") {
-    return items.filter((s) => new Date(s.appointmentAt).getTime() >= now.getTime());
-  }
+  if (tab === "pendientes") return items.filter((s) => s.estadoId === FOLLOWUP_STATUS.pendiente);
+  if (tab === "confirmadas") return items.filter((s) => s.estadoId === FOLLOWUP_STATUS.confirmado);
+  if (tab === "completadas") return items.filter((s) => s.estadoId === FOLLOWUP_STATUS.completado);
   return items;
 }
 
 export function useSeguimientos() {
   const [all, setAll] = useState<Seguimiento[]>([]);
   const [loading, setLoading] = useState(true);
-  const [tab, setTabRaw] = useState<SeguimientoTab>("proximos");
+  const [tab, setTabRaw] = useState<SeguimientoTab>("todas");
   const [query, setQueryRaw] = useState("");
   const [page, setPageRaw] = useState(1);
   const [sort, setSortRaw] = useState<SortOrder<SeguimientoSortKey>[]>([]);
@@ -146,6 +143,13 @@ export function useSeguimientos() {
   }, [load]);
 
   const now = useMemo(() => new Date(), [all]);
+
+  const counts = useMemo(() => ({
+    todas: all.length,
+    pendientes: all.filter((s) => s.estadoId === FOLLOWUP_STATUS.pendiente).length,
+    confirmadas: all.filter((s) => s.estadoId === FOLLOWUP_STATUS.confirmado).length,
+    completadas: all.filter((s) => s.estadoId === FOLLOWUP_STATUS.completado).length,
+  }), [all]);
 
   // Listado filtrado por pestaña + filtros + búsqueda + orden (datos ya cargados).
   const filtered = useMemo(() => {
@@ -254,6 +258,7 @@ export function useSeguimientos() {
     totalPages,
     desde,
     hasta,
+    counts,
     items: all,
     now,
     reload: load,
