@@ -21,13 +21,13 @@ export function AdminSidebar({
       className={`admin-sidebar${collapsed ? " collapsed" : ""}`}
       aria-label="Menú de administración"
     >
-      <div className="admin-sidebar-brand">
+      <Link href="/" className="admin-sidebar-brand" aria-label="Ir al inicio">
         <img src="/images/favicon.ico" alt="" aria-hidden="true" />
         <span className="admin-brand-text">
           <span className="row1">Huellitas</span>
           <span className="row2">Unidas</span>
         </span>
-      </div>
+      </Link>
 
       <nav className="admin-nav" aria-label="Secciones">
         {SECTIONS.map((item) => {

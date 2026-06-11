@@ -1308,9 +1308,10 @@
   color: var(--gray-600);
 }
 
-/* stats de Personas: 4 columnas y separación con los controles de abajo */
+/* stats de Personas: separación con los controles de abajo. Las columnas las
+   maneja el responsive global de .dash-stats (auto-fit + 2-col en mobile); no
+   las fijamos acá para no romper el wrap en anchos intermedios. */
 .personas .dash-stats {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
   margin-bottom: 16px;
 }
 
