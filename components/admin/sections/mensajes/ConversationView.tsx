@@ -4,8 +4,8 @@ import { Loader2, Send } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useAppSelector } from "@/redux/hooks";
 import { Message, ConversationProfile, userMessage } from "@/services/messages.services";
-import { initials } from "./mensajes.data";
 import { useConversation } from "../hook/messages/useConversation";
+import { initials } from "../dashboard/dashboard.data";
 
 type Props = {
   conversationData: ReturnType<typeof useConversation>;

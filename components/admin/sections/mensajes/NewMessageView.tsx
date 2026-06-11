@@ -4,8 +4,8 @@ import { ArrowLeft, Loader2, Search, Send } from "lucide-react";
 
 import { useRef, useEffect } from "react";
 import { toast } from "sonner";
-import { initials } from "./mensajes.data";
 import { useNewMessage, UserItem } from "../hook/messages/useNewMessage";
+import { initials } from "../dashboard/dashboard.data";
 
 type Props = {
   inboxUserIds: number[];

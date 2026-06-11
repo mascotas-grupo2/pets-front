@@ -2,7 +2,7 @@
 
 import { InboxConversation, } from "@/services/messages.services";
 import { Loader2, Search } from "lucide-react";
-import { initials } from "./mensajes.data";
+import { initials } from "../dashboard/dashboard.data";
 
 type Props = {
   conversations: InboxConversation[];
