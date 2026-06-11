@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { Plus } from "lucide-react";
 import { useMascotas } from "../hook/useMascotas";
-import { MascotasTabs } from "./MascotasTabs";
+import { MascotasStats } from "./MascotasStats";
 import { MascotasFilters } from "./MascotasFilters";
 import { MascotasTable } from "./MascotasTable";
 import type { AdminPetSummary } from "@/types/pet";
@@ -21,7 +21,7 @@ export function MascotasSection() {
     especie, setEspecie,
     sort, setSort,
     page, setPage, totalPages, total, desde, hasta,
-    handleDelete,
+    handleDelete, reload,
   } = useMascotas();
 
   return (
@@ -32,7 +32,12 @@ export function MascotasSection() {
         </Link>
       </div>
 
-      <MascotasTabs counts={counts} filtro={filtro} onFiltro={setFiltro} />
+      <MascotasStats
+        counts={counts}
+        filtro={filtro}
+        onFiltro={setFiltro}
+        loading={loading}
+      />
 
       <MascotasFilters
         query={query}
@@ -60,6 +65,7 @@ export function MascotasSection() {
         <MascotaDrawer
           pet={selected}
           onClose={() => setSelected(null)}
+          onChanged={reload}
         />
       )}
     </div>
