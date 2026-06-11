@@ -48,6 +48,8 @@ export interface ConversationProfile {
   evaluationNote: string | null;
   /** "Solicitud de adopción de <mascota>" (de la última solicitud del usuario). */
   context?: string | null;
+  /** Id de la última solicitud, para vincular la evaluación. */
+  adoptionId?: number | null;
   phone?: string | null;
   town?: string | null;
   notes?: ConversationNote[];
@@ -56,6 +58,7 @@ export interface ConversationProfile {
 export interface ConversationResponse {
   messages: Message[];
   profile?: ConversationProfile;
+  hasMore?: boolean;
 }
 
 export interface AdminInboxConversation {
@@ -85,9 +88,12 @@ export const getAdminConversations = (page = 1, limit = 20) =>
     axios.get(`messages/admin/conversations`, { params: { page, limit } }),
   );
 
-export const getConversation = (userId: number) =>
+export const getConversation = (
+  userId: number,
+  params?: { before?: number; limit?: number },
+) =>
   request<ConversationResponse>(() =>
-    axios.get(`messages/conversation/${userId}`),
+    axios.get(`messages/conversation/${userId}`, { params }),
   );
 
 export const sendMessage = (receiverId: number, content: string) =>

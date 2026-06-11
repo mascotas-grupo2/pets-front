@@ -519,6 +519,20 @@
   font-weight: 700;
   line-height: 1.15;
   color: var(--gray-900);
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.dash-stat-badge {
+  font-size: 12px;
+  font-weight: 600;
+  color: #b91c1c;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 999px;
+  padding: 1px 8px;
+  white-space: nowrap;
 }
 
 .dash-stat-hint {
@@ -918,7 +932,6 @@
   flex-direction: column;
   box-shadow: -8px 0 30px rgba(0, 0, 0, 0.18);
   animation: vdrawer-in 0.2s ease;
-
 }
 
 @keyframes vdrawer-in {
@@ -1886,7 +1899,9 @@
   font-weight: 600;
   color: var(--gray-500);
   cursor: pointer;
-  transition: color 0.15s ease, border-color 0.15s ease;
+  transition:
+    color 0.15s ease,
+    border-color 0.15s ease;
 }
 
 .msg-tab:hover {
@@ -2182,7 +2197,9 @@
   font-weight: 600;
   color: var(--gray-500);
   cursor: pointer;
-  transition: color 0.15s ease, border-color 0.15s ease;
+  transition:
+    color 0.15s ease,
+    border-color 0.15s ease;
 }
 
 .msg-subtab:hover {
@@ -2195,6 +2212,14 @@
 }
 
 /* ---------- Hilo de mensajes ---------- */
+.msg-thread-wrap {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
 .msg-thread {
   flex: 1;
   min-height: 0;
@@ -2203,6 +2228,234 @@
   flex-direction: column;
   gap: 16px;
   padding: 20px;
+}
+
+.msg-older-loader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--gray-400);
+  padding: 4px 0 8px;
+}
+
+/* Badge flotante "N mensajes nuevos" */
+.msg-new-badge {
+  position: absolute;
+  left: 50%;
+  bottom: 14px;
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border: none;
+  border-radius: 999px;
+  background: var(--primary-600, #5a4bd1);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(31, 25, 87, 0.3);
+}
+
+/* ── Nuevo mensaje (selector de destinatario + composer) ── */
+.nm-compose {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  gap: 16px;
+  padding: 18px;
+}
+.nm-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.nm-field--grow {
+  flex: 1;
+  min-height: 0;
+}
+.nm-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--gray-400);
+}
+.nm-search-wrap {
+  position: relative;
+}
+.nm-results {
+  list-style: none;
+  margin: 6px 0 0;
+  padding: 4px;
+  border: 1px solid var(--border);
+  border-radius: 0.7rem;
+  background: #fff;
+  box-shadow: 0 10px 28px rgba(31, 25, 87, 0.12);
+  max-height: 260px;
+  overflow-y: auto;
+}
+.nm-result {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border: none;
+  background: transparent;
+  border-radius: 0.55rem;
+  cursor: pointer;
+  text-align: left;
+}
+.nm-result:hover {
+  background: var(--gray-100);
+}
+.nm-result-info,
+.nm-selected-info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+.nm-result-name,
+.nm-selected-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--gray-900);
+}
+.nm-result-email,
+.nm-selected-email {
+  font-size: 0.78rem;
+  color: var(--gray-500);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.nm-selected {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--primary-200, #beb0ff);
+  background: var(--primary-50, #f1eeff);
+  border-radius: 0.7rem;
+}
+.nm-clear {
+  border: none;
+  background: transparent;
+  color: var(--gray-500);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 0.4rem;
+}
+.nm-clear:hover {
+  background: rgba(0, 0, 0, 0.06);
+  color: var(--gray-800);
+}
+.nm-empty-hint {
+  font-size: 0.8rem;
+  color: var(--gray-400);
+  margin: 6px 2px 0;
+}
+.nm-textarea {
+  flex: 1;
+  width: 100%;
+  min-height: 120px;
+  resize: none;
+  border: 1px solid var(--border);
+  border-radius: 0.7rem;
+  padding: 12px;
+  font: inherit;
+  font-size: 0.9rem;
+}
+.nm-textarea:focus {
+  outline: none;
+  border-color: var(--primary-400, #8b73ff);
+  box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.12);
+}
+.nm-textarea:disabled {
+  background: var(--gray-50, #fafafa);
+  color: var(--gray-400);
+}
+.nm-foot {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* Pestaña Evaluación: bloques separados */
+.msg-eval {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.msg-eval-block {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Pestaña Evaluación: checklist + impresiones */
+.msg-section-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--gray-400);
+  margin: 0;
+}
+.msg-check-count {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--primary-600);
+  background: var(--primary-50, #f1eeff);
+  padding: 1px 7px;
+  border-radius: 999px;
+}
+.msg-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.msg-chip-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface, #fff);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--gray-600);
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.msg-chip-check:hover {
+  background: var(--gray-50);
+}
+.msg-chip-check.is-checked {
+  background: var(--secondary-50, #e6f7f2);
+  border-color: var(--secondary-300, #6bc9a8);
+  color: var(--secondary-700, #0f6e52);
+  font-weight: 600;
+}
+.msg-nota-composer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: flex-end;
+}
+.msg-nota-composer textarea {
+  width: 100%;
 }
 
 .msg-bubble-row {
@@ -2290,7 +2543,9 @@
   background: var(--primary-500);
   color: #fff;
   cursor: pointer;
-  transition: background 0.15s ease, opacity 0.15s ease;
+  transition:
+    background 0.15s ease,
+    opacity 0.15s ease;
 }
 
 .msg-send:hover:not(:disabled) {
@@ -2525,7 +2780,9 @@
   background: var(--surface);
   color: var(--gray-500);
   cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
 }
 .seg-cal-nav:hover {
   background: var(--gray-100);
@@ -2562,7 +2819,9 @@
   background: transparent;
   font-family: inherit;
   cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
 }
 .seg-cal-cell.is-day:hover:not(.is-disabled):not(.is-selected) {
   background: var(--primary-50);
@@ -2669,5 +2928,3 @@
     height: auto;
   }
 }
-
-

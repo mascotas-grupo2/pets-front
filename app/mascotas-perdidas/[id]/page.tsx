@@ -2,7 +2,7 @@
 
 import { useUserContext } from "@/context/UserContext";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
-import { getIdPets } from "@/services/mascotas.pets";
+import { getIdPets, getAllPets } from "@/services/mascotas.pets";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
@@ -43,12 +43,30 @@ export default function PetDetailPage() {
       .finally(() => setLoading(false));
   }, [id, dispatch]);
 
+  // Aseguramos tener la lista pública para calcular "reportes similares" aunque
+  // se entre directo a la URL del detalle.
+  useEffect(() => {
+    getAllPets()
+      .then((res) => {
+        if (res && res.ok && res.data) {
+          dispatch({ type: "pets/all_pets", payload: res.data });
+        }
+      })
+      .catch((error) => console.error(error));
+  }, [dispatch]);
+
+  // Similares = misma especie, que todavía buscan familia (no adoptadas) y
+  // distintas a la actual. Sin relleno con otras especies.
   const similar = useMemo(() => {
-    if (!pet || !pets) return null;
-    const others = pets.filter((p) => p.id !== pet.id);
-    const sameType = others.filter((p) => p.animalType === pet.animalType);
-    const rest = others.filter((p) => p.animalType !== pet.animalType);
-    return [...sameType, ...rest].slice(0, 4);
+    if (!pet || !pets) return [];
+    return pets
+      .filter(
+        (p) =>
+          p.id !== pet.id &&
+          p.animalType === pet.animalType &&
+          p.status !== "adoptado",
+      )
+      .slice(0, 4);
   }, [pets, pet]);
 
   const detail = useMemo(() => {
@@ -300,19 +318,28 @@ export default function PetDetailPage() {
           </aside>
         </div>
 
-        {similar && (
-          <section className="pet-detail-similar">
-            <div className="section-title">
-              <h2>Reportes similares</h2>
-              <p>Otras mascotas del mismo tipo que aún buscan su familia.</p>
-            </div>
+        <section className="pet-detail-similar">
+          <div className="section-title">
+            <h2>Reportes similares</h2>
+            <p>Otras mascotas del mismo tipo que aún buscan su familia.</p>
+          </div>
+          {similar.length === 0 ? (
+            <p className="similar-empty">
+              No se encontraron reportes similares por ahora.
+            </p>
+          ) : (
             <ul className="similar-grid">
               {similar.map((p) => (
                 <li key={p.id} className="similar-card">
                   <div className="similar-photo">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
-                      src={(p.photos?.[0] as unknown as string) || "/images/avatar-placeholder.svg"}
+                      src={
+                        (p.photos?.[0] as unknown as string) ||
+                        (p.animalType === "gato"
+                          ? "/images/pet-cat.jpg"
+                          : "/images/pet-dog.jpg")
+                      }
                       alt={p.name ?? ""}
                     />
                   </div>
@@ -334,8 +361,8 @@ export default function PetDetailPage() {
                 </li>
               ))}
             </ul>
-          </section>
-        )}
+          )}
+        </section>
       </div>
     </main>
   ) : (

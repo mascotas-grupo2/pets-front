@@ -54,3 +54,31 @@ export const deleteAdoption = (id: number | string) =>
 /** Actualiza el estado de una solicitud (solo admin). */
 export const updateAdoptionStatus = (id: number | string, status: string) =>
   request<AdoptionDetail>(() => axios.patch(`adoptions/${id}/status`, { status }));
+
+// ── Evaluación del adoptante (checklist + impresiones) ──────────────────────
+
+export type AdoptionEvaluationNote = {
+  id: number;
+  text: string;
+  author: string | null;
+  createdAt: string;
+};
+
+export type AdoptionEvaluation = {
+  items: string[];
+  checked: string[];
+  notes: AdoptionEvaluationNote[];
+};
+
+export const getAdoptionEvaluation = (id: number) =>
+  request<AdoptionEvaluation>(() => axios.get(`adoptions/${id}/evaluation`));
+
+export const toggleAdoptionCheck = (id: number, item: string, done: boolean) =>
+  request<{ checked: string[] }>(() =>
+    axios.patch(`adoptions/${id}/checks`, { item, done }),
+  );
+
+export const addAdoptionNote = (id: number, text: string) =>
+  request<AdoptionEvaluationNote>(() =>
+    axios.post(`adoptions/${id}/notes`, { text }),
+  );

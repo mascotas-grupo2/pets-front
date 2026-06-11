@@ -2145,6 +2145,16 @@
   margin-top: 1rem;
 }
 
+.similar-empty {
+  text-align: center;
+  color: var(--gray-500);
+  background: var(--gray-50);
+  border: 1px dashed var(--border);
+  border-radius: 0.8rem;
+  padding: 1.5rem;
+  font-size: 0.95rem;
+}
+
 .similar-grid {
   list-style: none;
   display: grid;

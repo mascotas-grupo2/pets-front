@@ -19,6 +19,7 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import { useSolicitudDetail } from "../../hook/useSolicitudDetail";
+import { useEvaluacion } from "../../hook/useEvaluacion";
 import type { AdoptionDetail } from "@/types/adoption-detail";
 import type { Solicitud } from "../solicitudes.data";
 import { AdoptanteModal } from "./adoptante-modal";
@@ -108,51 +109,35 @@ import type {
   AdoptionHistoryItem
 } from "@/types/adoption-detail";
 
-function TabEvaluacion() {
-  const [checks, setChecks] = useState<Record<string, boolean>>({});
+function TabEvaluacion({ adoptionId }: { adoptionId: number }) {
+  const { items, checked, notes, toggle, addNote } = useEvaluacion(adoptionId);
   const [nota, setNota] = useState("");
-  const [notas, setNotas] = useState<{ texto: string; fecha: string }[]>([]);
 
-  function toggle(label: string) {
-    setChecks((prev) => ({ ...prev, [label]: !prev[label] }));
+  async function guardarNota() {
+    const ok = await addNote(nota);
+    if (ok) setNota("");
   }
-  function guardarNota() {
-    const texto = nota.trim();
-    if (!texto) return;
-    const fecha = new Date().toLocaleString("es-AR", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-    setNotas((prev) => [{ texto, fecha }, ...prev]);
-    setNota("");
-  }
-
-  const CHECKLIST = [
-    "Verificó identidad",
-    "Consultó sobre vivienda",
-    "Evaluó experiencia previa",
-    "Revisó situación familiar",
-    "Coordinó visita al hogar",
-  ];
 
   return (
     <div className="sdet-tab-content sdet-eval">
-      <p className="sdet-section-label">Checklist</p>
+      <p className="sdet-section-label">
+        Checklist · {checked.length}/{items.length}
+      </p>
       <div className="sdet-chips">
-        {CHECKLIST.map((item) => (
-          <button
-            key={item}
-            type="button"
-            className={`sdet-chip-check${checks[item] ? " is-checked" : ""}`}
-            onClick={() => toggle(item)}
-          >
-            {checks[item] && <CheckCircle2 size={12} aria-hidden />}
-            {item}
-          </button>
-        ))}
+        {items.map((item) => {
+          const on = checked.includes(item);
+          return (
+            <button
+              key={item}
+              type="button"
+              className={`sdet-chip-check${on ? " is-checked" : ""}`}
+              onClick={() => toggle(item)}
+            >
+              {on && <CheckCircle2 size={12} aria-hidden />}
+              {item}
+            </button>
+          );
+        })}
       </div>
 
       <p className="sdet-section-label" style={{ marginTop: "1rem" }}>
@@ -177,12 +162,20 @@ function TabEvaluacion() {
         </button>
       </div>
 
-      {notas.length > 0 && (
+      {notes.length > 0 && (
         <ul className="sdet-notas-list">
-          {notas.map((n, i) => (
-            <li key={i} className="sdet-nota-item">
-              <p className="sdet-nota-texto">{n.texto}</p>
-              <time className="sdet-nota-fecha">{n.fecha}</time>
+          {notes.map((n) => (
+            <li key={n.id} className="sdet-nota-item">
+              <p className="sdet-nota-texto">{n.text}</p>
+              <time className="sdet-nota-fecha">
+                {new Date(n.createdAt).toLocaleString("es-AR", {
+                  day: "2-digit",
+                  month: "2-digit",
+                  year: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </time>
             </li>
           ))}
         </ul>
@@ -689,7 +682,9 @@ export function SolicitudDetail({
               ))}
             </div>
 
-            {tab === "evaluacion" && <TabEvaluacion />}
+            {tab === "evaluacion" && (
+              <TabEvaluacion adoptionId={Number(solicitud.id)} />
+            )}
             {tab === "mensajes" && (
               <TabMensajes
                 nombre={detail?.user?.name ?? solicitud.userName}
