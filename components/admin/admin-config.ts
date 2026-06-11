@@ -4,12 +4,12 @@ import {
   PawPrint,
   FileText,
   ClipboardList,
-  BarChart3,
+  // BarChart3, // Reportes (oculto)
   MessageSquare,
   Users,
-  BookOpen,
-  DollarSign,
-  Settings,
+  // BookOpen, // Historias (oculto)
+  // DollarSign, // Costos (oculto)
+  // Settings, // Configuración (oculto)
   type LucideIcon,
 } from "lucide-react";
 
@@ -84,13 +84,14 @@ export const SECTIONS: SectionDef[] = [
     title: "Seguimientos",
     subtitle: "Controles y visitas programadas",
   },
-  {
-    id: "reportes",
-    label: "Reportes",
-    icon: BarChart3,
-    title: "Reportes",
-    subtitle: "Métricas y estadísticas",
-  },
+  // Oculto temporalmente del menú (sin contenido real todavía):
+  // {
+  //   id: "reportes",
+  //   label: "Reportes",
+  //   icon: BarChart3,
+  //   title: "Reportes",
+  //   subtitle: "Métricas y estadísticas",
+  // },
   {
     id: "mensajes",
     label: "Mensajes",
@@ -105,27 +106,28 @@ export const SECTIONS: SectionDef[] = [
     title: "Personas",
     subtitle: "Usuarios y adoptantes",
   },
-  {
-    id: "historias",
-    label: "Historias",
-    icon: BookOpen,
-    title: "Historias",
-    subtitle: "Historias de adopción",
-  },
-  {
-    id: "costos",
-    label: "Costos",
-    icon: DollarSign,
-    title: "Costos",
-    subtitle: "Gastos del refugio",
-  },
-  {
-    id: "configuracion",
-    label: "Configuración",
-    icon: Settings,
-    title: "Configuración",
-    subtitle: "Ajustes del panel",
-  },
+  // Ocultas temporalmente del menú (sin contenido real todavía):
+  // {
+  //   id: "historias",
+  //   label: "Historias",
+  //   icon: BookOpen,
+  //   title: "Historias",
+  //   subtitle: "Historias de adopción",
+  // },
+  // {
+  //   id: "costos",
+  //   label: "Costos",
+  //   icon: DollarSign,
+  //   title: "Costos",
+  //   subtitle: "Gastos del refugio",
+  // },
+  // {
+  //   id: "configuracion",
+  //   label: "Configuración",
+  //   icon: Settings,
+  //   title: "Configuración",
+  //   subtitle: "Ajustes del panel",
+  // },
 ];
 
 /** Acceso O(1) a la definición de una sección por su id. */
