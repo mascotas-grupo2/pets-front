@@ -79,9 +79,25 @@ export function PublicacionDrawer({ pet, onClose, actions, initialEditing = fals
   const drawerActions = useDrawerActions(pet, actions, onClose);
   const photo = pet.photos?.[0] ?? pet.photo ?? null;
 
-  // Una publicación ya rechazada no se vuelve a aprobar ni rechazar desde acá:
-  // el dueño debe editarla (vuelve a "pendiente") o el admin la elimina.
-  const isRejected = pet.reportStatus === "rechazado";
+  // Aprobar/Rechazar son acciones de MODERACIÓN: solo aplican mientras la
+  // publicación está "pendiente". Una vez aprobada (activo), rechazada,
+  // finalizada o reservada, los botones se deshabilitan; el dueño debe editarla
+  // (vuelve a pendiente) o el admin la elimina.
+  const canModerate = pet.reportStatus === "pendiente";
+  const moderationHint = (() => {
+    switch (pet.reportStatus) {
+      case "rechazado":
+        return "Esta publicación está rechazada. El dueño debe editarla para que vuelva a revisión, o podés eliminarla.";
+      case "activo":
+        return "Esta publicación ya está aprobada y publicada. No se puede volver a aprobar ni rechazar; el dueño debe editarla (vuelve a revisión) o podés eliminarla.";
+      case "finalizado":
+        return "Esta publicación está finalizada y no admite cambios de moderación.";
+      case "reservada":
+        return "Esta publicación está reservada por una solicitud de adopción en curso.";
+      default:
+        return null;
+    }
+  })();
 
   function handleCancelEdit() {
     formik.resetForm();
@@ -195,11 +211,8 @@ export function PublicacionDrawer({ pet, onClose, actions, initialEditing = fals
         </div>
 
         {/* ── Footer ─────────────────────────────────────────────────────── */}
-        {!editing && isRejected && (
-          <p className="vdrawer-foot-hint">
-            Esta publicación está rechazada. El dueño debe editarla para que
-            vuelva a revisión, o podés eliminarla.
-          </p>
+        {!editing && !canModerate && moderationHint && (
+          <p className="vdrawer-foot-hint">{moderationHint}</p>
         )}
         <footer className="vdrawer-foot">
           {editing ? (
@@ -236,12 +249,8 @@ export function PublicacionDrawer({ pet, onClose, actions, initialEditing = fals
                 type="button"
                 className="btn btn-outline"
                 onClick={() => setPending("reject")}
-                disabled={drawerActions.busy || isRejected}
-                title={
-                  isRejected
-                    ? "La publicación ya está rechazada"
-                    : undefined
-                }
+                disabled={drawerActions.busy || !canModerate}
+                title={!canModerate ? moderationHint ?? undefined : undefined}
               >
                 <X size={16} aria-hidden /> Rechazar
               </button>
@@ -249,12 +258,8 @@ export function PublicacionDrawer({ pet, onClose, actions, initialEditing = fals
                 type="button"
                 className="btn btn-primary"
                 onClick={() => setPending("approve")}
-                disabled={drawerActions.busy || isRejected}
-                title={
-                  isRejected
-                    ? "No se puede aprobar una publicación rechazada; el dueño debe editarla para que vuelva a revisión"
-                    : undefined
-                }
+                disabled={drawerActions.busy || !canModerate}
+                title={!canModerate ? moderationHint ?? undefined : undefined}
               >
                 <Check size={16} aria-hidden />
                 {drawerActions.busy ? "Procesando…" : "Aprobar"}
