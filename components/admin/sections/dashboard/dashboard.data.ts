@@ -10,14 +10,13 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import type { Tone } from "../../ui/types";
-import type { Solicitud } from "../solicitudes/solicitudes.data";
 
 /**
- * Datos mock del dashboard. Aislados de la presentación: cuando exista el
- * backend, sólo se reemplaza este módulo por las llamadas reales.
- *
- * Nota: `SOLICITUDES` ahora usa el shape genérico `Solicitud` que espera la UI,
- * con campos compatibles con la respuesta de `GET /adoptions/admin/paged`.
+ * Config y datos del dashboard.
+ * - `STATS`: definición de las cards (label/ícono/tono). Los VALORES son reales,
+ *   vienen de `getDashboardStats()` en DashboardStatCards.
+ * - `ACTIVIDAD`: actividad reciente. TODAVÍA mock: falta un endpoint de feed en
+ *   el backend para reemplazarla por datos reales.
  */
 
 export type Stat = {
@@ -66,183 +65,6 @@ export const STATS: Stat[] = [
   },
 ];
 
-export type Compat = { pct: number; label: string };
-
-/**
- * SOLICITUDES: ahora exporta mocks en el mismo shape `Solicitud` que consume la UI.
- * Campos clave:
- * - `id` (string)
- * - `userName`, `userEmail`, `userPhoto`
- * - `petName`, `petPhoto`
- * - `compatPct`, `compatLabel`
- * - `estado` (código con guiones bajos como en backend: e.g. "NUEVA")
- * - `fecha` (string display)
- *
- * Cuando la API esté disponible simplemente reemplazá este array por los datos
- * mapeados desde `getAdminAdoptions().items`.
- */
-export const SOLICITUDES: Solicitud[] = [
-  {
-    id: "1",
-    userName: "Juan Pérez",
-    userEmail: "jperez@email.com",
-    userPhoto: null,
-    petName: "Toby",
-    petPhoto: null,
-    compatPct: 92,
-    compatLabel: "Excelente",
-    estado: "EN_EVALUACION",
-    fecha: "20/05/2026",
-    // campos opcionales para detalle (vacíos en el mock)
-    messages: [],
-    history: [],
-    files: [],
-  },
-  {
-    id: "2",
-    userName: "María Gómez",
-    userEmail: "maria@email.com",
-    userPhoto: null,
-    petName: "Luna",
-    petPhoto: null,
-    compatPct: 72,
-    compatLabel: "Buena",
-    estado: "ENTREVISTA_PENDIENTE",
-    fecha: "20/05/2026",
-    messages: [],
-    history: [],
-    files: [],
-  },
-  {
-    id: "3",
-    userName: "Laura Martínez",
-    userEmail: "laura@email.com",
-    userPhoto: null,
-    petName: "Simba",
-    petPhoto: null,
-    compatPct: 65,
-    compatLabel: "Buena",
-    estado: "NUEVA",
-    fecha: "19/05/2026",
-    messages: [],
-    history: [],
-    files: [],
-  },
-  {
-    id: "4",
-    userName: "Carlos Ruiz",
-    userEmail: "cruiz@email.com",
-    userPhoto: null,
-    petName: "Nina",
-    petPhoto: null,
-    compatPct: 45,
-    compatLabel: "Baja",
-    estado: "DESCARTADA",
-    fecha: "19/05/2026",
-    messages: [],
-    history: [],
-    files: [],
-  },
-  {
-    id: "5",
-    userName: "Ana López",
-    userEmail: "ana@email.com",
-    userPhoto: null,
-    petName: "Coco",
-    petPhoto: null,
-    compatPct: 88,
-    compatLabel: "Excelente",
-    estado: "EN_EVALUACION",
-    fecha: "18/05/2026",
-    messages: [],
-    history: [],
-    files: [],
-  },
-];
-
-export type Seguimiento = {
-  mascota: string;
-  tipo: string;
-  fechaHora: string;
-  adoptante: string;
-};
-
-export const SEGUIMIENTOS: Seguimiento[] = [
-  {
-    mascota: "Toby",
-    tipo: "Control general",
-    fechaHora: "Hoy 15:00",
-    adoptante: "Juan Pérez",
-  },
-  {
-    mascota: "Luna",
-    tipo: "Visita de seguimiento",
-    fechaHora: "21/05 10:00",
-    adoptante: "María Gómez",
-  },
-  {
-    mascota: "Simba",
-    tipo: "Vacuna antirrábica",
-    fechaHora: "22/05 11:30",
-    adoptante: "Laura Martínez",
-  },
-  {
-    mascota: "Nina",
-    tipo: "Control veterinario",
-    fechaHora: "23/05 09:00",
-    adoptante: "Carlos Ruiz",
-  },
-  {
-    mascota: "Coco",
-    tipo: "Visita de seguimiento",
-    fechaHora: "25/05 16:00",
-    adoptante: "Ana López",
-  },
-];
-
-export type Publicacion = {
-  titulo: string;
-  detalle: string;
-  tipo: string;
-  fecha: string;
-  estado: { label: string; tone: Tone };
-  vistas: number;
-};
-
-export const PUBLICACIONES: Publicacion[] = [
-  {
-    titulo: "Toby busca hogar",
-    detalle: "Perro · Macho · 3 años",
-    tipo: "En adopción",
-    fecha: "20/05/2026",
-    estado: { label: "Publicada", tone: "green" },
-    vistas: 156,
-  },
-  {
-    titulo: "Luna, gata cariñosa",
-    detalle: "Gato · Hembra · 2 años",
-    tipo: "En adopción",
-    fecha: "20/05/2026",
-    estado: { label: "Publicada", tone: "green" },
-    vistas: 98,
-  },
-  {
-    titulo: "Simba en adopción",
-    detalle: "Perro · Macho · 4 años",
-    tipo: "En adopción",
-    fecha: "19/05/2026",
-    estado: { label: "En revisión", tone: "amber" },
-    vistas: 0,
-  },
-  {
-    titulo: "Nina, dulce compañera",
-    detalle: "Perra · Hembra · 1 año",
-    tipo: "En adopción",
-    fecha: "19/05/2026",
-    estado: { label: "Rechazada", tone: "red" },
-    vistas: 0,
-  },
-];
 
 export type Actividad = {
   icon: LucideIcon;

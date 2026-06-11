@@ -22,7 +22,7 @@ export function AdminSidebar({
       aria-label="Menú de administración"
     >
       <div className="admin-sidebar-brand">
-        <img src="/images/favicon.ico" alt="" />
+        <img src="/images/favicon.ico" alt="" aria-hidden="true" />
         <span className="admin-brand-text">
           <span className="row1">Huellitas</span>
           <span className="row2">Unidas</span>

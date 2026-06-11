@@ -98,7 +98,11 @@ export default function ProfileView({
                 userDetails.photo ??
                 "/images/avatar-placeholder.svg"
               }
-              alt="User Photo"
+              alt={
+                userDetails.firstName
+                  ? `Foto de perfil de ${userDetails.firstName}`
+                  : "Foto de perfil del usuario"
+              }
               style={{
                 opacity: isUpdating ? 0.5 : 1,
                 transition: "all 0.3s ease",

@@ -21,6 +21,10 @@ export function useConversation(userId: number | null) {
   // Para que el poll (y loadOlder) lean los mensajes actuales sin recrear callbacks.
   const messagesRef = useRef<Message[]>([]);
   messagesRef.current = messages;
+  // Espejo del userId activo: los fetch en vuelo descartan su respuesta si la
+  // conversación cambió mientras esperaban (evita fuga de mensajes entre charlas).
+  const userIdRef = useRef(userId);
+  userIdRef.current = userId;
 
   // Carga inicial (última página).
   const loadInitial = useCallback(async () => {
@@ -28,13 +32,14 @@ export function useConversation(userId: number | null) {
     setLoading(true);
     try {
       const res = await getConversation(userId, { limit: PAGE });
+      if (userIdRef.current !== userId) return;
       if (res.ok && res.data) {
         setMessages(res.data.messages);
         setProfile(res.data.profile ?? null);
         setHasMore(!!res.data.hasMore);
       }
     } finally {
-      setLoading(false);
+      if (userIdRef.current === userId) setLoading(false);
     }
   }, [userId]);
 
@@ -42,6 +47,7 @@ export function useConversation(userId: number | null) {
   const pollLatest = useCallback(async () => {
     if (!userId) return;
     const res = await getConversation(userId, { limit: PAGE });
+    if (userIdRef.current !== userId) return;
     if (res.ok && res.data) {
       const fetched = res.data.messages;
       setMessages((prev) => {
@@ -63,6 +69,7 @@ export function useConversation(userId: number | null) {
         before: current[0].id,
         limit: PAGE,
       });
+      if (userIdRef.current !== userId) return 0;
       if (res.ok && res.data) {
         const older = res.data.messages;
         setMessages((prev) => {

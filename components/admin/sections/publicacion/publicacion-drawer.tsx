@@ -125,7 +125,7 @@ export function PublicacionDrawer({ pet, onClose, actions, initialEditing = fals
         <div className="vdrawer-body">
           {photo && (
             // eslint-disable-next-line @next/next/no-img-element
-            <img className="vdrawer-photo" src={photo} alt={pet.name ?? ""} />
+            <img className="vdrawer-photo" src={photo} alt={pet.name ? `Foto de ${pet.name}` : "Foto de la mascota"} />
           )}
 
           {editing ? (

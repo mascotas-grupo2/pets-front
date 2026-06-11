@@ -12,6 +12,7 @@ import {
 } from "@/services/mascotas.pets";
 import type { AdminPetSummary, Pet, PetReportStatus } from "@/types/pet";
 import type { SortOrder } from "../../ui/data-table";
+import { usePagination } from "./usePagination";
 
 export type EstadoFiltro = "todos" | PetReportStatus;
 export type SortKey = "name" | "tipo" | "estado" | "fecha" | "vistas";
@@ -58,7 +59,7 @@ export function usePublicaciones() {
   const [query, setQueryRaw] = useState("");
   const [estado, setEstado] = useState<EstadoFiltro>("todos");
   const [sort, setSortRaw] = useState<SortOrder<SortKey>[]>([]);
-  const [page, setPageRaw] = useState(1);
+  const { page, setPage, resetPage, totalPages, desde, hasta } = usePagination(PAGE_SIZE, total);
 
   // ── Fetch de tabla: el back pagina, filtra, ordena y devuelve los conteos ──
   const loadPets = useCallback(async (params: Params) => {
@@ -100,12 +101,12 @@ export function usePublicaciones() {
   // ── Helpers de control ────────────────────────────────────────────────────
   function setQuery(value: string) {
     setQueryRaw(value);
-    setPageRaw(1);
+    resetPage();
   }
 
   function handleSetEstado(value: EstadoFiltro) {
     setEstado(value);
-    setPageRaw(1);
+    resetPage();
   }
 
   function toggleEstado(key: PetReportStatus) {
@@ -113,12 +114,8 @@ export function usePublicaciones() {
   }
 
   function setSort(next: SortOrder<SortKey>[]) {
-    setPageRaw(1);
+    resetPage();
     setSortRaw(next);
-  }
-
-  function setPage(n: number) {
-    setPageRaw(n);
   }
 
   // ── Reload (tras mutaciones) ──────────────────────────────────────────────
@@ -182,11 +179,6 @@ export function usePublicaciones() {
     handleToast("error", "No se pudo guardar. Probá de nuevo.");
     return false;
   }
-
-  // ── Paginación derivada ───────────────────────────────────────────────────
-  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
-  const desde = total === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
-  const hasta = Math.min(page * PAGE_SIZE, total);
 
   return {
     visible: pets,

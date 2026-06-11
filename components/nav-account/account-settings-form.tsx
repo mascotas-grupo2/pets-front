@@ -41,7 +41,6 @@ export default function AccountSettingsForm({
     validationSchema: validationSchemaUpdateUserDetails,
     onSubmit: async (values) => {
       try {
-        debugger
         const res = await putUserDetails(values);
         if (!res) return;
         if (res.ok) {
@@ -72,14 +71,7 @@ export default function AccountSettingsForm({
       </div>
 
       <form onSubmit={formik.handleSubmit}>
-        <div
-          className="form-grid"
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: "1rem",
-          }}
-        >
+        <div className="form-grid">
           <div className="field">
             <label>Nombre</label>
             <input
@@ -141,14 +133,7 @@ export default function AccountSettingsForm({
           />
           <ShowError message={FormikHandleError(formik, "addressLine2")} />
         </div>
-        <div
-          className="form-grid"
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: "1rem",
-          }}
-        >
+        <div className="form-grid">
           <div className="field">
             <label>Ciudad</label>
             <input
@@ -175,14 +160,7 @@ export default function AccountSettingsForm({
         {adopter && (
           <React.Fragment>
             <h3 style={{ margin: "1.5rem 0 1rem" }}>Hogar y Convivencia</h3>
-            <div
-              className="form-grid"
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr",
-                gap: "1rem",
-              }}
-            >
+            <div className="form-grid">
               <div className="field">
                 <label>Situación habitacional</label>
                 <select
@@ -220,14 +198,7 @@ export default function AccountSettingsForm({
               </div>
             </div>
 
-            <div
-              className="form-grid"
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr",
-                gap: "1rem",
-              }}
-            >
+            <div className="form-grid">
               <div className="field">
                 <label>Adultos en el hogar</label>
                 <input
@@ -277,14 +248,7 @@ export default function AccountSettingsForm({
               />
             </div>
 
-            <div
-              className="form-grid"
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr",
-                gap: "1rem",
-              }}
-            >
+            <div className="form-grid">
               <div className="field">
                 <label>¿Mascotas castradas?</label>
                 <select

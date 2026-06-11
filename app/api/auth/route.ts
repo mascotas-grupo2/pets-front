@@ -50,14 +50,12 @@ export async function GET(request: NextRequest) {
     params.append("redirect_uri", redirectUri);
 
     const tokenUrl = `${issuer}/protocol/openid-connect/token`;
-    console.log("Attempting token exchange at:", tokenUrl);
 
     const tokenResponse = await axios.post(tokenUrl, params, {
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
     });
 
     const { access_token, id_token, refresh_token } = tokenResponse.data;
-    console.log("Token exchange successful!");
 
     // const idTokenPayload = JSON.parse(
     //   Buffer.from(id_token.split(".")[1], "base64").toString(),
@@ -99,7 +97,6 @@ export async function GET(request: NextRequest) {
         // Aplicamos la firma digital para proteger la integridad en el cliente
         const signature = signUserData(cleanUser);
         ssoUser = { ...cleanUser, signature };
-        console.log("User synchronization and local signature successful");
       }
     } catch (syncError) {
       console.error(
@@ -115,7 +112,6 @@ export async function GET(request: NextRequest) {
     // 2. Redirigimos al usuario a la app con el token
     // Lo más común es ponerlo en una cookie para que Redux lo lea al cargar
     const response = NextResponse.redirect(new URL("/", baseUrl));
-    console.log("Redirecting to / (home) - Session established");
 
     // auth_token NO httpOnly: el front lo lee desde JS (UserContext).
     response.cookies.set("auth_token", access_token, {

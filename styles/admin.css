@@ -2482,6 +2482,32 @@
   flex-direction: row-reverse;
 }
 
+/* Botón de borrar mensaje: discreto, aparece al pasar el mouse por la fila. */
+.msg-delete {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--gray-400, #9ca3af);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+
+.msg-bubble-row:hover .msg-delete {
+  opacity: 1;
+}
+
+.msg-delete:hover {
+  background: var(--gray-100, #f3f4f6);
+  color: #ef4444;
+}
+
 .msg-bubble {
   padding: 10px 14px;
   border-radius: 14px;

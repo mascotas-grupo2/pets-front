@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import {
   getConversation,
@@ -27,6 +27,12 @@ export function useMessages() {
   const [loadingInbox, setLoadingInbox] = useState(true);
 
   const [activaId, setActivaId] = useState<number | null>(null);
+  // Espejo de `activaId` para que los fetch en vuelo detecten si la conversación
+  // cambió mientras esperaban la respuesta (evita pintar mensajes de otra charla).
+  const activaIdRef = useRef<number | null>(null);
+  useEffect(() => {
+    activaIdRef.current = activaId;
+  }, [activaId]);
   // Usuario de la conversación activa. Se mantiene aparte del inbox para poder
   // abrir una conversación nueva con alguien que todavía no está en la bandeja.
   const [activaUser, setActivaUser] = useState<userMessage | null>(null);
@@ -54,6 +60,9 @@ export function useMessages() {
     if (showLoading) setLoadingChat(true);
     try {
       const res = await getConversation(userId);
+      // Si el usuario cambió de conversación mientras esperábamos, descartamos
+      // esta respuesta (sino pintaría mensajes de la charla anterior).
+      if (activaIdRef.current !== userId) return;
       if (res.ok && res.data) {
         setActivaMessages(res.data.messages || []);
         // Marcar como leído localmente

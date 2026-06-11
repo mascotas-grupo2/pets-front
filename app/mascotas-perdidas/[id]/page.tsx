@@ -340,7 +340,7 @@ export default function PetDetailPage() {
                           ? "/images/pet-cat.jpg"
                           : "/images/pet-dog.jpg")
                       }
-                      alt={p.name ?? ""}
+                      alt={p.name ? `Foto de ${p.name}` : "Foto de la mascota"}
                     />
                   </div>
                   <h3>{p.name ?? p.animalType}</h3>

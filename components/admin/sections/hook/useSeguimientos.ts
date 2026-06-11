@@ -20,6 +20,7 @@ import {
   type Seguimiento,
   type SeguimientoTab,
 } from "../seguimientos/seguimientos.data";
+import { usePagination } from "./usePagination";
 
 const PAGE_SIZE = 8;
 
@@ -106,7 +107,6 @@ export function useSeguimientos() {
   const [loading, setLoading] = useState(true);
   const [tab, setTabRaw] = useState<SeguimientoTab>("todas");
   const [query, setQueryRaw] = useState("");
-  const [page, setPageRaw] = useState(1);
   const [sort, setSortRaw] = useState<SortOrder<SeguimientoSortKey>[]>([]);
   // Filtros reales (delegables al back; acá se aplican sobre la data cargada).
   const [filterTipo, setFilterTipoRaw] = useState<number | null>(null);
@@ -170,34 +170,28 @@ export function useSeguimientos() {
   }, [all, tab, query, sort, filterTipo, filterEstado, now]);
 
   const total = filtered.length;
-  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
-  const safePage = Math.min(page, totalPages);
-  const desde = total === 0 ? 0 : (safePage - 1) * PAGE_SIZE + 1;
-  const hasta = Math.min(safePage * PAGE_SIZE, total);
+  const { page, setPage, resetPage, safePage, totalPages, desde, hasta } = usePagination(PAGE_SIZE, total);
   const visible = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
 
   function setTab(value: SeguimientoTab) {
     setTabRaw(value);
-    setPageRaw(1);
+    resetPage();
   }
   function setQuery(value: string) {
     setQueryRaw(value);
-    setPageRaw(1);
-  }
-  function setPage(n: number) {
-    setPageRaw(n);
+    resetPage();
   }
   function setSort(next: SortOrder<SeguimientoSortKey>[]) {
-    setPageRaw(1);
+    resetPage();
     setSortRaw(next);
   }
   function setFilterTipo(value: number | null) {
     setFilterTipoRaw((cur) => (cur === value ? null : value));
-    setPageRaw(1);
+    resetPage();
   }
   function setFilterEstado(value: number | null) {
     setFilterEstadoRaw((cur) => (cur === value ? null : value));
-    setPageRaw(1);
+    resetPage();
   }
 
   async function handleCreate(input: CreateFollowupInput) {

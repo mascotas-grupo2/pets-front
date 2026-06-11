@@ -7,6 +7,7 @@ import {
   updateUserRole,
   type AdminUser,
 } from "@/services/user.admin";
+import { usePagination } from "./usePagination";
 
 export type TipoFiltro = "todos" | "admin" | "adoptante" | "comun";
 
@@ -46,7 +47,7 @@ export function usePersonas() {
 
   const [query, setQueryRaw] = useState("");
   const [tipo, setTipoRaw] = useState<TipoFiltro>("todos");
-  const [page, setPageRaw] = useState(1);
+  const { page, setPage, resetPage, totalPages, desde, hasta } = usePagination(PAGE_SIZE, total);
 
   // El back pagina, filtra y devuelve los conteos globales (cards correctas).
   const loadUsers = useCallback(async (params: Params) => {
@@ -75,9 +76,11 @@ export function usePersonas() {
   const currentParams: Params = useMemo(() => ({ tipo, q: query, page }), [tipo, query, page]);
 
   useEffect(() => {
-    loadUsers(currentParams);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [query, tipo, page]);
+    const trigger = async () => {
+      await loadUsers(currentParams);
+    };
+    void trigger();
+  }, [loadUsers, currentParams]);
 
   const reload = useCallback(
     () => loadUsers(currentParams),
@@ -86,31 +89,16 @@ export function usePersonas() {
 
   function setQuery(v: string) {
     setQueryRaw(v);
-    setPageRaw(1);
+    resetPage();
   }
   function setTipo(v: TipoFiltro) {
     setTipoRaw(v);
-    setPageRaw(1);
-  }
-  function setPage(n: number) {
-    setPageRaw(n);
+    resetPage();
   }
 
   // ── Acciones ──────────────────────────────────────────────────────────────
-  // TODO: implementar cuando existan los endpoints
-  async function handleDelete(user: AdminUser): Promise<boolean> {
-    if (
-      !window.confirm(
-        `¿Eliminar a "${user.name}"? Esta acción no se puede deshacer.`,
-      )
-    )
-      return false;
-    // const res = await deleteUser(user.id);
-    // if (res.ok) { toast.success("Usuario eliminado."); await reload(); return true; }
-    toast.error("Eliminar usuario no está disponible aún.");
-    return false;
-  }
-
+  // Nota: no hay endpoint para eliminar usuarios todavía, por eso la sección
+  // solo expone promover/degradar (handlePromote/handleDemote).
   async function handlePromote(user: AdminUser): Promise<boolean> {
     if (!window.confirm(`¿Promover a "${user.name}" como administrador?`))
       return false;
@@ -143,11 +131,6 @@ export function usePersonas() {
     return false;
   }
 
-  // ── Paginación derivada ───────────────────────────────────────────────────
-  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
-  const desde = total === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
-  const hasta = Math.min(page * PAGE_SIZE, total);
-
   return {
     visible,
     loading,
@@ -162,7 +145,6 @@ export function usePersonas() {
     total,
     desde,
     hasta,
-    handleDelete,
     handlePromote,
     handleDemote,
     reload,

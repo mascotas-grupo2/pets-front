@@ -9,6 +9,7 @@ import {
 } from "@/services/mascotas.pets";
 import type { AdminPetSummary, AnimalType } from "@/types/pet";
 import type { SortOrder } from "../../ui/data-table";
+import { usePagination } from "./usePagination";
 
 export type FiltroEstado =
   | "todas"
@@ -50,7 +51,7 @@ export function useMascotas() {
   const [filtro, setFiltroRaw] = useState<FiltroEstado>("todas");
   const [especie, setEspecieRaw] = useState<FiltroEspecie>("todas");
   const [sort, setSortRaw] = useState<SortOrder<string>[]>([{ key: "name", direction: "asc" }]);
-  const [page, setPageRaw] = useState(1);
+  const { page, setPage, resetPage, totalPages, desde, hasta } = usePagination(PAGE_SIZE, total);
 
   // El back pagina, filtra (categoría/especie/búsqueda), ordena y cuenta.
   const loadPets = useCallback(async (params: Params) => {
@@ -95,21 +96,18 @@ export function useMascotas() {
   // ── Setters que resetean página ───────────────────────────────────────────
   function setQuery(v: string) {
     setQueryRaw(v);
-    setPageRaw(1);
+    resetPage();
   }
   function setFiltro(v: FiltroEstado) {
     setFiltroRaw(v);
-    setPageRaw(1);
+    resetPage();
   }
   function setEspecie(v: FiltroEspecie) {
     setEspecieRaw(v);
-    setPageRaw(1);
-  }
-  function setPage(n: number) {
-    setPageRaw(n);
+    resetPage();
   }
   function setSort(next: SortOrder<string>[]) {
-    setPageRaw(1);
+    resetPage();
     setSortRaw(next);
   }
 
@@ -130,11 +128,6 @@ export function useMascotas() {
     toast.error(res.error || "No se pudo eliminar. Probá de nuevo.");
     return false;
   }
-
-  // ── Paginación derivada ───────────────────────────────────────────────────
-  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
-  const desde = total === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
-  const hasta = Math.min(page * PAGE_SIZE, total);
 
   return {
     visible,

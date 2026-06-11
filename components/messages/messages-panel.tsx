@@ -113,7 +113,7 @@ export function MessagesPanel() {
   }
 
   return (
-    <div className="msg h-[600px] border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+    <div className="msg border border-gray-200 rounded-xl overflow-hidden shadow-sm">
       {/* ---- Columna izquierda: lista de conversaciones ---- */}
       <aside className="msg-list-panel" aria-label="Conversaciones">
         <div className="msg-list-head">
@@ -160,7 +160,7 @@ export function MessagesPanel() {
                     <Avatar user={u} />
                     <span className="msg-item-body">
                       <span className="msg-item-name">{name}</span>
-                      <span className="msg-item-sub truncate w-32 sm:w-40">
+                      <span className="msg-item-sub truncate w-32">
                         {c.latestMessage?.senderId === currentUserId ? "Tú: " : ""}
                         {c.latestMessage?.content}
                       </span>

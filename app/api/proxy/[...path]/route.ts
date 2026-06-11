@@ -62,7 +62,6 @@ async function handleRequest(request: Request) {
     if (response.status === 401) {
       const pathLower = cleanPath.toLowerCase();
       if (pathLower.includes("auth/login")) {
-        console.log(pathLower, new TextDecoder().decode(response.data))
         return new NextResponse(new TextDecoder().decode(response.data), {
           status: 401,
           headers: {
