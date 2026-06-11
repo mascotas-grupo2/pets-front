@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import Image from "next/image";
 import {
   PawPrint,
@@ -15,12 +16,21 @@ import {
   Download,
   ImageIcon,
   Trash2,
+  AlertTriangle,
 } from "lucide-react";
 import { useSolicitudDetail } from "../../hook/useSolicitudDetail";
 import type { AdoptionDetail } from "@/types/adoption-detail";
 import type { Solicitud } from "../solicitudes.data";
 import { AdoptanteModal } from "./adoptante-modal";
 import { MascotaModal } from "./mascota-modal";
+import { Pill } from "../../../ui/pill";
+import {
+  ESTADO_LABELS,
+  esEstadoTerminal,
+  transicionesPermitidas,
+  efectoTransicion,
+  solicitudEstadoTone,
+} from "../../../lib/solicitud-status";
 
 type Props = {
   solicitud: Solicitud;
@@ -37,15 +47,6 @@ const TABS = [
 ] as const;
 
 type TabId = (typeof TABS)[number]["id"];
-
-const ESTADO_LABELS: Record<Solicitud["estado"], string> = {
-  NUEVA: "Nueva",
-  EN_EVALUACION: "En evaluación",
-  ENTREVISTA_PENDIENTE: "Entrevista pendiente",
-  ACEPTADA_CON_SEGUIMIENTO: "Aceptada con seguimiento",
-  ACEPTADA: "Aceptada",
-  DESCARTADA: "Descartada",
-};
 
 // Compatibility helpers (same logic used elsewhere)
 function compatTone(pct: number) {
@@ -342,6 +343,88 @@ function TabHistorial({ history }: { history?: AdoptionHistoryItem[] }) {
   );
 }
 
+/* --- Modal de confirmación de cambio de estado --- */
+
+function ConfirmarEstadoModal({
+  actual,
+  destino,
+  loading,
+  onConfirm,
+  onCancel,
+}: {
+  actual: Solicitud["estado"];
+  destino: Solicitud["estado"];
+  loading: boolean;
+  onConfirm: () => void;
+  onCancel: () => void;
+}) {
+  const efecto = efectoTransicion(destino);
+  const esRechazo = destino === "DESCARTADA";
+
+  return createPortal(
+    <div className="sdet-modal-overlay" onClick={onCancel} role="presentation">
+      <div
+        className="sdet-modal sdet-modal--sm"
+        role="dialog"
+        aria-label="Confirmar cambio de estado"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="sdet-modal-head">
+          <h2>Confirmar cambio de estado</h2>
+          <button
+            type="button"
+            className="vdrawer-close"
+            aria-label="Cerrar"
+            onClick={onCancel}
+          >
+            <X size={18} />
+          </button>
+        </div>
+
+        <div className="sdet-modal-body">
+          <p className="sdet-confirm-text">
+            Vas a cambiar el estado de{" "}
+            <Pill tone={solicitudEstadoTone(actual)}>{ESTADO_LABELS[actual]}</Pill>{" "}
+            a{" "}
+            <Pill tone={solicitudEstadoTone(destino)}>{ESTADO_LABELS[destino]}</Pill>.
+          </p>
+
+          {efecto && (
+            <div
+              className={`sdet-confirm-alert${esRechazo ? " sdet-confirm-alert--danger" : ""}`}
+            >
+              <AlertTriangle size={16} aria-hidden />
+              <span>{efecto}</span>
+            </div>
+          )}
+
+          <p className="sdet-confirm-question">¿Confirmás el cambio?</p>
+        </div>
+
+        <div className="sdet-modal-foot">
+          <button
+            type="button"
+            className="btn btn-outline"
+            onClick={onCancel}
+            disabled={loading}
+          >
+            Cancelar
+          </button>
+          <button
+            type="button"
+            className={`btn ${esRechazo ? "btn-danger" : "btn-primary"}`}
+            onClick={onConfirm}
+            disabled={loading}
+          >
+            {loading ? "Cambiando..." : "Sí, cambiar estado"}
+          </button>
+        </div>
+      </div>
+    </div>,
+    document.body,
+  );
+}
+
 /* --- Main drawer component: fetches detail and builds compat criteria dynamically --- */
 
 export function SolicitudDetail({
@@ -351,20 +434,29 @@ export function SolicitudDetail({
   onUpdateStatus,
 }: Props) {
   const [tab, setTab] = useState<TabId>("evaluacion");
+  const opciones = transicionesPermitidas(solicitud.estado);
+  const terminal = esEstadoTerminal(solicitud.estado);
   const [selectedEstado, setSelectedEstado] = useState<Solicitud["estado"]>(
-    solicitud.estado,
+    opciones[0] ?? solicitud.estado,
   );
   const [showAdoptante, setShowAdoptante] = useState(false);
   const [showMascota, setShowMascota] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
   const { data: detail, loading: loadingDetail } = useSolicitudDetail(solicitud.id);
 
   const [isUpdating, setIsUpdating] = useState(false);
-  const handleCambiarEstado = async () => {
+  const handleConfirmarCambio = async () => {
     if (!onUpdateStatus) return;
     setIsUpdating(true);
-    await onUpdateStatus(solicitud.id, selectedEstado);
+    const ok = await onUpdateStatus(solicitud.id, selectedEstado);
     setIsUpdating(false);
+    if (ok) {
+      setConfirmOpen(false);
+      // El listado se recarga con el nuevo estado y la fecha de modificación;
+      // cerramos el drawer para que el cambio quede reflejado en la tabla.
+      onClose();
+    }
   };
 
   const userPhoto = solicitud.userPhoto?.trim() ? solicitud.userPhoto : null;
@@ -536,31 +628,50 @@ export function SolicitudDetail({
 
             <section className="sdet-estado-section">
               <p className="sdet-section-label">Estado actual</p>
-              <div className="sdet-estado-row">
-                <div className="field sdet-estado-select-wrap">
-                  <select
-                    className="select"
-                    value={selectedEstado}
-                    onChange={(e) =>
-                      setSelectedEstado(e.target.value as Solicitud["estado"])
-                    }
-                  >
-                    {Object.entries(ESTADO_LABELS).map(([value, label]) => (
-                      <option key={value} value={value}>
-                        {label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <button
-                  type="button"
-                  className="btn btn-primary sdet-estado-btn"
-                  onClick={handleCambiarEstado}
-                  disabled={isUpdating || selectedEstado === solicitud.estado}
-                >
-                  {isUpdating ? "Cambiando..." : "Cambiar estado"}
-                </button>
+              <div className="sdet-estado-actual">
+                <Pill tone={solicitudEstadoTone(solicitud.estado)}>
+                  {ESTADO_LABELS[solicitud.estado]}
+                </Pill>
+                <span className="sdet-estado-fecha">
+                  Última modificación: {solicitud.fechaModificacion ?? solicitud.fecha}
+                </span>
               </div>
+
+              {terminal ? (
+                <p className="sdet-estado-terminal">
+                  Esta solicitud está finalizada y no admite más cambios de estado.
+                </p>
+              ) : (
+                <div className="sdet-estado-row">
+                  <div className="field sdet-estado-select-wrap">
+                    <label className="sdet-estado-sublabel" htmlFor="sdet-estado-select">
+                      Cambiar a
+                    </label>
+                    <select
+                      id="sdet-estado-select"
+                      className="select"
+                      value={selectedEstado}
+                      onChange={(e) =>
+                        setSelectedEstado(e.target.value as Solicitud["estado"])
+                      }
+                    >
+                      {opciones.map((value) => (
+                        <option key={value} value={value}>
+                          {ESTADO_LABELS[value]}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <button
+                    type="button"
+                    className="btn btn-primary sdet-estado-btn"
+                    onClick={() => setConfirmOpen(true)}
+                    disabled={isUpdating || !onUpdateStatus}
+                  >
+                    Cambiar estado
+                  </button>
+                </div>
+              )}
             </section>
 
             <div className="sdet-tabs" role="tablist">
@@ -605,6 +716,15 @@ export function SolicitudDetail({
         <MascotaModal
           solicitud={solicitud}
           onClose={() => setShowMascota(false)}
+        />
+      )}
+      {confirmOpen && (
+        <ConfirmarEstadoModal
+          actual={solicitud.estado}
+          destino={selectedEstado}
+          loading={isUpdating}
+          onConfirm={handleConfirmarCambio}
+          onCancel={() => setConfirmOpen(false)}
         />
       )}
     </>
