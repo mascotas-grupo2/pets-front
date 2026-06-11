@@ -57,6 +57,7 @@ export function toSolicitud(a: AdminAdoptionItem): Solicitud {
     compatLabel: compatLabel(a.compatibilityScore),
     estado,
     fecha: formatFecha(a.createdAt),
+    fechaModificacion: formatFecha(a.updatedAt ?? a.createdAt),
   };
 }
 
