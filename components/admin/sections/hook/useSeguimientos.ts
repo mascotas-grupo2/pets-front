@@ -10,7 +10,7 @@ import {
   type FollowupItem,
   type CreateFollowupInput,
 } from "@/services/followups";
-import { getAllPets } from "@/services/mascotas.pets";
+import { getAdminPets } from "@/services/mascotas.pets";
 import { getAdminUsers } from "@/services/user.admin";
 import type { SortOrder } from "../../ui/data-table";
 import {
@@ -66,7 +66,7 @@ export type Option<V> = { value: V; label: string };
 /** Construye los mapas de enriquecimiento y las opciones para los selects. */
 async function loadLookups() {
   const [petsRes, usersRes] = await Promise.all([
-    getAllPets(),
+    getAdminPets(),
     getAdminUsers({ pageSize: 100 }),
   ]);
 
