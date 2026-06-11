@@ -98,6 +98,12 @@ export function SolicitudesTable({
       render: (item) => item.fecha,
     },
     {
+      key: "fechaModificacion",
+      label: "Modificación",
+      tdClassName: "dash-muted",
+      render: (item) => item.fechaModificacion ?? "—",
+    },
+    {
       key: "actions",
       ariaLabel: "Acciones",
       tdClassName: "dash-cell-action",
