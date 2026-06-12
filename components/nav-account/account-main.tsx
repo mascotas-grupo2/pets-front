@@ -3,6 +3,7 @@ import {
 } from "@/services/user.info";
 import { Pet } from "@/types/pet";
 import { UserDetails } from "@/types/user-details";
+import { Camera } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
 import { PetCard } from "../pet-card";
 import { ErrorGeneric } from "../utils/catchErrors";
@@ -130,10 +131,9 @@ export default function ProfileView({
                   justifyContent: "center",
                   boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
                   color: "white",
-                  fontSize: "1.2rem",
                 }}
               >
-                📷
+                <Camera size={16} aria-hidden />
               </div>
             )}
 
