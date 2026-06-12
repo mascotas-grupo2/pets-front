@@ -9,6 +9,7 @@ import {
   Plus,
   Trash2,
   X,
+  Image as ImageIcon,
 } from "lucide-react";
 import type {
   InboxConversation,
@@ -54,7 +55,12 @@ function Burbuja({
     <div className={`msg-bubble-row ${isMine ? "is-mine" : "is-theirs"}`}>
       {!isMine && <Avatar user={user} small />}
       <div className="msg-bubble">
-        <p>{m.content}</p>
+        {m.photo && (
+          <div className="msg-bubble-photo">
+            <img src={m.photo} alt="Foto adjunta" />
+          </div>
+        )}
+        {m.content && <p>{m.content}</p>}
         <time>
           {new Date(m.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
         </time>
@@ -89,6 +95,8 @@ export function MessagesPanel() {
     setQuery,
     draft,
     setDraft,
+    photoFile,
+    setPhotoFile,
     sending,
     visibles,
     activaUser,
@@ -100,6 +108,8 @@ export function MessagesPanel() {
 
   const [showNuevo, setShowNuevo] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [activaMessages]);
@@ -226,6 +236,45 @@ export function MessagesPanel() {
               <div ref={messagesEndRef} />
             </div>
             <form className="msg-composer" onSubmit={enviar}>
+              {photoFile && (
+                <div className="msg-preview-container">
+                  <div className="msg-preview-box">
+                    <img 
+                      src={URL.createObjectURL(photoFile)} 
+                      alt="Preview" 
+                      className="msg-preview-img" 
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setPhotoFile(null)}
+                      className="msg-preview-close"
+                      aria-label="Quitar foto"
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                </div>
+              )}
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                ref={fileInputRef}
+                onChange={(e) => {
+                  if (e.target.files && e.target.files[0]) {
+                    setPhotoFile(e.target.files[0]);
+                  }
+                  e.target.value = '';
+                }}
+              />
+              <button
+                type="button"
+                className="msg-attach-btn"
+                aria-label="Adjuntar foto"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <ImageIcon size={20} />
+              </button>
               <input
                 type="text"
                 placeholder="Escribí un mensaje..."
@@ -238,7 +287,7 @@ export function MessagesPanel() {
                 type="submit"
                 className="msg-send"
                 aria-label="Enviar mensaje"
-                disabled={!draft.trim() || sending}
+                disabled={(!draft.trim() && !photoFile) || sending}
               >
                 {sending ? <Loader2 className="animate-spin w-4 h-4" /> : <Send size={16} />}
               </button>

@@ -17,6 +17,7 @@ export interface Message {
   senderId: number; // ID del remitente
   receiverId: number; // ID del destinatario
   content: string;
+  photo?: string | null;
   read: boolean;
   createdAt: string;
 }
@@ -96,8 +97,21 @@ export const getConversation = (
     axios.get(`messages/conversation/${userId}`, { params }),
   );
 
-export const sendMessage = (receiverId: number, content: string) =>
-  request<Message>(() => axios.post(`messages/`, { receiverId, content }));
+export const sendMessage = (receiverId: number, content: string, photo?: File | null) =>
+  request<Message>(() => {
+    if (photo) {
+      const formData = new FormData();
+      formData.append("receiverId", receiverId.toString());
+      formData.append("content", content);
+      formData.append("photo", photo);
+      return axios.post(`messages/`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+    }
+    return axios.post(`messages/`, { receiverId, content });
+  });
 
 export const deleteConversation = (userId: number) =>
   request<void>(() => axios.delete(`messages/conversation/${userId}`));
