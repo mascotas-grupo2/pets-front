@@ -1,7 +1,7 @@
 /* ============================================================
  * Widget de chatbot — estilos
  * Floating button (cerrado) + panel deslizable (abierto)
- * Usa variables CSS de theme.css (--brand, --bg, etc.)
+ * Usa los design tokens de theme.css (--primary-500, --surface, etc.)
  * ============================================================ */
 
 .chatbot-fab {
