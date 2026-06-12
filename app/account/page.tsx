@@ -7,7 +7,7 @@ import { getIdsPets } from "@/services/mascotas.pets";
 import { getUserDetails } from "@/services/user.info";
 import { Pet } from "@/types/pet";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import AccountSettingsForm from "../../components/nav-account/account-settings-form";
 import { UserDetails } from "../../types/user-details";
@@ -31,7 +31,7 @@ const ACCOUNT_TABS = [
   { id: "settings", label: "Configuración", icon: Settings },
 ] as const;
 
-export default function AccountPage() {
+function AccountPageContent() {
   const { isLoggedIn, logout } = useUserContext();
   const { unread } = useNotifications();
   const [userDetails, setUserDetails] = useState<UserDetails | null>(null);
@@ -172,5 +172,13 @@ export default function AccountPage() {
         </div>
       </main>
     )
+  );
+}
+
+export default function AccountPage() {
+  return (
+    <Suspense fallback={null}>
+      <AccountPageContent />
+    </Suspense>
   );
 }
