@@ -41,6 +41,7 @@ export function useMessages() {
 
   const [query, setQuery] = useState("");
   const [draft, setDraft] = useState("");
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [sending, setSending] = useState(false);
 
   const fetchInbox = useCallback(async () => {
@@ -131,14 +132,15 @@ export function useMessages() {
   async function enviar(e: React.FormEvent) {
     e.preventDefault();
     const texto = draft.trim();
-    if (!texto || !activaId || sending) return;
+    if ((!texto && !photoFile) || !activaId || sending) return;
 
     setSending(true);
     try {
-      const res = await sendMessage(activaId, texto);
+      const res = await sendMessage(activaId, texto, photoFile);
       if (res.ok && res.data) {
         setActivaMessages((prev) => [...prev, res.data!]);
         setDraft("");
+        setPhotoFile(null);
         void fetchInbox();
       } else {
         toast.error("No se pudo enviar el mensaje");
@@ -162,6 +164,8 @@ export function useMessages() {
     setQuery,
     draft,
     setDraft,
+    photoFile,
+    setPhotoFile,
     sending,
     visibles,
     activaUser,

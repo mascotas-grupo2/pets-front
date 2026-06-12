@@ -24,6 +24,7 @@ import type { AdoptionDetail } from "@/types/adoption-detail";
 import type { Solicitud } from "../solicitudes.data";
 import { AdoptanteModal } from "./adoptante-modal";
 import { MascotaModal } from "./mascota-modal";
+import { MatchingModal } from "./matching-modal";
 import { Pill } from "../../../ui/pill";
 import {
   ESTADO_LABELS,
@@ -441,6 +442,7 @@ export function SolicitudDetail({
   );
   const [showAdoptante, setShowAdoptante] = useState(false);
   const [showMascota, setShowMascota] = useState(false);
+  const [showMatchingModal, setShowMatchingModal] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
 
   const { data: detail, loading: loadingDetail } = useSolicitudDetail(
@@ -626,6 +628,17 @@ export function SolicitudDetail({
                   ))}
                 </ul>
               </div>
+              {detail && (
+                <div style={{ marginTop: "1rem", textAlign: "right" }}>
+                  <button 
+                    type="button" 
+                    className="btn btn-outline btn-sm"
+                    onClick={() => setShowMatchingModal(true)}
+                  >
+                    Ver detalle del cálculo
+                  </button>
+                </div>
+              )}
             </section>
 
             <section className="sdet-estado-section">
@@ -721,6 +734,12 @@ export function SolicitudDetail({
         <MascotaModal
           solicitud={solicitud}
           onClose={() => setShowMascota(false)}
+        />
+      )}
+      {showMatchingModal && detail && (
+        <MatchingModal
+          detail={detail}
+          onClose={() => setShowMatchingModal(false)}
         />
       )}
       {confirmOpen && (

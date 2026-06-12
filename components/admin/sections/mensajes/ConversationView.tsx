@@ -6,6 +6,8 @@ import {
   Trash2,
   CheckCircle2,
   ArrowDown,
+  Image as ImageIcon,
+  X,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useAppSelector } from "@/redux/hooks";
@@ -162,6 +164,8 @@ export default function ConversationView({
   const currentUser = useAppSelector((state) => state.user);
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [tab, setTab] = useState<Tab>("mensajes");
   const [newCount, setNewCount] = useState(0);
 
@@ -247,11 +251,12 @@ export default function ConversationView({
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const text = draft.trim();
-    if (!text) return;
+    if (!text && !photoFile) return;
     setSending(true);
-    const ok = await conversationData.send(text);
+    const ok = await conversationData.send(text, photoFile);
     if (ok) {
       setDraft("");
+      setPhotoFile(null);
       setTimeout(() => scrollToBottom(), 50);
     }
     setSending(false);
@@ -326,7 +331,12 @@ export default function ConversationView({
                           </span>
                         ))}
                       <div className="msg-bubble">
-                        <p>{m.content}</p>
+                        {m.photo && (
+                          <div className="msg-bubble-photo">
+                            <img src={m.photo} alt="Foto adjunta" />
+                          </div>
+                        )}
+                        {m.content && <p>{m.content}</p>}
                         <time>
                           {new Date(m.createdAt).toLocaleTimeString([], {
                             hour: "2-digit",
@@ -362,14 +372,54 @@ export default function ConversationView({
           </div>
 
           <form onSubmit={handleSubmit} className="msg-composer">
+            {photoFile && (
+              <div className="msg-preview-container">
+                <div className="msg-preview-box">
+                  <img 
+                    src={URL.createObjectURL(photoFile)} 
+                    alt="Preview" 
+                    className="msg-preview-img" 
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setPhotoFile(null)}
+                    className="msg-preview-close"
+                    aria-label="Quitar foto"
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+              </div>
+            )}
+            <input
+              type="file"
+              accept="image/*"
+              className="hidden"
+              ref={fileInputRef}
+              onChange={(e) => {
+                if (e.target.files && e.target.files[0]) {
+                  setPhotoFile(e.target.files[0]);
+                }
+                e.target.value = '';
+              }}
+            />
+            <button
+              type="button"
+              className="msg-attach-btn"
+              aria-label="Adjuntar foto"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <ImageIcon size={20} />
+            </button>
             <input
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
               placeholder="Escribí un mensaje..."
+              disabled={sending}
             />
             <button
               type="submit"
-              disabled={!draft.trim() || sending}
+              disabled={(!draft.trim() && !photoFile) || sending}
               className="msg-send"
             >
               {sending ? (

@@ -95,9 +95,9 @@ export function useConversation(userId: number | null) {
     return () => clearInterval(interval);
   }, [userId, loadInitial, pollLatest]);
 
-  async function send(content: string) {
+  async function send(content: string, photo?: File | null) {
     if (!userId) return false;
-    const res = await sendMessage(userId, content);
+    const res = await sendMessage(userId, content, photo);
     if (!res.ok || !res.data) return false;
     setMessages((prev) => [...prev, res.data!]);
     return true;

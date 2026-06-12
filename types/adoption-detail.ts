@@ -23,12 +23,21 @@ export type AdoptionFile = {
   status?: "pendiente" | "aprobado" | "rechazado";
   url?: string;
 };
+export type CompatibilityFactor = {
+  criteria: string;
+  applicantValue: string;
+  petValue: string;
+  scoreImpact: number;
+  isPositive: boolean;
+  label: string;
+};
 
 export type AdoptionDetail = {
   id: number;
   status: string;
   statusLabel: string;
   compatibilityScore: number | null;
+  compatibilityFactors?: CompatibilityFactor[];
   createdAt: string;
 
   // form fields
