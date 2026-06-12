@@ -1,18 +1,13 @@
-import { Loader2 } from "lucide-react";
+import { CatLoader } from "@/components/cat-loader";
 
 type LoadingProps = {
-  /** Texto que acompaña al spinner. */
+  /** Texto que acompaña al loader. */
   label?: string;
   /** Clase extra opcional para el contenedor. */
   className?: string;
 };
 
-/** Indicador de carga reutilizable: spinner girando + texto. */
-export function Loading({ label = "Cargando…", className }: LoadingProps) {
-  return (
-    <span className={`ui-loading${className ? ` ${className}` : ""}`}>
-      <Loader2 size={16} className="ui-spin" aria-hidden />
-      {label}
-    </span>
-  );
+/** Indicador de carga reutilizable: gatito animado + texto. */
+export function Loading({ label = "CARGANDO", className }: LoadingProps) {
+  return <CatLoader label={label} variant="inline" className={className} />;
 }

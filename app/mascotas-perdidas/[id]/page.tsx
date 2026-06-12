@@ -7,6 +7,7 @@ import { getMyAdoptions } from "@/services/adoptions";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import { CatLoader } from "@/components/cat-loader";
 
 function formatAge(months?: number): string {
   if (!months) return "—";
@@ -129,11 +130,8 @@ export default function PetDetailPage() {
   if (loading) {
     return (
       <main>
-        <div
-          className="container"
-          style={{ padding: "4rem 0", textAlign: "center" }}
-        >
-          <p>Cargando...</p>
+        <div className="container" style={{ padding: "4rem 0" }}>
+          <CatLoader label="CARGANDO" />
         </div>
       </main>
     );

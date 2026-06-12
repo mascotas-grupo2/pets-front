@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Pet, PetReportStatus, PetStatus } from "@/types/pet";
+import { PetCardActions } from "@/components/pet-card-actions";
 
 /** Etiqueta y tono del estado de validación de la publicación. */
 const REPORT_STATUS_META: Record<
@@ -41,6 +42,30 @@ function relativeTime(iso: string): string {
   return `Hace ${Math.floor(diffDays / 365)} año(s)`;
 }
 
+/** Días transcurridos desde una fecha (ISO o YYYY-MM-DD); null si es inválida. */
+function daysSince(dateStr: string): number | null {
+  const t = new Date(dateStr).getTime();
+  if (Number.isNaN(t)) return null;
+  return Math.floor((Date.now() - t) / 86_400_000);
+}
+
+/**
+ * Nivel de urgencia de un caso activo (perdido/encontrado/en tránsito) según
+ * la antigüedad del reporte. Las mascotas en adopción/adoptadas no aplican.
+ */
+function urgencyLevel(pet: Pet): "urgent" | "recent" | null {
+  const active =
+    pet.status === "perdido" ||
+    pet.status === "encontrado" ||
+    pet.status === "en tránsito";
+  if (!active) return null;
+  const d = daysSince(pet.date);
+  if (d == null) return null;
+  if (d <= 3) return "urgent";
+  if (d <= 10) return "recent";
+  return null;
+}
+
 /** Rasgos destacables de la mascota (solo los presentes/verdaderos). */
 function petTraits(pet: Pet): string[] {
   const traits: string[] = [];
@@ -70,7 +95,8 @@ export function PetCard({
   const traits = petTraits(pet);
   const visibleTraits = traits.slice(0, 3);
   const extraTraits = traits.length - visibleTraits.length;
-  const when = relativeTime(pet.createdAt || pet.date);
+  const when = relativeTime(pet.date || pet.createdAt);
+  const urgency = urgencyLevel(pet);
 
   // Subtítulo compacto: tipo · raza · sexo (solo los datos disponibles).
   const subtitleParts = [
@@ -81,7 +107,7 @@ export function PetCard({
   ].filter(Boolean);
 
   return (
-    <li className="pet-card">
+    <li className={`pet-card${urgency ? ` pet-card--${urgency}` : ""}`}>
       <Link href={href} className="pet-photo-wrap">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
@@ -96,12 +122,16 @@ export function PetCard({
           {(pet.status && pet.status.toLocaleUpperCase()) || "PERDIDO"}
         </span>
         {when && <span className="pet-when">{when}</span>}
-        {reportMeta && (
+        {reportMeta ? (
           <span
             className={`pet-report-badge pet-report-badge--${reportMeta.tone}`}
           >
             {reportMeta.label}
           </span>
+        ) : (
+          urgency === "urgent" && (
+            <span className="pet-urgent-badge">⏰ Urgente</span>
+          )
         )}
       </Link>
       <div className="pet-body">
@@ -143,11 +173,7 @@ export function PetCard({
           <span>📅 {pet.date}</span>
         </div>
 
-        <div className="pet-card-actions">
-          <Link href={href} className="pet-action pet-action--more">
-            Ver más →
-          </Link>
-        </div>
+        <PetCardActions pet={pet} />
       </div>
     </li>
   );
