@@ -32,7 +32,7 @@ describe("PetCard", () => {
   it("usa la imagen por defecto cuando no hay fotos", () => {
     render(<PetCard pet={{ ...basePet, photos: null }} />);
     const img = screen.getByRole("img");
-    expect(img).toHaveAttribute("src", "/images/pet-dog.png");
+    expect(img).toHaveAttribute("src", "/images/pet-dog.jpg");
   });
 
   it("muestra el estado del reporte solo si showReportStatus está activo", () => {

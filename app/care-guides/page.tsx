@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { X, BookOpen, ArrowRight, PawPrint } from "lucide-react";
 
 const GUIDES = [
   {
@@ -82,10 +83,27 @@ export default function CareGuidesPage() {
     null,
   );
 
+  // Cerrar el modal con Escape + bloquear el scroll del body mientras está abierto.
+  useEffect(() => {
+    if (!selectedGuide) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setSelectedGuide(null);
+    };
+    document.addEventListener("keydown", onKey);
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = "";
+    };
+  }, [selectedGuide]);
+
   return (
     <main>
       <div className="page-title">
         <div className="container">
+          <span className="adopt-eyebrow">
+            <PawPrint size={15} aria-hidden /> Aprendé y prevení
+          </span>
           <h1>Guías de cuidado</h1>
           <p>
             Consejos prácticos para buscar, proteger y cuidar a tus mascotas.
@@ -95,22 +113,31 @@ export default function CareGuidesPage() {
 
       <div className="container" style={{ marginBottom: "4rem" }}>
         <div className="guide-grid">
-          {GUIDES.map((g) => (
+          {GUIDES.map((g, i) => (
             <article
               key={g.title}
-              className="guide-card"
+              className="guide-card guide-card-anim"
+              style={{ animationDelay: `${i * 0.07}s` }}
+              role="button"
+              tabIndex={0}
+              aria-label={`Leer guía: ${g.title}`}
               onClick={() => setSelectedGuide(g)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  setSelectedGuide(g);
+                }
+              }}
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img className="photo" src={g.img} alt={g.title} />
+              <div className="guide-photo-wrap">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img className="photo" src={g.img} alt={g.title} />
+              </div>
               <div className="body">
                 <h3>{g.title}</h3>
                 <p>{g.desc}</p>
-                <span
-                  className="btn btn-outline btn-sm"
-                  style={{ marginTop: "1.25rem" }}
-                >
-                  Leer guía completa
+                <span className="guide-card-link">
+                  Leer guía completa <ArrowRight size={15} aria-hidden />
                 </span>
               </div>
             </article>
@@ -122,16 +149,27 @@ export default function CareGuidesPage() {
       {selectedGuide && (
         <div className="modal-overlay" onClick={() => setSelectedGuide(null)}>
           <div
-            className="modal-content auth-card guide-modal"
+            className="modal-content auth-card guide-modal guide-modal-anim"
             onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-label={selectedGuide.title}
           >
             <div className="guide-modal-header">
               <h2>{selectedGuide.title}</h2>
-              <button onClick={() => setSelectedGuide(null)}>&times;</button>
+              <button
+                type="button"
+                aria-label="Cerrar"
+                onClick={() => setSelectedGuide(null)}
+              >
+                <X size={20} aria-hidden />
+              </button>
             </div>
 
             <div className="guide-modal-intro">
-              <div className="guide-modal-icon">📘</div>
+              <div className="guide-modal-icon" aria-hidden>
+                <BookOpen size={20} />
+              </div>
               <p>{selectedGuide.desc}</p>
             </div>
 

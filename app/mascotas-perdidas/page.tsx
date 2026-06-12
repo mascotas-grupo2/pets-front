@@ -7,6 +7,7 @@ import { AnimalType, Pet } from "@/types/pet";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { X, PawPrint, Search, MapPin, SlidersHorizontal } from "lucide-react";
 
 type Filter = AnimalType | "todos";
 type SortBy = "recientes" | "antiguos" | "nombre";
@@ -223,12 +224,86 @@ export default function LostPetsPage() {
     (filters.dateFilter !== "todos" ? 1 : 0) +
     (filters.hasCollar ? 1 : 0);
 
+  // Chips de filtros activos (removibles) que se muestran sobre la grilla.
+  const chips: { key: string; label: string; onRemove: () => void }[] = [];
+  if (filters.type !== "todos")
+    chips.push({
+      key: "type",
+      label: TYPE_FILTERS.find((t) => t.value === filters.type)!.label,
+      onRemove: () => updateFilter({ type: "todos" }),
+    });
+  if (filters.search)
+    chips.push({
+      key: "search",
+      label: `“${filters.search}”`,
+      onRemove: () => updateFilter({ search: "" }),
+    });
+  if (filters.location)
+    chips.push({
+      key: "loc",
+      label: `📍 ${filters.location}`,
+      onRemove: () => updateFilter({ location: "" }),
+    });
+  if (filters.dateFilter !== "todos")
+    chips.push({
+      key: "date",
+      label: DATE_OPTIONS.find((d) => d.value === filters.dateFilter)!.label,
+      onRemove: () => updateFilter({ dateFilter: "todos" }),
+    });
+  filters.sizes.forEach((s) =>
+    chips.push({
+      key: `size-${s}`,
+      label: SIZE_OPTIONS.find((o) => o.value === s)!.label,
+      onRemove: () =>
+        updateFilter({ sizes: filters.sizes.filter((x) => x !== s) }),
+    })
+  );
+  filters.ages.forEach((a) =>
+    chips.push({
+      key: `age-${a}`,
+      label: AGE_OPTIONS.find((o) => o.value === a)!.label,
+      onRemove: () =>
+        updateFilter({ ages: filters.ages.filter((x) => x !== a) }),
+    })
+  );
+  if (filters.sex !== "cualquiera")
+    chips.push({
+      key: "sex",
+      label: SEX_OPTIONS.find((o) => o.value === filters.sex)!.label,
+      onRemove: () => updateFilter({ sex: "cualquiera" }),
+    });
+  if (filters.hasCollar)
+    chips.push({
+      key: "collar",
+      label: "Con collar o chapa",
+      onRemove: () => updateFilter({ hasCollar: false }),
+    });
+  if (filters.sortBy !== "recientes")
+    chips.push({
+      key: "sort",
+      label: `Orden: ${filters.sortBy === "antiguos" ? "Más antiguos" : "Nombre (A-Z)"}`,
+      onRemove: () => updateFilter({ sortBy: "recientes" }),
+    });
+
   return (
     <main>
-      <div className="page-title">
+      <div className="page-title listing-hero">
         <div className="container">
+          <span className="adopt-eyebrow listing-hero-eyebrow">
+            <PawPrint size={15} aria-hidden /> Reuní mascotas con su familia
+          </span>
           <h1>Mascotas perdidas</h1>
-          <p>Explorá las publicaciones y ayudá a reunirlas con su familia.</p>
+          <p>
+            {loading ? (
+              "Explorá las publicaciones y ayudá a reunirlas con su familia."
+            ) : (
+              <>
+                <strong>{pets.length}</strong>{" "}
+                {pets.length === 1 ? "mascota busca" : "mascotas buscan"} volver a
+                casa. Explorá y ayudá a reunirlas.
+              </>
+            )}
+          </p>
         </div>
       </div>
 
@@ -238,7 +313,9 @@ export default function LostPetsPage() {
           aria-label="Filtros"
         >
           <div className="sidebar-header">
-            <h3>Filtros</h3>
+            <h3>
+              <SlidersHorizontal size={17} aria-hidden /> Filtros
+            </h3>
             {activeFilters > 0 && (
               <button
                 type="button"
@@ -271,112 +348,123 @@ export default function LostPetsPage() {
             <label className="sidebar-label" htmlFor="listing-search">
               Buscar
             </label>
-            <input
-              id="listing-search"
-              className="input"
-              type="search"
-              placeholder="Nombre, descripción…"
-              value={filters.search}
-              onChange={(e) => updateFilter({ search: e.target.value })}
-            />
+            <div className="filter-input-wrap">
+              <Search size={15} aria-hidden />
+              <input
+                id="listing-search"
+                className="input"
+                type="search"
+                placeholder="Nombre, descripción…"
+                value={filters.search}
+                onChange={(e) => updateFilter({ search: e.target.value })}
+              />
+            </div>
           </div>
 
           <div className="sidebar-block">
             <label className="sidebar-label" htmlFor="listing-location">
               Ubicación
             </label>
-            <input
-              id="listing-location"
-              className="input"
-              type="text"
-              placeholder="Barrio o ciudad"
-              value={filters.location}
-              onChange={(e) => updateFilter({ location: e.target.value })}
-            />
+            <div className="filter-input-wrap">
+              <MapPin size={15} aria-hidden />
+              <input
+                id="listing-location"
+                className="input"
+                type="text"
+                placeholder="Barrio o ciudad"
+                value={filters.location}
+                onChange={(e) => updateFilter({ location: e.target.value })}
+              />
+            </div>
           </div>
 
           <div className="sidebar-block">
             <span className="sidebar-label">Fecha del reporte</span>
-            <div className="sidebar-radios">
+            <div className="filter-pills">
               {DATE_OPTIONS.map((opt) => (
-                <label key={opt.value} className="sidebar-radio">
-                  <input
-                    type="radio"
-                    name="date-filter"
-                    checked={filters.dateFilter === opt.value}
-                    onChange={() => updateFilter({ dateFilter: opt.value })}
-                  />
-                  <span>{opt.label}</span>
-                </label>
+                <button
+                  key={opt.value}
+                  type="button"
+                  className={`filter-pill${filters.dateFilter === opt.value ? " is-on" : ""}`}
+                  aria-pressed={filters.dateFilter === opt.value}
+                  onClick={() => updateFilter({ dateFilter: opt.value })}
+                >
+                  {opt.label}
+                </button>
               ))}
             </div>
           </div>
 
           <div className="sidebar-block">
             <span className="sidebar-label">Tamaño</span>
-            <div className="sidebar-checks">
+            <div className="filter-pills">
               {SIZE_OPTIONS.map((opt) => (
-                <label key={opt.value} className="sidebar-check">
-                  <input
-                    type="checkbox"
-                    checked={filters.sizes.includes(opt.value)}
-                    onChange={() =>
-                      updateFilter({
-                        sizes: toggleInArray(filters.sizes, opt.value),
-                      })
-                    }
-                  />
-                  <span>{opt.label}</span>
-                </label>
+                <button
+                  key={opt.value}
+                  type="button"
+                  className={`filter-pill${filters.sizes.includes(opt.value) ? " is-on" : ""}`}
+                  aria-pressed={filters.sizes.includes(opt.value)}
+                  onClick={() =>
+                    updateFilter({
+                      sizes: toggleInArray(filters.sizes, opt.value),
+                    })
+                  }
+                >
+                  {opt.label}
+                </button>
               ))}
             </div>
           </div>
 
           <div className="sidebar-block">
             <span className="sidebar-label">Edad aproximada</span>
-            <div className="sidebar-checks">
+            <div className="filter-pills">
               {AGE_OPTIONS.map((opt) => (
-                <label key={opt.value} className="sidebar-check">
-                  <input
-                    type="checkbox"
-                    checked={filters.ages.includes(opt.value)}
-                    onChange={() =>
-                      updateFilter({
-                        ages: toggleInArray(filters.ages, opt.value),
-                      })
-                    }
-                  />
-                  <span>{opt.label}</span>
-                </label>
+                <button
+                  key={opt.value}
+                  type="button"
+                  className={`filter-pill${filters.ages.includes(opt.value) ? " is-on" : ""}`}
+                  aria-pressed={filters.ages.includes(opt.value)}
+                  onClick={() =>
+                    updateFilter({
+                      ages: toggleInArray(filters.ages, opt.value),
+                    })
+                  }
+                >
+                  {opt.label}
+                </button>
               ))}
             </div>
           </div>
 
           <div className="sidebar-block">
             <span className="sidebar-label">Sexo</span>
-            <div className="sidebar-radios">
+            <div className="filter-seg" role="group" aria-label="Sexo">
               {SEX_OPTIONS.map((opt) => (
-                <label key={opt.value} className="sidebar-radio">
-                  <input
-                    type="radio"
-                    name="sex-filter"
-                    checked={filters.sex === opt.value}
-                    onChange={() => updateFilter({ sex: opt.value })}
-                  />
-                  <span>{opt.label}</span>
-                </label>
+                <button
+                  key={opt.value}
+                  type="button"
+                  className={`filter-seg-item${filters.sex === opt.value ? " is-on" : ""}`}
+                  aria-pressed={filters.sex === opt.value}
+                  onClick={() => updateFilter({ sex: opt.value })}
+                >
+                  {opt.label}
+                </button>
               ))}
             </div>
           </div>
 
           <div className="sidebar-block">
-            <label className="sidebar-check sidebar-check-standalone">
+            <label className="filter-switch">
               <input
                 type="checkbox"
                 checked={filters.hasCollar}
                 onChange={(e) => updateFilter({ hasCollar: e.target.checked })}
               />
-              <span>Con collar o chapa</span>
+              <span className="filter-switch-track" aria-hidden>
+                <span className="filter-switch-thumb" />
+              </span>
+              <span className="filter-switch-label">Con collar o chapa</span>
             </label>
           </div>
 
@@ -422,19 +510,66 @@ export default function LostPetsPage() {
             </button>
           </div>
 
-          {loading ? (
-            <div className="listing-empty">
-              <p>Cargando publicaciones…</p>
+          {chips.length > 0 && (
+            <div className="listing-chips">
+              {chips.map((c) => (
+                <button
+                  key={c.key}
+                  type="button"
+                  className="listing-chip"
+                  onClick={c.onRemove}
+                  aria-label={`Quitar filtro ${c.label}`}
+                >
+                  {c.label}
+                  <X size={13} aria-hidden />
+                </button>
+              ))}
+              <button
+                type="button"
+                className="listing-chip listing-chip-clear"
+                onClick={clearFilters}
+              >
+                Limpiar todo
+              </button>
             </div>
+          )}
+
+          {loading ? (
+            <ul className="pet-grid listing-grid" aria-hidden>
+              {Array.from({ length: 6 }).map((_, i) => (
+                <li key={i} className="pet-skeleton">
+                  <div className="pet-skeleton-img" />
+                  <div className="pet-skeleton-body">
+                    <div className="pet-skeleton-line" style={{ width: "70%" }} />
+                    <div className="pet-skeleton-line" style={{ width: "40%" }} />
+                    <div className="pet-skeleton-line" style={{ width: "90%" }} />
+                  </div>
+                </li>
+              ))}
+            </ul>
           ) : filtered.length === 0 ? (
             <div className="listing-empty">
+              <span className="listing-empty-icon" aria-hidden>
+                <Search size={32} />
+              </span>
               <p>No hay mascotas que coincidan con tu búsqueda.</p>
-              <Link
-                href="/mascotas-perdidas/reportar"
-                className="btn btn-primary"
-              >
-                Reportar una mascota
-              </Link>
+              <div className="listing-empty-actions">
+                {activeFilters > 0 && (
+                  <button
+                    type="button"
+                    className="btn btn-outline"
+                    onClick={clearFilters}
+                  >
+                    Limpiar filtros
+                  </button>
+                )}
+                <Link
+                  href="/mascotas-perdidas/reportar"
+                  className="btn btn-primary"
+                >
+                  Reportar una mascota
+                </Link>
+              </div>
             </div>
           ) : (
             <>
