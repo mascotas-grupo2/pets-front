@@ -44,11 +44,13 @@ function Burbuja({
   m,
   isMine,
   user,
+  isAdmin,
   onDelete,
 }: {
   m: Message;
   isMine: boolean;
   user: userMessage | null;
+  isAdmin: boolean;
   onDelete: (id: number) => void;
 }) {
   return (
@@ -65,15 +67,17 @@ function Burbuja({
           {new Date(m.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
         </time>
       </div>
-      <button
-        type="button"
-        className="msg-delete"
-        aria-label="Eliminar mensaje"
-        title="Eliminar mensaje"
-        onClick={() => onDelete(m.id)}
-      >
-        <Trash2 size={14} />
-      </button>
+      {(isMine || isAdmin) && (
+        <button
+          type="button"
+          className="msg-delete"
+          aria-label="Eliminar mensaje"
+          title="Eliminar mensaje"
+          onClick={() => onDelete(m.id)}
+        >
+          <Trash2 size={14} />
+        </button>
+      )}
     </div>
   );
 }
@@ -229,6 +233,7 @@ export function MessagesPanel() {
                     m={m}
                     isMine={m.senderId === currentUserId}
                     user={activaUser}
+                    isAdmin={isAdmin}
                     onDelete={eliminar}
                   />
                 ))
