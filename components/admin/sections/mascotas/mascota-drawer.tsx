@@ -45,11 +45,6 @@ type Tab =
 
 const TABS: { id: Tab; label: string }[] = [
   { id: "overview", label: "Overview" },
-  { id: "historial", label: "Historial" },
-  { id: "seguimientos", label: "Seguimientos" },
-  { id: "solicitudes", label: "Solicitudes" },
-  { id: "archivos", label: "Archivos" },
-  { id: "notas", label: "Notas" },
 ];
 
 const NOTE_KIND_LABEL: Record<string, string> = {
@@ -76,8 +71,12 @@ function boolText(v?: boolean) {
 /** Drawer lateral con el detalle de una mascota. */
 export function MascotaDrawer({ pet, onClose, onChanged }: Props) {
   const [tab, setTab] = useState<Tab>("overview");
-  const { loading: loadingDetalle, notas, proximo, compat } =
-    useMascotaDetalle(pet.id);
+  const {
+    loading: loadingDetalle,
+    notas,
+    proximo,
+    compat,
+  } = useMascotaDetalle(pet.id);
   const [estado, setEstado] = useState<PetStatus>(pet.status);
   const [recipient, setRecipient] = useState("");
   const [showEntrega, setShowEntrega] = useState(false);
@@ -192,7 +191,9 @@ export function MascotaDrawer({ pet, onClose, onChanged }: Props) {
                 </div>
                 <div className="vdrawer-field">
                   <span className="vdrawer-field-label">Color</span>
-                  <span className="vdrawer-field-value">{pet.color ?? "—"}</span>
+                  <span className="vdrawer-field-value">
+                    {pet.color ?? "—"}
+                  </span>
                 </div>
                 <div className="vdrawer-field">
                   <span className="vdrawer-field-label">Personalidad</span>
@@ -312,7 +313,9 @@ export function MascotaDrawer({ pet, onClose, onChanged }: Props) {
                     <div key={n.id} className="mdrawer-nota">
                       <p className="vdrawer-desc">{n.text}</p>
                       <span className="mdrawer-seg-meta">
-                        {NOTE_KIND_LABEL[n.kind] ? `${NOTE_KIND_LABEL[n.kind]} · ` : ""}
+                        {NOTE_KIND_LABEL[n.kind]
+                          ? `${NOTE_KIND_LABEL[n.kind]} · `
+                          : ""}
                         {fmtFecha(n.createdAt)}
                       </span>
                     </div>
@@ -329,7 +332,11 @@ export function MascotaDrawer({ pet, onClose, onChanged }: Props) {
 
         <div
           className="vdrawer-foot"
-          style={{ flexDirection: "column", alignItems: "stretch", gap: "0.5rem" }}
+          style={{
+            flexDirection: "column",
+            alignItems: "stretch",
+            gap: "0.5rem",
+          }}
         >
           {!yaAdoptada &&
             (showEntrega ? (

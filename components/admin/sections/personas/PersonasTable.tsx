@@ -1,7 +1,6 @@
 "use client";
 
-import { Eye, Pencil, ShieldCheck, ShieldOff } from "lucide-react";
-import { toast } from "sonner";
+import { ShieldCheck, ShieldOff } from "lucide-react";
 import { DataTable, type Column } from "../../ui/data-table";
 import { TablePagination } from "../../ui/table-pagination";
 import { Pill } from "../../ui/pill";
@@ -38,8 +37,6 @@ type Props = {
 };
 
 export function PersonasTable({ data, loading, page, totalPages, total, desde, hasta, onPage, onPromote, onDemote }: Props) {
-  function placeholder() { toast.info("Próximamente."); }
-
   const columns: Column<AdminUser>[] = [
     {
       key: "name",
@@ -75,12 +72,6 @@ export function PersonasTable({ data, loading, page, totalPages, total, desde, h
         const esAdmin = categoriaUsuario(u) === "admin";
         return (
           <div className="dash-row-actions">
-            <button type="button" aria-label="Ver" title="Ver" onClick={placeholder}>
-              <Eye size={15} />
-            </button>
-            <button type="button" aria-label="Editar" title="Editar" onClick={placeholder}>
-              <Pencil size={15} />
-            </button>
             {esAdmin ? (
               <button
                 type="button"

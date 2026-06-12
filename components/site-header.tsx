@@ -6,6 +6,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Brand } from "./brand";
 import { ThemeToggle } from "./theme-toggle";
+import { NotificationsBell } from "./notifications/NotificationsBell";
 
 const NAV = [
   { href: "/", label: "Inicio" },
@@ -61,6 +62,7 @@ export function SiteHeader() {
               Admin
             </Link>
           )}
+          {isLoggedIn && <NotificationsBell />}
           {isLoggedIn ? (
             <Link
               href="/mascotas-perdidas/reportar"

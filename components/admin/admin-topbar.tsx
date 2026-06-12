@@ -1,10 +1,12 @@
 "use client";
 
-import { Search, Bell, Mail, ChevronDown, LogOut } from "lucide-react";
+import { Search, Mail, ChevronDown, LogOut } from "lucide-react";
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useAppSelector } from "@/redux/hooks";
 import { useUserContext } from "@/context/UserContext";
 import { initials } from "./sections/dashboard/dashboard.data";
+import { NotificationsBell } from "../notifications/NotificationsBell";
 
 type AdminTopbarProps = {
   title: string;
@@ -49,15 +51,16 @@ export function AdminTopbar({ title, subtitle }: AdminTopbarProps) {
           <input type="search" placeholder="Buscar..." aria-label="Buscar" />
         </div>
 
-        <button type="button" className="admin-icon-btn" aria-label="Notificaciones">
-          <Bell size={18} aria-hidden />
-          <span className="admin-icon-badge">0</span>
-        </button>
+        <NotificationsBell />
 
-        <button type="button" className="admin-icon-btn" aria-label="Mensajes">
+        <Link
+          href="/admin/mensajes"
+          className="admin-icon-btn"
+          aria-label="Mensajes"
+          title="Mensajes"
+        >
           <Mail size={18} aria-hidden />
-          <span className="admin-icon-badge admin-icon-badge-accent">3</span>
-        </button>
+        </Link>
 
         <div className="admin-user-menu-wrap" ref={menuRef}>
           <button

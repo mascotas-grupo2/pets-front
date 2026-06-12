@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Pet, PetReportStatus } from "@/types/pet";
+import { Pet, PetReportStatus, PetStatus } from "@/types/pet";
 
 /** Etiqueta y tono del estado de validación de la publicación. */
 const REPORT_STATUS_META: Record<
@@ -12,6 +12,45 @@ const REPORT_STATUS_META: Record<
   rechazado: { label: "Rechazado", tone: "rejected" },
   reservada: { label: "Reservada", tone: "active" },
 };
+
+/** Tono de color del badge según el estado real de la mascota. */
+const STATUS_TONE: Record<PetStatus, string> = {
+  perdido: "perdido",
+  encontrado: "encontrado",
+  "en tránsito": "transito",
+  "en tratamiento médico": "medico",
+  "en adopción": "adopcion",
+  adoptado: "adoptado",
+};
+
+/** Imagen por defecto según el tipo de animal (assets reales del proyecto). */
+function placeholderFor(animalType: Pet["animalType"]): string {
+  return animalType === "gato" ? "/images/pet-cat.jpg" : "/images/pet-dog.jpg";
+}
+
+/** "Hace 3 días" / "Hoy" a partir de una fecha ISO. */
+function relativeTime(iso: string): string {
+  const then = new Date(iso).getTime();
+  if (Number.isNaN(then)) return "";
+  const diffDays = Math.floor((Date.now() - then) / 86_400_000);
+  if (diffDays <= 0) return "Hoy";
+  if (diffDays === 1) return "Ayer";
+  if (diffDays < 7) return `Hace ${diffDays} días`;
+  if (diffDays < 30) return `Hace ${Math.floor(diffDays / 7)} sem.`;
+  if (diffDays < 365) return `Hace ${Math.floor(diffDays / 30)} meses`;
+  return `Hace ${Math.floor(diffDays / 365)} año(s)`;
+}
+
+/** Rasgos destacables de la mascota (solo los presentes/verdaderos). */
+function petTraits(pet: Pet): string[] {
+  const traits: string[] = [];
+  if (pet.hasCollar || pet.hasTag) traits.push("Collar/chapa");
+  if (pet.vaccinated) traits.push("Vacunado/a");
+  if (pet.neutered) traits.push("Castrado/a");
+  if (pet.microchipped) traits.push("Microchip");
+  if (pet.friendlyWithKids) traits.push("Bien con chicos");
+  return traits;
+}
 
 export function PetCard({
   pet,
@@ -26,24 +65,58 @@ export function PetCard({
       ? REPORT_STATUS_META[pet.reportStatus]
       : null;
 
+  const href = `/mascotas-perdidas/${pet.id}`;
+  const tone = STATUS_TONE[pet.status] ?? "perdido";
+  const traits = petTraits(pet);
+  const visibleTraits = traits.slice(0, 3);
+  const extraTraits = traits.length - visibleTraits.length;
+  const when = relativeTime(pet.createdAt || pet.date);
+
+  // Subtítulo compacto: tipo · raza · sexo (solo los datos disponibles).
+  const subtitleParts = [
+    pet.animalTypeLabel ??
+      pet.animalType.charAt(0).toUpperCase() + pet.animalType.slice(1),
+    pet.breed,
+    pet.sex === "macho" ? "Macho" : pet.sex === "hembra" ? "Hembra" : undefined,
+  ].filter(Boolean);
+
   return (
     <li className="pet-card">
-      <Link href={`/mascotas-perdidas/${pet.id}`} className="pet-photo-wrap">
+      <Link href={href} className="pet-photo-wrap">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={Array.isArray(pet.photos) && pet.photos.length > 0 ? pet.photos[0] : "/images/pet-dog.jpg"} alt={pet.name ?? pet.description} />
-        <span className="pet-badge">{pet.status && pet.status.toLocaleUpperCase() || "PERDIDO"}</span>
+        <img
+          src={
+            Array.isArray(pet.photos) && pet.photos.length > 0
+              ? pet.photos[0]
+              : placeholderFor(pet.animalType)
+          }
+          alt={pet.name ?? pet.description}
+        />
+        <span className={`pet-badge pet-badge--${tone}`}>
+          {(pet.status && pet.status.toLocaleUpperCase()) || "PERDIDO"}
+        </span>
+        {when && <span className="pet-when">{when}</span>}
         {reportMeta && (
-          <span className={`pet-report-badge pet-report-badge--${reportMeta.tone}`}>
+          <span
+            className={`pet-report-badge pet-report-badge--${reportMeta.tone}`}
+          >
             {reportMeta.label}
           </span>
         )}
       </Link>
       <div className="pet-body">
-        <h3 className="pet-title">
-          {pet.name ??
-            pet.animalType.charAt(0).toUpperCase() + pet.animalType.slice(1)}
-        </h3>
+        <div className="pet-headline">
+          <h3 className="pet-title">
+            {pet.name ??
+              pet.animalType.charAt(0).toUpperCase() + pet.animalType.slice(1)}
+          </h3>
+          {subtitleParts.length > 0 && (
+            <p className="pet-subtitle">{subtitleParts.join(" · ")}</p>
+          )}
+        </div>
+
         <p className="pet-desc">{pet.description}</p>
+
         {showReportStatus &&
           pet.reportStatus === "rechazado" &&
           pet.rejectionReason && (
@@ -51,13 +124,28 @@ export function PetCard({
               <strong>Motivo del rechazo:</strong> {pet.rejectionReason}
             </p>
           )}
+
+        {visibleTraits.length > 0 && (
+          <ul className="pet-traits" aria-label="Características">
+            {visibleTraits.map((t) => (
+              <li key={t} className="pet-trait">
+                {t}
+              </li>
+            ))}
+            {extraTraits > 0 && (
+              <li className="pet-trait pet-trait--more">+{extraTraits}</li>
+            )}
+          </ul>
+        )}
+
         <div className="pet-meta">
           <span>📍 {pet.location}</span>
           <span>📅 {pet.date}</span>
         </div>
-        <div className="pet-card-footer">
-          <Link href={`/mascotas-perdidas/${pet.id}`} className="pet-card-cta">
-            Ver más info →
+
+        <div className="pet-card-actions">
+          <Link href={href} className="pet-action pet-action--more">
+            Ver más →
           </Link>
         </div>
       </div>

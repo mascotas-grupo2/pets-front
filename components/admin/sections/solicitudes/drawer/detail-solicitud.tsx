@@ -38,14 +38,15 @@ type Props = {
   solicitud: Solicitud;
   onClose: () => void;
   onIrAMensajes: (userId: string) => void;
-  onUpdateStatus?: (id: string, status: Solicitud["estado"]) => Promise<boolean>;
+  onUpdateStatus?: (
+    id: string,
+    status: Solicitud["estado"],
+  ) => Promise<boolean>;
 };
 
 const TABS = [
   { id: "evaluacion", label: "Evaluación" },
   { id: "mensajes", label: "Mensajes" },
-  { id: "archivos", label: "Archivos" },
-  { id: "historial", label: "Historial" },
 ] as const;
 
 type TabId = (typeof TABS)[number]["id"];
@@ -107,7 +108,7 @@ function CompatCircle({ pct, label }: { pct: number; label: string }) {
 import type {
   AdoptionMessage,
   AdoptionFile,
-  AdoptionHistoryItem
+  AdoptionHistoryItem,
 } from "@/types/adoption-detail";
 
 function TabEvaluacion({ adoptionId }: { adoptionId: number }) {
@@ -379,9 +380,14 @@ function ConfirmarEstadoModal({
         <div className="sdet-modal-body">
           <p className="sdet-confirm-text">
             Vas a cambiar el estado de{" "}
-            <Pill tone={solicitudEstadoTone(actual)}>{ESTADO_LABELS[actual]}</Pill>{" "}
+            <Pill tone={solicitudEstadoTone(actual)}>
+              {ESTADO_LABELS[actual]}
+            </Pill>{" "}
             a{" "}
-            <Pill tone={solicitudEstadoTone(destino)}>{ESTADO_LABELS[destino]}</Pill>.
+            <Pill tone={solicitudEstadoTone(destino)}>
+              {ESTADO_LABELS[destino]}
+            </Pill>
+            .
           </p>
 
           {efecto && (
@@ -439,7 +445,9 @@ export function SolicitudDetail({
   const [showMatchingModal, setShowMatchingModal] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
 
-  const { data: detail, loading: loadingDetail } = useSolicitudDetail(solicitud.id);
+  const { data: detail, loading: loadingDetail } = useSolicitudDetail(
+    solicitud.id,
+  );
 
   const [isUpdating, setIsUpdating] = useState(false);
   const handleConfirmarCambio = async () => {
@@ -640,18 +648,23 @@ export function SolicitudDetail({
                   {ESTADO_LABELS[solicitud.estado]}
                 </Pill>
                 <span className="sdet-estado-fecha">
-                  Última modificación: {solicitud.fechaModificacion ?? solicitud.fecha}
+                  Última modificación:{" "}
+                  {solicitud.fechaModificacion ?? solicitud.fecha}
                 </span>
               </div>
 
               {terminal ? (
                 <p className="sdet-estado-terminal">
-                  Esta solicitud está finalizada y no admite más cambios de estado.
+                  Esta solicitud está finalizada y no admite más cambios de
+                  estado.
                 </p>
               ) : (
                 <div className="sdet-estado-row">
                   <div className="field sdet-estado-select-wrap">
-                    <label className="sdet-estado-sublabel" htmlFor="sdet-estado-select">
+                    <label
+                      className="sdet-estado-sublabel"
+                      htmlFor="sdet-estado-select"
+                    >
                       Cambiar a
                     </label>
                     <select
@@ -706,10 +719,6 @@ export function SolicitudDetail({
                 userId={detail?.user?.id ? String(detail.user.id) : undefined}
                 messages={detail?.messages}
               />
-            )}
-            {tab === "archivos" && <TabArchivos files={detail?.files} />}
-            {tab === "historial" && (
-              <TabHistorial history={detail?.history} />
             )}
           </div>
         </aside>

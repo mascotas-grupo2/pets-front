@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 import { toast } from "sonner";
 import {
   sendChatbotMessage,
@@ -42,6 +43,12 @@ type DisplayMessage = ChatbotMessage | { role: "error"; type: "text"; text: stri
  * - Botón "nueva conversación" que resetea todo.
  */
 export function ChatbotWidget() {
+  // El widget se monta globalmente en el root layout, así que aparece en
+  // todas las pantallas. En el panel de administrador la burbuja flotante
+  // se superpone a modales y formularios, así que lo ocultamos ahí.
+  const pathname = usePathname();
+  const hiddenOnAdmin = pathname?.startsWith("/admin") ?? false;
+
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<DisplayMessage[]>([]);
   const [input, setInput] = useState("");
@@ -157,6 +164,10 @@ export function ChatbotWidget() {
   // Welcome replies solo al inicio (sin conversación todavía)
   const conversationNotStarted = messages.length === 0;
   const showWelcomeReplies = conversationNotStarted && !isTyping;
+
+  // No renderizamos nada en el panel de administrador. El return va después
+  // de los hooks para no violar las reglas de hooks de React.
+  if (hiddenOnAdmin) return null;
 
   return (
     <>
