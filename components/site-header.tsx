@@ -53,6 +53,7 @@ export function SiteHeader() {
 
         <div className="header-actions">
           <ThemeToggle />
+          {isLoggedIn && <NotificationsBell />}
           {isAdmin && (
             <Link
               href="/admin"
@@ -62,7 +63,6 @@ export function SiteHeader() {
               Admin
             </Link>
           )}
-          {isLoggedIn && <NotificationsBell />}
           {isLoggedIn ? (
             <Link
               href="/mascotas-perdidas/reportar"

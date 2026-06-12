@@ -48,8 +48,9 @@ export function toSolicitud(a: AdminAdoptionItem): Solicitud {
   ) as EstadoSolicitud;
   return {
     id: String(a.id),
-    userName: a.userName ?? a.applicantName ?? "—",
-    userEmail: a.userEmail ?? a.applicantEmail ?? "",
+
+    userName: a.applicantName ?? a.userName ?? "—",
+    userEmail: a.applicantEmail ?? a.userEmail ?? "",
     userPhoto: a.userPhoto ?? "",
     petName: a.petName ?? "Sin nombre",
     petPhoto: a.petPhoto ?? "",
@@ -91,12 +92,17 @@ export function useSolicitudes() {
   const [query, setQueryRaw] = useState("");
   const [estado, setEstadoRaw] = useState<EstadoFiltro>("TODAS");
   const [sort, setSortRaw] = useState<SortOrder<SortKey>[]>([]);
-  const { page, setPage, resetPage, totalPages, desde, hasta } = usePagination(PAGE_SIZE, total);
+  const { page, setPage, resetPage, totalPages, desde, hasta } = usePagination(
+    PAGE_SIZE,
+    total,
+  );
 
   const loadSolicitudes = useCallback(async (params: Params) => {
     setLoading(true);
 
-    const sortQuery = params.sort?.map((s) => `${s.key}:${s.direction}`).join(",");
+    const sortQuery = params.sort
+      ?.map((s) => `${s.key}:${s.direction}`)
+      .join(",");
 
     const res = await getAdminAdoptions({
       page: params.page,
@@ -132,12 +138,15 @@ export function useSolicitudes() {
     setLoading(false);
   }, []);
 
-  const currentParams: Params = useMemo(() => ({
-    estado: estado !== "TODAS" ? (estado as EstadoSolicitud) : undefined,
-    q: query.trim() || undefined,
-    page,
-    sort,
-  }), [estado, query, page, sort]);
+  const currentParams: Params = useMemo(
+    () => ({
+      estado: estado !== "TODAS" ? (estado as EstadoSolicitud) : undefined,
+      q: query.trim() || undefined,
+      page,
+      sort,
+    }),
+    [estado, query, page, sort],
+  );
 
   // Efecto único para sincronizar filtros y paginación.
   // Al envolver en una función asíncrona interna, evitamos la advertencia

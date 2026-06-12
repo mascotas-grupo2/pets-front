@@ -37,3 +37,37 @@ export function MascotaEstadoPill({
   if (!status) return <>—</>;
   return <Pill tone={STATUS_TONE[status] ?? "violet"}>{label ?? status}</Pill>;
 }
+
+export const PET_STATUS_LABELS: Record<PetStatus, string> = {
+  perdido: "Perdido",
+  encontrado: "En refugio",
+  "en tránsito": "En tránsito",
+  "en tratamiento médico": "En tratamiento médico",
+  "en adopción": "En adopción",
+  adoptado: "Adoptado",
+};
+
+export const PET_STATUS_TRANSITIONS: Record<PetStatus, PetStatus[]> = {
+  perdido: ["encontrado"],
+  encontrado: ["en tránsito", "en tratamiento médico", "en adopción"],
+  "en tránsito": ["en tratamiento médico", "en adopción"],
+  "en tratamiento médico": ["en tránsito", "en adopción"],
+  "en adopción": ["adoptado"],
+  adoptado: [],
+};
+
+export function esEstadoMascotaTerminal(status: PetStatus): boolean {
+  return PET_STATUS_TRANSITIONS[status]?.length === 0;
+}
+
+export function transicionesMascotaPermitidas(status: PetStatus): PetStatus[] {
+  return PET_STATUS_TRANSITIONS[status] ?? [];
+}
+
+export function transicionMascotaValida(
+  desde: PetStatus,
+  hacia: PetStatus,
+): boolean {
+  if (desde === hacia) return true;
+  return transicionesMascotaPermitidas(desde).includes(hacia);
+}

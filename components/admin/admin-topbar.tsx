@@ -7,6 +7,7 @@ import { useAppSelector } from "@/redux/hooks";
 import { useUserContext } from "@/context/UserContext";
 import { initials } from "./sections/dashboard/dashboard.data";
 import { NotificationsBell } from "../notifications/NotificationsBell";
+import { ThemeToggle } from "../theme-toggle";
 
 type AdminTopbarProps = {
   title: string;
@@ -50,6 +51,8 @@ export function AdminTopbar({ title, subtitle }: AdminTopbarProps) {
           <Search size={16} aria-hidden />
           <input type="search" placeholder="Buscar..." aria-label="Buscar" />
         </div>
+
+        <ThemeToggle />
 
         <NotificationsBell />
 

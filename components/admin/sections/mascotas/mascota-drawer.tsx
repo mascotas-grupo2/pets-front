@@ -4,7 +4,11 @@ import { useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { X, PawPrint, Heart } from "lucide-react";
-import { MascotaEstadoPill } from "../../lib/pet-status";
+import {
+  MascotaEstadoPill,
+  transicionesMascotaPermitidas,
+  esEstadoMascotaTerminal,
+} from "../../lib/pet-status";
 import { formatEdad } from "../../lib/pet-format";
 import { updatePet, entregaDirectaPet } from "@/services/mascotas.pets";
 import { useMascotaDetalle } from "../hook/useMascotaDetalle";
@@ -18,14 +22,6 @@ type Props = {
 };
 
 /** Estados operativos que el admin puede setear a mano (sin "adoptado"). */
-const ESTADOS_OPERATIVOS: PetStatus[] = [
-  "perdido",
-  "encontrado",
-  "en tránsito",
-  "en tratamiento médico",
-  "en adopción",
-];
-
 const STATUS_LABEL: Record<PetStatus, string> = {
   perdido: "Perdido",
   encontrado: "En refugio",
@@ -81,7 +77,12 @@ export function MascotaDrawer({ pet, onClose, onChanged }: Props) {
   const [recipient, setRecipient] = useState("");
   const [showEntrega, setShowEntrega] = useState(false);
   const [busy, setBusy] = useState(false);
-  const yaAdoptada = pet.status === "adoptado";
+  const yaAdoptada = esEstadoMascotaTerminal(pet.status);
+  // Estados ofrecidos: el actual + solo los siguientes válidos (incremental).
+  const opcionesEstado: PetStatus[] = [
+    pet.status,
+    ...transicionesMascotaPermitidas(pet.status),
+  ];
   const thumb = pet.photos?.[0] ?? pet.photo ?? null;
 
   async function guardarEstado() {
@@ -232,9 +233,10 @@ export function MascotaDrawer({ pet, onClose, onChanged }: Props) {
                       onChange={(e) => setEstado(e.target.value as PetStatus)}
                       disabled={busy}
                     >
-                      {ESTADOS_OPERATIVOS.map((s) => (
+                      {opcionesEstado.map((s) => (
                         <option key={s} value={s}>
                           {STATUS_LABEL[s]}
+                          {s === pet.status ? " (actual)" : ""}
                         </option>
                       ))}
                     </select>
