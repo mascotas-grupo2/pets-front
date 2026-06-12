@@ -113,11 +113,19 @@ export function MessagesPanel() {
   }
 
   return (
-    <div className="msg border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+    <div className="msg-layout">
       {/* ---- Columna izquierda: lista de conversaciones ---- */}
       <aside className="msg-list-panel" aria-label="Conversaciones">
-        <div className="msg-list-head">
-          <h3>Mensajes</h3>
+        <div className="msg-panel-head">
+          <div className="msg-panel-title">
+            <span className="msg-panel-icon" aria-hidden>
+              <MessageSquare size={18} />
+            </span>
+            <div>
+              <h3>Mensajes</h3>
+              <p>Tus conversaciones</p>
+            </div>
+          </div>
           {isAdmin && (
             <button
               type="button"
@@ -128,7 +136,7 @@ export function MessagesPanel() {
             </button>
           )}
         </div>
-        <div className="admin-search msg-search m-4 mt-2">
+        <div className="admin-search msg-search msg-search-block">
           <Search size={16} aria-hidden />
           <input
             type="search"
@@ -191,7 +199,7 @@ export function MessagesPanel() {
           </div>
         ) : (
           <>
-            <header className="msg-chat-head shadow-sm z-10">
+            <header className="msg-chat-head">
               <Avatar user={activaUser} />
               <div className="msg-chat-head-info">
                 <h3>{activaUser?.name || "Usuario"}</h3>
@@ -217,7 +225,7 @@ export function MessagesPanel() {
               )}
               <div ref={messagesEndRef} />
             </div>
-            <form className="msg-composer border-t border-gray-100 bg-white" onSubmit={enviar}>
+            <form className="msg-composer" onSubmit={enviar}>
               <input
                 type="text"
                 placeholder="Escribí un mensaje..."
@@ -225,7 +233,6 @@ export function MessagesPanel() {
                 value={draft}
                 onChange={(e) => setDraft(e.target.value)}
                 disabled={sending}
-                className="flex-1"
               />
               <button
                 type="submit"

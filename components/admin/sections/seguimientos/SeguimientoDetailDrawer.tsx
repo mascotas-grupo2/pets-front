@@ -47,6 +47,7 @@ export function SeguimientoDetailDrawer({ seguimiento: s, onClose }: Props) {
       <aside
         className="vdrawer"
         role="dialog"
+        aria-modal="true"
         aria-label="Detalle del seguimiento"
         onClick={(e) => e.stopPropagation()}
       >

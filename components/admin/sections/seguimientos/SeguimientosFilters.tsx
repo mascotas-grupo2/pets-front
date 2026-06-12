@@ -5,6 +5,7 @@ import { TIPO_OPTIONS, FOLLOWUP_STATUS } from "./seguimientos.data";
 const ESTADO_OPTIONS: { id: number; label: string }[] = [
   { id: FOLLOWUP_STATUS.pendiente, label: "Pendiente" },
   { id: FOLLOWUP_STATUS.confirmado, label: "Confirmado" },
+  { id: FOLLOWUP_STATUS.completado, label: "Completado" },
 ];
 
 type Props = {

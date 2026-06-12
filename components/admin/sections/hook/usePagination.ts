@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 /**
  * Estado y cálculos de paginación compartidos por las tablas del panel admin.
@@ -21,6 +21,13 @@ export function usePagination(pageSize: number, total: number) {
   const safePage = Math.min(Math.max(1, page), totalPages);
   const desde = total === 0 ? 0 : (safePage - 1) * pageSize + 1;
   const hasta = Math.min(safePage * pageSize, total);
+
+  // Si baja el total (p. ej. al borrar el último ítem de la última página) y la
+  // página queda fuera de rango, la reajustamos para que `page` y `safePage` no
+  // diverjan (sino el control de paginación opera sobre un estado fantasma).
+  useEffect(() => {
+    if (page > totalPages) setPage(totalPages);
+  }, [page, totalPages]);
 
   return { page, setPage, resetPage, safePage, totalPages, desde, hasta };
 }

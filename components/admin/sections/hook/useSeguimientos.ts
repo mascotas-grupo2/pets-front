@@ -143,7 +143,7 @@ export function useSeguimientos() {
     void load();
   }, [load]);
 
-  const now = useMemo(() => new Date(), [all]);
+  const now = useMemo(() => new Date(), []);
 
   const counts = useMemo(() => ({
     todas: all.length,
@@ -262,7 +262,7 @@ export function useSeguimientos() {
     handleCreate,
     visible,
     total,
-    page: safePage,
+    page,
     setPage,
     totalPages,
     desde,

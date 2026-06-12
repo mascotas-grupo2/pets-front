@@ -63,6 +63,7 @@ export function SeguimientoFormDrawer({ petOptions, userOptions, now, onClose, o
       <aside
         className="vdrawer"
         role="dialog"
+        aria-modal="true"
         aria-label="Agendar seguimiento"
         onClick={(e) => e.stopPropagation()}
       >
