@@ -11,15 +11,10 @@ import { EstadoPill } from "../../lib/pet-status";
 import type { AdminPetSummary } from "@/types/pet";
 import { type Seguimiento, seguimientoEstadoTone } from "../seguimientos/seguimientos.data";
 
-import {
-  ACTIVIDAD,
-  compatTone,
-  initials,
-} from "./dashboard.data";
+import { compatTone, initials } from "./dashboard.data";
 import { useDashboardPreviews } from "../hook/useDashboardPreviews";
 import { DashboardStatCards } from "./DashboardStatCards";
 import { DashboardTablePanel } from "./DashboardTablePanel";
-import { DashboardRecentList } from "./DashboardRecentList";
 import { solicitudEstadoTone } from "../../lib/solicitud-status";
 
 /** Enlace "Ver todas/os" del encabezado de un panel. */
@@ -289,14 +284,11 @@ export function DashboardSection() {
         />
         <SeguimientosPanel seguimientos={seguimientosPreview} loading={seguimientosLoading} />
       </div>
-      <div className="dash-grid">
-        <PublicacionesPanel
-          pets={publicacionesPreview}
-          loading={pubsLoading}
-          href="/admin/publicacion"
-        />
-        <DashboardRecentList items={ACTIVIDAD} />
-      </div>
+      <PublicacionesPanel
+        pets={publicacionesPreview}
+        loading={pubsLoading}
+        href="/admin/publicacion"
+      />
     </div>
   );
 }
