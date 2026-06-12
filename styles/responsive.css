@@ -1,0 +1,156 @@
+/* ── Stat-cards: fluidos, se acomodan solos a cualquier ancho ── */
+.dash-stats,
+.pub-stats,
+.pub-stats--5 {
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+}
+
+/* Grilla de "reportes similares": fluida */
+.similar-grid {
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+/* Botonera de drawers: que no desborde */
+.vdrawer-foot {
+  flex-wrap: wrap;
+}
+
+/* ───────────────────── Tablet y abajo (≤1024px) ───────────────────── */
+@media (max-width: 1024px) {
+  .steps,
+  .testimonials {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .coexistence,
+  .coexistence-grid,
+  .about-hero,
+  .location-picker,
+  .wizard-review {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ──────────── Sidebar admin colapsa a íconos (≤960px) ──────────── */
+@media (max-width: 960px) {
+  .admin-sidebar {
+    width: 64px;
+  }
+  .admin-sidebar .admin-brand-text,
+  .admin-sidebar .admin-nav-label,
+  .admin-sidebar .admin-nav-badge,
+  .admin-sidebar .admin-collapse-btn .admin-nav-label,
+  .admin-sidebar .admin-sidebar-cta .admin-nav-label {
+    display: none;
+  }
+  .admin-sidebar .admin-sidebar-brand,
+  .admin-sidebar .admin-nav-item,
+  .admin-sidebar .admin-sidebar-cta,
+  .admin-sidebar .admin-collapse-btn {
+    justify-content: center;
+    padding-inline: 0;
+  }
+  .dash-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ───────────────────── Mobile (≤768px) ───────────────────── */
+@media (max-width: 768px) {
+  /* Header público: que la nav no desborde */
+  .site-header .container {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .nav {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  /* Layouts de 2+ columnas → una sola */
+  .hero .container,
+  .account-layout,
+  .form-grid,
+  .wizard-review,
+  .coexistence,
+  .coexistence-grid,
+  .about-hero,
+  .location-picker,
+  .steps,
+  .testimonials,
+  .similar-grid,
+  .pet-grid,
+  .pet-detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Hero más compacto */
+  .hero {
+    padding: 2rem 0 3rem;
+  }
+  .hero .container {
+    gap: 1.5rem;
+  }
+  .hero-copy h1 {
+    font-size: 2.2rem;
+  }
+
+  /* Tablas: scroll horizontal en vez de desbordar */
+  .pub-table-wrap,
+  .dash-table-wrap,
+  .pub-table-wrap {
+    overflow-x: auto;
+  }
+
+  /* Topbar admin: que envuelva */
+  .admin-topbar {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    height: auto;
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+  }
+
+  .account-layout {
+    padding: 1.5rem 0;
+    gap: 1.25rem;
+  }
+
+  /* Secciones con título a la izquierda y filtros a la derecha → apilar */
+  .pub-toolbar,
+  .pub-controls {
+    flex-wrap: wrap;
+  }
+}
+
+/* ───────────────────── Phone chico (≤480px) ───────────────────── */
+@media (max-width: 480px) {
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  .dash-stats,
+  .pub-stats,
+  .pub-stats--5 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .hero-copy h1 {
+    font-size: 1.9rem;
+  }
+  /* Botones de wizard apilados */
+  .wizard-nav {
+    flex-direction: column-reverse;
+    gap: 0.6rem;
+  }
+  .wizard-nav .btn {
+    width: 100%;
+  }
+}
+
+/* ───────────────────── Pantallas grandes ───────────────────── */
+/* El .container ya limita el ancho; en monitores muy anchos subimos un poco
+   el tope para aprovechar sin estirar de más. */
+@media (min-width: 1600px) {
+  .container {
+    max-width: 1320px;
+  }
+}

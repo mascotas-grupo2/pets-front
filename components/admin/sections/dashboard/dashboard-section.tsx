@@ -9,9 +9,9 @@ import { DataTable, type Column } from "../../ui/data-table";
 import { ActionButton } from "../../ui/button";
 import { EstadoPill } from "../../lib/pet-status";
 import type { AdminPetSummary } from "@/types/pet";
+import { type Seguimiento, seguimientoEstadoTone } from "../seguimientos/seguimientos.data";
 
 import {
-  SEGUIMIENTOS,
   ACTIVIDAD,
   compatTone,
   initials,
@@ -105,29 +105,35 @@ const SOLICITUDES_COLS: Column<SolicitudPreviewItem>[] = [
   },
 ];
 
-const SEGUIMIENTOS_COLS: Column<(typeof SEGUIMIENTOS)[number]>[] = [
+const SEGUIMIENTOS_COLS: Column<Seguimiento>[] = [
   {
     key: "mascota",
     label: "Mascota",
     tdClassName: "dash-strong",
-    render: (r) => r.mascota,
+    render: (r) => r.petName,
   },
   { key: "tipo", label: "Tipo", render: (r) => r.tipo },
   {
     key: "fechaHora",
     label: "Fecha y hora",
     tdClassName: "dash-muted",
-    render: (r) => r.fechaHora,
+    render: (r) => r.fechaLabel,
   },
-  { key: "adoptante", label: "Adoptante", render: (r) => r.adoptante },
+  { key: "adoptante", label: "Adoptante", render: (r) => r.responsable },
   {
     key: "estado",
     label: "Estado",
-    render: () => <Pill tone="blue">Programada</Pill>,
+    render: (r) => <Pill tone={seguimientoEstadoTone(r.estadoId)}>{r.estado}</Pill>,
   },
 ];
 
-function SeguimientosPanel() {
+function SeguimientosPanel({
+  seguimientos,
+  loading,
+}: {
+  seguimientos: Seguimiento[];
+  loading: boolean;
+}) {
   return (
     <Panel
       title="Seguimientos próximos"
@@ -135,8 +141,10 @@ function SeguimientosPanel() {
     >
       <DataTable
         columns={SEGUIMIENTOS_COLS}
-        data={SEGUIMIENTOS}
-        rowKey={(r) => r.mascota}
+        data={seguimientos}
+        rowKey={(r) => r.id.toString()}
+        loading={loading}
+        empty="No hay seguimientos próximos."
       />
     </Panel>
   );
@@ -241,8 +249,10 @@ export function DashboardSection() {
     publicaciones: publicacionesPreview,
     publicacionesCount,
     solicitudes: solicitudesPreviewRaw,
+    seguimientos: seguimientosPreview,
     pubsLoading,
     solicitudesLoading,
+    seguimientosLoading,
   } = useDashboardPreviews(previewOptions);
 
   // Memorizamos el mapeo para evitar cálculos innecesarios y cambios de referencia en las props de las tablas
@@ -277,7 +287,7 @@ export function DashboardSection() {
           rowKey={(r) => r.id}
           loading={solicitudesLoading}
         />
-        <SeguimientosPanel />
+        <SeguimientosPanel seguimientos={seguimientosPreview} loading={seguimientosLoading} />
       </div>
       <div className="dash-grid">
         <PublicacionesPanel

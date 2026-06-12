@@ -5,9 +5,9 @@ import type { AdminPetSummary, Pet } from "@/types/pet";
 
 type Actions = {
   handleApprove: (id: string) => Promise<boolean>;
-  handleReject: (id: string) => Promise<boolean>;
+  handleReject: (id: string, reason?: string) => Promise<boolean>;
   handleFinalize: (id: string) => Promise<boolean>;
-  handleDelete: (id: string) => Promise<boolean>;
+  handleDelete: (id: string, reason?: string) => Promise<boolean>;
   handleSave: (id: string, patch: Partial<Pet>) => Promise<boolean>;
 };
 
@@ -33,23 +33,16 @@ export function useDrawerActions(pet: AdminPetSummary, actions: Actions, onClose
     return run(() => actions.handleApprove(pet.id));
   }
 
-  function reject() {
-    return run(() => actions.handleReject(pet.id));
+  function reject(reason: string) {
+    return run(() => actions.handleReject(pet.id, reason));
   }
 
   function finalize() {
     return run(() => actions.handleFinalize(pet.id));
   }
 
-  function remove() {
-    if (
-      !window.confirm(
-        `¿Eliminar la publicación "${pet.name ?? "sin nombre"}"? Esta acción no se puede deshacer.`,
-      )
-    ) {
-      return;
-    }
-    return run(() => actions.handleDelete(pet.id));
+  function remove(reason: string) {
+    return run(() => actions.handleDelete(pet.id, reason));
   }
 
   function save(patch: Partial<Pet>) {

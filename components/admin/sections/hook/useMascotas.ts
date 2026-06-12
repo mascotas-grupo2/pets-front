@@ -2,22 +2,30 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { getAdminPets, deletePet } from "@/services/mascotas.pets";
-import type { AdminPetSummary, AnimalType, PetStatus } from "@/types/pet";
+import {
+  getAdminPetsPaged,
+  deletePet,
+  type PetStatusTotals,
+} from "@/services/mascotas.pets";
+import type { AdminPetSummary, AnimalType } from "@/types/pet";
 import type { SortOrder } from "../../ui/data-table";
+import { usePagination } from "./usePagination";
 
-export type FiltroEstado = "todas" | "refugio" | "adopcion" | "adoptados";
+export type FiltroEstado =
+  | "todas"
+  | "perdido"
+  | "refugio"
+  | "adopcion"
+  | "adoptados";
 export type FiltroEspecie = "todas" | AnimalType;
 
 const PAGE_SIZE = 8;
 
-/** "refugio" agrupa todo lo que no es adopción ni adoptado. */
-export function inFiltro(status: PetStatus | undefined, f: FiltroEstado) {
-  if (f === "todas") return true;
-  if (f === "adopcion") return status === "en adopción";
-  if (f === "adoptados") return status === "adoptado";
-  return status !== "en adopción" && status !== "adoptado";
-}
+const ANIMAL_TYPE_ID: Record<AnimalType, number> = {
+  perro: 1,
+  gato: 2,
+  otro: 3,
+};
 
 type Params = {
   filtro: FiltroEstado;
@@ -30,8 +38,9 @@ type Params = {
 export function useMascotas() {
   const [visible, setVisible] = useState<AdminPetSummary[]>([]);
   const [total, setTotal] = useState(0);
-  const [counts, setCounts] = useState({
+  const [counts, setCounts] = useState<PetStatusTotals>({
     todas: 0,
+    perdido: 0,
     refugio: 0,
     adopcion: 0,
     adoptados: 0,
@@ -42,54 +51,25 @@ export function useMascotas() {
   const [filtro, setFiltroRaw] = useState<FiltroEstado>("todas");
   const [especie, setEspecieRaw] = useState<FiltroEspecie>("todas");
   const [sort, setSortRaw] = useState<SortOrder<string>[]>([{ key: "name", direction: "asc" }]);
-  const [page, setPageRaw] = useState(1);
+  const { page, setPage, resetPage, totalPages, desde, hasta } = usePagination(PAGE_SIZE, total);
 
-  // ── Fetch + filtrado cliente (temporal hasta que el back soporte params) ──
-  // TODO: reemplazar el cuerpo de loadPets por:
-  // const res = await getAdminPets({ filtro, especie, q, sort, page, pageSize: PAGE_SIZE });
-  // setPets(res.data.data); setTotal(res.data.total); setCounts(res.data.counts);
+  // El back pagina, filtra (categoría/especie/búsqueda), ordena y cuenta.
   const loadPets = useCallback(async (params: Params) => {
     setLoading(true);
-    const res = await getAdminPets();
+    const first = params.sort?.[0];
+    const res = await getAdminPetsPaged({
+      page: params.page,
+      pageSize: PAGE_SIZE,
+      statusCategory: params.filtro !== "todas" ? params.filtro : undefined,
+      animalTypeId:
+        params.especie !== "todas" ? ANIMAL_TYPE_ID[params.especie] : undefined,
+      q: params.q.trim() || undefined,
+      sort: first ? `${first.key}:${first.direction.toUpperCase()}` : undefined,
+    });
     if (res.ok && res.data) {
-      const all = res.data;
-
-      // Counts sobre el total (no sobre la página)
-      setCounts({
-        todas: all.length,
-        refugio: all.filter((p) => inFiltro(p.status, "refugio")).length,
-        adopcion: all.filter((p) => p.status === "en adopción").length,
-        adoptados: all.filter((p) => p.status === "adoptado").length,
-      });
-
-      // Filtrado
-      const q = params.q.trim().toLowerCase();
-      let filtered = all.filter((p) => {
-        if (!inFiltro(p.status, params.filtro)) return false;
-        if (params.especie !== "todas" && p.animalType !== params.especie)
-          return false;
-        if (!q) return true;
-        return (
-          (p.name ?? "").toLowerCase().includes(q) ||
-          (p.breed ?? "").toLowerCase().includes(q) ||
-          (p.animalTypeLabel ?? p.animalType ?? "").toLowerCase().includes(q)
-        );
-      });
-
-      // Sort
-      const activeSort = params.sort?.[0];
-      if (activeSort?.key === "name") {
-        filtered = [...filtered].sort((a, b) => {
-          const c = (a.name ?? "").localeCompare(b.name ?? "", "es", {
-            sensitivity: "base",
-          });
-          return activeSort.direction === "asc" ? c : -c;
-        });
-      }
-
-      setTotal(filtered.length);
-      const from = (params.page - 1) * PAGE_SIZE;
-      setVisible(filtered.slice(from, from + PAGE_SIZE));
+      setVisible(res.data.items);
+      setTotal(res.data.total);
+      setCounts(res.data.petStatusTotals);
     } else {
       toast.error("No se pudieron cargar las mascotas.");
     }
@@ -116,21 +96,18 @@ export function useMascotas() {
   // ── Setters que resetean página ───────────────────────────────────────────
   function setQuery(v: string) {
     setQueryRaw(v);
-    setPageRaw(1);
+    resetPage();
   }
   function setFiltro(v: FiltroEstado) {
     setFiltroRaw(v);
-    setPageRaw(1);
+    resetPage();
   }
   function setEspecie(v: FiltroEspecie) {
     setEspecieRaw(v);
-    setPageRaw(1);
-  }
-  function setPage(n: number) {
-    setPageRaw(n);
+    resetPage();
   }
   function setSort(next: SortOrder<string>[]) {
-    setPageRaw(1);
+    resetPage();
     setSortRaw(next);
   }
 
@@ -148,14 +125,9 @@ export function useMascotas() {
       await reload();
       return true;
     }
-    toast.error("No se pudo eliminar. Probá de nuevo.");
+    toast.error(res.error || "No se pudo eliminar. Probá de nuevo.");
     return false;
   }
-
-  // ── Paginación derivada ───────────────────────────────────────────────────
-  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
-  const desde = total === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
-  const hasta = Math.min(page * PAGE_SIZE, total);
 
   return {
     visible,

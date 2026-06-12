@@ -16,15 +16,26 @@ export type AdminUser = {
   createdAt: string;
 };
 
+export type AdminUserTotals = {
+  total: number;
+  admins: number;
+  adopters: number;
+  comunes: number;
+};
+
 export type AdminUsersResponse = {
   page: number;
   pageSize: number;
   total: number;
+  totals: AdminUserTotals;
   items: AdminUser[];
 };
 
 export const getAdminUsers = (params?: {
   search?: string;
+  roleId?: number;
+  adopter?: boolean;
+  sort?: string;
   page?: number;
   pageSize?: number;
 }) =>

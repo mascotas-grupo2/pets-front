@@ -36,17 +36,14 @@ export async function middleware(req: NextRequest) {
     if (refreshToken) {
       try {
         const proxyUrl = `${req.nextUrl.origin}/api/proxy/auth/refresh-token`;
-        console.log("Middleware: attempting refresh via proxy", proxyUrl);
         const res = await fetch(proxyUrl, {
           method: "POST",
           headers: { "content-type": "application/json" },
           body: JSON.stringify({ refreshToken }),
         });
 
-        console.log("Middleware: refresh via proxy status", res.status);
         if (res.ok) {
           const body = await res.json().catch(() => ({}));
-          console.log("Middleware: refresh via proxy body", body);
           const newAccess = body.access_token || body.token || body.accessToken;
           const newRefresh = body.refresh_token || body.refreshToken || null;
 
@@ -73,15 +70,11 @@ export async function middleware(req: NextRequest) {
               return NextResponse.redirect(url);
             }
 
-            console.log("Middleware: refresh succeeded, continuing request");
             return nextRes;
           }
-        } else {
-          console.log("Middleware: proxy refresh failed with status", res.status);
         }
-      } catch (e) {
-        console.error("Middleware: proxy refresh threw", e);
-        // caemos al redirect abajo
+      } catch {
+        // Si el refresh server-side falla, caemos al redirect a /login de abajo.
       }
     }
 

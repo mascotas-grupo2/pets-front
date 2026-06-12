@@ -13,6 +13,7 @@ import type {
   Solicitud,
   EstadoSolicitud,
 } from "../solicitudes/solicitudes.data";
+import { usePagination } from "./usePagination";
 
 const ESTADOS: EstadoSolicitud[] = [
   "NUEVA",
@@ -57,6 +58,7 @@ export function toSolicitud(a: AdminAdoptionItem): Solicitud {
     compatLabel: compatLabel(a.compatibilityScore),
     estado,
     fecha: formatFecha(a.createdAt),
+    fechaModificacion: formatFecha(a.updatedAt ?? a.createdAt),
   };
 }
 
@@ -89,7 +91,7 @@ export function useSolicitudes() {
   const [query, setQueryRaw] = useState("");
   const [estado, setEstadoRaw] = useState<EstadoFiltro>("TODAS");
   const [sort, setSortRaw] = useState<SortOrder<SortKey>[]>([]);
-  const [page, setPageRaw] = useState(1);
+  const { page, setPage, resetPage, totalPages, desde, hasta } = usePagination(PAGE_SIZE, total);
 
   const loadSolicitudes = useCallback(async (params: Params) => {
     setLoading(true);
@@ -149,26 +151,22 @@ export function useSolicitudes() {
 
   function setQuery(value: string) {
     setQueryRaw(value);
-    setPageRaw(1);
+    resetPage();
   }
 
   function setEstado(value: EstadoFiltro) {
     setEstadoRaw(value);
-    setPageRaw(1);
+    resetPage();
   }
 
   function toggleEstado(key: EstadoSolicitud) {
     setEstadoRaw((current) => (current === key ? "TODAS" : key));
-    setPageRaw(1);
+    resetPage();
   }
 
   function setSort(next: SortOrder<SortKey>[]) {
-    setPageRaw(1);
+    resetPage();
     setSortRaw(next);
-  }
-
-  function setPage(n: number) {
-    setPageRaw(n);
   }
 
   async function handleDelete(id: string) {
@@ -192,13 +190,9 @@ export function useSolicitudes() {
       await loadSolicitudes(currentParams);
       return true;
     }
-    toast.error("No se pudo actualizar el estado.");
+    toast.error(res.error || "No se pudo actualizar el estado.");
     return false;
   }
-
-  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
-  const desde = total === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
-  const hasta = Math.min(page * PAGE_SIZE, total);
 
   return {
     items,

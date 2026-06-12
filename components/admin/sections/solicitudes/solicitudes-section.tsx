@@ -57,11 +57,12 @@ export function SolicitudesSection() {
     router.replace(`${pathname}${query ? `?${query}` : ""}`);
   };
 
-  function irAMensajes(solicitudId: string) {
-  // Cierra el drawer y redirige a mensajes con el hilo abierto
-  closeDrawer();
-  router.push(`/admin/mensajes?conversacion=${solicitudId}`);
-}
+  function irAMensajes(userId: string) {
+    // Cierra el drawer y redirige a Mensajes abriendo la conversación con el
+    // solicitante (la sección la abre/crea a partir del ?user=).
+    closeDrawer();
+    router.push(`/admin/mensajes?user=${userId}`);
+  }
 
   return (
     <div className="pub">

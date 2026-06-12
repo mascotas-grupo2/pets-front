@@ -2,14 +2,37 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { X, PawPrint } from "lucide-react";
+import { toast } from "sonner";
+import { X, PawPrint, Heart } from "lucide-react";
 import { MascotaEstadoPill } from "../../lib/pet-status";
 import { formatEdad } from "../../lib/pet-format";
-import type { AdminPetSummary } from "@/types/pet";
+import { updatePet, entregaDirectaPet } from "@/services/mascotas.pets";
+import { useMascotaDetalle } from "../hook/useMascotaDetalle";
+import type { AdminPetSummary, PetStatus } from "@/types/pet";
 
 type Props = {
   pet: AdminPetSummary;
   onClose: () => void;
+  /** Se llama tras cambiar el estado o registrar una entrega, para recargar la lista. */
+  onChanged?: () => void;
+};
+
+/** Estados operativos que el admin puede setear a mano (sin "adoptado"). */
+const ESTADOS_OPERATIVOS: PetStatus[] = [
+  "perdido",
+  "encontrado",
+  "en tránsito",
+  "en tratamiento médico",
+  "en adopción",
+];
+
+const STATUS_LABEL: Record<PetStatus, string> = {
+  perdido: "Perdido",
+  encontrado: "En refugio",
+  "en tránsito": "En tránsito",
+  "en tratamiento médico": "En tratamiento médico",
+  "en adopción": "En adopción",
+  adoptado: "Adoptado",
 };
 
 type Tab =
@@ -29,20 +52,21 @@ const TABS: { id: Tab; label: string }[] = [
   { id: "notas", label: "Notas" },
 ];
 
-/**
- * MOCK: datos de ejemplo para las secciones sin backend (compatibilidad,
- * próximo seguimiento, notas rápidas). Reemplazar cuando existan los endpoints.
- */
-const MOCK_COMPAT = 78;
-const MOCK_SEGUIMIENTO = {
-  tipo: "Control veterinario",
-  fecha: "25/05/2026 15:30",
-  responsable: "Laura Martínez",
+const NOTE_KIND_LABEL: Record<string, string> = {
+  general: "General",
+  medica: "Médica",
+  adopcion: "Adopción",
 };
-const MOCK_NOTAS = [
-  "Le gusta dormir en lugares altos.",
-  "Convive bien con gatos tranquilos.",
-];
+
+function fmtFecha(d: string) {
+  return new Date(d).toLocaleString("es-AR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
 
 function boolText(v?: boolean) {
   if (v === undefined) return "—";
@@ -50,9 +74,44 @@ function boolText(v?: boolean) {
 }
 
 /** Drawer lateral con el detalle de una mascota. */
-export function MascotaDrawer({ pet, onClose }: Props) {
+export function MascotaDrawer({ pet, onClose, onChanged }: Props) {
   const [tab, setTab] = useState<Tab>("overview");
+  const { loading: loadingDetalle, notas, proximo, compat } =
+    useMascotaDetalle(pet.id);
+  const [estado, setEstado] = useState<PetStatus>(pet.status);
+  const [recipient, setRecipient] = useState("");
+  const [showEntrega, setShowEntrega] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const yaAdoptada = pet.status === "adoptado";
   const thumb = pet.photos?.[0] ?? pet.photo ?? null;
+
+  async function guardarEstado() {
+    if (estado === pet.status) return;
+    setBusy(true);
+    const res = await updatePet(pet.id, { status: estado });
+    setBusy(false);
+    if (res.ok) {
+      toast.success("Estado actualizado.");
+      onChanged?.();
+      onClose();
+    } else {
+      toast.error(res.error || "No se pudo cambiar el estado.");
+    }
+  }
+
+  async function registrarEntrega() {
+    if (!recipient.trim()) return;
+    setBusy(true);
+    const res = await entregaDirectaPet(pet.id, recipient.trim());
+    setBusy(false);
+    if (res.ok) {
+      toast.success("Adopción directa registrada.");
+      onChanged?.();
+      onClose();
+    } else {
+      toast.error(res.error || "No se pudo registrar la entrega.");
+    }
+  }
   const especie = pet.animalTypeLabel ?? pet.animalType ?? "—";
   const sub = [especie, pet.breed, formatEdad(pet.ageMonths)]
     .filter(Boolean)
@@ -158,38 +217,107 @@ export function MascotaDrawer({ pet, onClose }: Props) {
                 )}
               </div>
 
-              {/* MOCK: sin backend todavía */}
+              <div className="vdrawer-section">
+                <h3>Gestionar estado</h3>
+                {yaAdoptada ? (
+                  <p className="vdrawer-desc mdrawer-muted">
+                    La mascota está adoptada (estado final).
+                  </p>
+                ) : (
+                  <div className="mdrawer-estado-row">
+                    <select
+                      className="input"
+                      value={estado}
+                      onChange={(e) => setEstado(e.target.value as PetStatus)}
+                      disabled={busy}
+                    >
+                      {ESTADOS_OPERATIVOS.map((s) => (
+                        <option key={s} value={s}>
+                          {STATUS_LABEL[s]}
+                        </option>
+                      ))}
+                    </select>
+                    <button
+                      type="button"
+                      className="btn btn-primary"
+                      onClick={guardarEstado}
+                      disabled={busy || estado === pet.status}
+                    >
+                      Guardar
+                    </button>
+                  </div>
+                )}
+              </div>
+
               <div className="vdrawer-section">
                 <h3>Compatibilidad promedio</h3>
-                <div className="mdrawer-compat">
-                  <div className="mdrawer-compat-bar">
-                    <div
-                      className="mdrawer-compat-fill"
-                      style={{ width: `${MOCK_COMPAT}%` }}
-                    />
-                  </div>
-                  <span className="mdrawer-compat-val">{MOCK_COMPAT}%</span>
-                </div>
+                {loadingDetalle ? (
+                  <p className="vdrawer-desc mdrawer-muted">Cargando…</p>
+                ) : compat.promedio == null ? (
+                  <p className="vdrawer-desc mdrawer-muted">
+                    Sin solicitudes de adopción todavía.
+                  </p>
+                ) : (
+                  <>
+                    <div className="mdrawer-compat">
+                      <div className="mdrawer-compat-bar">
+                        <div
+                          className="mdrawer-compat-fill"
+                          style={{ width: `${compat.promedio}%` }}
+                        />
+                      </div>
+                      <span className="mdrawer-compat-val">
+                        {compat.promedio}%
+                      </span>
+                    </div>
+                    <p className="mdrawer-seg-meta">
+                      Promedio de {compat.solicitudes} solicitud
+                      {compat.solicitudes === 1 ? "" : "es"}.
+                    </p>
+                  </>
+                )}
               </div>
 
-              {/* MOCK: sin backend todavía */}
               <div className="vdrawer-section">
                 <h3>Próximo seguimiento</h3>
-                <p className="mdrawer-seg-tipo">{MOCK_SEGUIMIENTO.tipo}</p>
-                <p className="mdrawer-seg-meta">{MOCK_SEGUIMIENTO.fecha}</p>
-                <p className="mdrawer-seg-meta">
-                  {MOCK_SEGUIMIENTO.responsable}
-                </p>
+                {loadingDetalle ? (
+                  <p className="vdrawer-desc mdrawer-muted">Cargando…</p>
+                ) : !proximo ? (
+                  <p className="vdrawer-desc mdrawer-muted">
+                    Sin seguimientos programados.
+                  </p>
+                ) : (
+                  <>
+                    <p className="mdrawer-seg-tipo">
+                      {proximo.type?.label ?? "Seguimiento"}
+                    </p>
+                    <p className="mdrawer-seg-meta">
+                      {fmtFecha(proximo.appointmentAt)}
+                    </p>
+                    {proximo.status?.label && (
+                      <p className="mdrawer-seg-meta">{proximo.status.label}</p>
+                    )}
+                  </>
+                )}
               </div>
 
-              {/* MOCK: sin backend todavía */}
               <div className="vdrawer-section">
-                <h3>Notas rápidas</h3>
-                {MOCK_NOTAS.map((n, i) => (
-                  <p key={i} className="vdrawer-desc">
-                    {n}
-                  </p>
-                ))}
+                <h3>Notas</h3>
+                {loadingDetalle ? (
+                  <p className="vdrawer-desc mdrawer-muted">Cargando…</p>
+                ) : notas.length === 0 ? (
+                  <p className="vdrawer-desc mdrawer-muted">Sin notas.</p>
+                ) : (
+                  notas.map((n) => (
+                    <div key={n.id} className="mdrawer-nota">
+                      <p className="vdrawer-desc">{n.text}</p>
+                      <span className="mdrawer-seg-meta">
+                        {NOTE_KIND_LABEL[n.kind] ? `${NOTE_KIND_LABEL[n.kind]} · ` : ""}
+                        {fmtFecha(n.createdAt)}
+                      </span>
+                    </div>
+                  ))
+                )}
               </div>
             </>
           ) : (
@@ -199,11 +327,51 @@ export function MascotaDrawer({ pet, onClose }: Props) {
           )}
         </div>
 
-        <div className="vdrawer-foot">
+        <div
+          className="vdrawer-foot"
+          style={{ flexDirection: "column", alignItems: "stretch", gap: "0.5rem" }}
+        >
+          {!yaAdoptada &&
+            (showEntrega ? (
+              <div className="mdrawer-estado-row">
+                <input
+                  className="input"
+                  placeholder="¿A quién se entregó?"
+                  value={recipient}
+                  onChange={(e) => setRecipient(e.target.value)}
+                  disabled={busy}
+                  autoFocus
+                />
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  onClick={registrarEntrega}
+                  disabled={busy || !recipient.trim()}
+                >
+                  Confirmar
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-outline"
+                  onClick={() => setShowEntrega(false)}
+                  disabled={busy}
+                >
+                  Cancelar
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                className="btn btn-outline"
+                onClick={() => setShowEntrega(true)}
+              >
+                <Heart size={16} aria-hidden /> Registrar adopción directa
+              </button>
+            ))}
           <Link
             href={`/mascotas-perdidas/${pet.id}`}
             className="btn btn-primary"
-            style={{ flex: 1, textAlign: "center" }}
+            style={{ textAlign: "center" }}
           >
             Ver perfil completo
           </Link>

@@ -4,12 +4,14 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import {
   getFollowups,
-  changeFollowupStatus,
+  confirmFollowup,
+  completeFollowup,
+  deleteFollowup,
   createFollowup,
   type FollowupItem,
   type CreateFollowupInput,
 } from "@/services/followups";
-import { getAllPets } from "@/services/mascotas.pets";
+import { getAdminPets } from "@/services/mascotas.pets";
 import { getAdminUsers } from "@/services/user.admin";
 import type { SortOrder } from "../../ui/data-table";
 import {
@@ -18,6 +20,7 @@ import {
   type Seguimiento,
   type SeguimientoTab,
 } from "../seguimientos/seguimientos.data";
+import { usePagination } from "./usePagination";
 
 const PAGE_SIZE = 8;
 
@@ -65,7 +68,7 @@ export type Option<V> = { value: V; label: string };
 /** Construye los mapas de enriquecimiento y las opciones para los selects. */
 async function loadLookups() {
   const [petsRes, usersRes] = await Promise.all([
-    getAllPets(),
+    getAdminPets(),
     getAdminUsers({ pageSize: 100 }),
   ]);
 
@@ -91,23 +94,19 @@ async function loadLookups() {
   return { petMap, userMap, petOptions, userOptions };
 }
 
-/** Filtra según la pestaña activa (próximos / todos / completados). */
+/** Filtra según la pestaña activa (cards). */
 function filterByTab(items: Seguimiento[], tab: SeguimientoTab, now: Date): Seguimiento[] {
-  if (tab === "completados") {
-    return items.filter((s) => s.estadoId === FOLLOWUP_STATUS.confirmado);
-  }
-  if (tab === "proximos") {
-    return items.filter((s) => new Date(s.appointmentAt).getTime() >= now.getTime());
-  }
+  if (tab === "pendientes") return items.filter((s) => s.estadoId === FOLLOWUP_STATUS.pendiente);
+  if (tab === "confirmadas") return items.filter((s) => s.estadoId === FOLLOWUP_STATUS.confirmado);
+  if (tab === "completadas") return items.filter((s) => s.estadoId === FOLLOWUP_STATUS.completado);
   return items;
 }
 
 export function useSeguimientos() {
   const [all, setAll] = useState<Seguimiento[]>([]);
   const [loading, setLoading] = useState(true);
-  const [tab, setTabRaw] = useState<SeguimientoTab>("proximos");
+  const [tab, setTabRaw] = useState<SeguimientoTab>("todas");
   const [query, setQueryRaw] = useState("");
-  const [page, setPageRaw] = useState(1);
   const [sort, setSortRaw] = useState<SortOrder<SeguimientoSortKey>[]>([]);
   // Filtros reales (delegables al back; acá se aplican sobre la data cargada).
   const [filterTipo, setFilterTipoRaw] = useState<number | null>(null);
@@ -144,7 +143,14 @@ export function useSeguimientos() {
     void load();
   }, [load]);
 
-  const now = useMemo(() => new Date(), [all]);
+  const now = useMemo(() => new Date(), []);
+
+  const counts = useMemo(() => ({
+    todas: all.length,
+    pendientes: all.filter((s) => s.estadoId === FOLLOWUP_STATUS.pendiente).length,
+    confirmadas: all.filter((s) => s.estadoId === FOLLOWUP_STATUS.confirmado).length,
+    completadas: all.filter((s) => s.estadoId === FOLLOWUP_STATUS.completado).length,
+  }), [all]);
 
   // Listado filtrado por pestaña + filtros + búsqueda + orden (datos ya cargados).
   const filtered = useMemo(() => {
@@ -164,34 +170,28 @@ export function useSeguimientos() {
   }, [all, tab, query, sort, filterTipo, filterEstado, now]);
 
   const total = filtered.length;
-  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
-  const safePage = Math.min(page, totalPages);
-  const desde = total === 0 ? 0 : (safePage - 1) * PAGE_SIZE + 1;
-  const hasta = Math.min(safePage * PAGE_SIZE, total);
+  const { page, setPage, resetPage, safePage, totalPages, desde, hasta } = usePagination(PAGE_SIZE, total);
   const visible = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
 
   function setTab(value: SeguimientoTab) {
     setTabRaw(value);
-    setPageRaw(1);
+    resetPage();
   }
   function setQuery(value: string) {
     setQueryRaw(value);
-    setPageRaw(1);
-  }
-  function setPage(n: number) {
-    setPageRaw(n);
+    resetPage();
   }
   function setSort(next: SortOrder<SeguimientoSortKey>[]) {
-    setPageRaw(1);
+    resetPage();
     setSortRaw(next);
   }
   function setFilterTipo(value: number | null) {
     setFilterTipoRaw((cur) => (cur === value ? null : value));
-    setPageRaw(1);
+    resetPage();
   }
   function setFilterEstado(value: number | null) {
     setFilterEstadoRaw((cur) => (cur === value ? null : value));
-    setPageRaw(1);
+    resetPage();
   }
 
   async function handleCreate(input: CreateFollowupInput) {
@@ -205,18 +205,43 @@ export function useSeguimientos() {
     return false;
   }
 
-  async function handleToggleEstado(s: Seguimiento) {
-    const nextStatus =
-      s.estadoId === FOLLOWUP_STATUS.confirmado
-        ? FOLLOWUP_STATUS.pendiente
-        : FOLLOWUP_STATUS.confirmado;
-    const res = await changeFollowupStatus(s.id, nextStatus);
+  async function handleConfirm(s: Seguimiento) {
+    const res = await confirmFollowup(s.id);
     if (res.ok) {
-      toast.success("Estado del seguimiento actualizado.");
+      toast.success("Seguimiento confirmado.");
       await load();
       return true;
     }
-    toast.error("No se pudo actualizar el estado.");
+    toast.error("No se pudo confirmar.");
+    return false;
+  }
+
+  async function handleComplete(s: Seguimiento) {
+    if (s.estadoId !== FOLLOWUP_STATUS.confirmado) {
+      toast.error("Solo se pueden completar seguimientos confirmados.");
+      return false;
+    }
+    const res = await completeFollowup(s.id);
+    if (res.ok) {
+      toast.success("Seguimiento completado.");
+      await load();
+      return true;
+    }
+    toast.error("No se pudo completar.");
+    return false;
+  }
+
+  async function handleDelete(s: Seguimiento) {
+    if (!window.confirm("¿Estás seguro que deseas eliminar este seguimiento?")) {
+      return false;
+    }
+    const res = await deleteFollowup(s.id);
+    if (res.ok) {
+      toast.success("Seguimiento eliminado.");
+      await load();
+      return true;
+    }
+    toast.error("No se pudo eliminar.");
     return false;
   }
 
@@ -237,14 +262,17 @@ export function useSeguimientos() {
     handleCreate,
     visible,
     total,
-    page: safePage,
+    page,
     setPage,
     totalPages,
     desde,
     hasta,
+    counts,
     items: all,
     now,
     reload: load,
-    handleToggleEstado,
+    handleConfirm,
+    handleComplete,
+    handleDelete,
   };
 }

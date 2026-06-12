@@ -47,6 +47,7 @@ export function SeguimientoDetailDrawer({ seguimiento: s, onClose }: Props) {
       <aside
         className="vdrawer"
         role="dialog"
+        aria-modal="true"
         aria-label="Detalle del seguimiento"
         onClick={(e) => e.stopPropagation()}
       >
@@ -72,7 +73,6 @@ export function SeguimientoDetailDrawer({ seguimiento: s, onClose }: Props) {
           </div>
 
           <Field label="Tipo">{s.tipo}</Field>
-          <Field label="Tipo de cita">{s.tipoCita}</Field>
           <Field label="Fecha y hora">{fullDate(s.appointmentAt)}</Field>
           <Field label="Responsable">{s.responsable}</Field>
           <Field label="Agendado el">{fullDate(s.createdAt)}</Field>

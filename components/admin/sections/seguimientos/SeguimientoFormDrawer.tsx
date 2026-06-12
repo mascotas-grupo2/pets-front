@@ -5,7 +5,7 @@ import { useState } from "react";
 import { X } from "lucide-react";
 import type { CreateFollowupInput } from "@/services/followups";
 import type { Option } from "../hook/useSeguimientos";
-import { TIPO_OPTIONS, TIPO_CITA_OPTIONS } from "./seguimientos.data";
+import { TIPO_OPTIONS } from "./seguimientos.data";
 
 type Props = {
   petOptions: Option<string>[];
@@ -26,7 +26,6 @@ export function SeguimientoFormDrawer({ petOptions, userOptions, now, onClose, o
   const [petId, setPetId] = useState("");
   const [userId, setUserId] = useState("");
   const [typeId, setTypeId] = useState("");
-  const [tipoCita, setTipoCita] = useState<string>(TIPO_CITA_OPTIONS[0]); // MOCK
   const [appointmentAt, setAppointmentAt] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -54,7 +53,6 @@ export function SeguimientoFormDrawer({ petOptions, userOptions, now, onClose, o
       userId: Number(userId),
       typeId: Number(typeId),
       appointmentAt: when.toISOString(),
-      // Nota: "tipoCita" es mock y no se envía: el back no lo soporta.
     });
     setSaving(false);
     if (ok) onClose();
@@ -65,6 +63,7 @@ export function SeguimientoFormDrawer({ petOptions, userOptions, now, onClose, o
       <aside
         className="vdrawer"
         role="dialog"
+        aria-modal="true"
         aria-label="Agendar seguimiento"
         onClick={(e) => e.stopPropagation()}
       >
@@ -117,20 +116,6 @@ export function SeguimientoFormDrawer({ petOptions, userOptions, now, onClose, o
               <option value="">Seleccioná un tipo…</option>
               {TIPO_OPTIONS.map((o) => (
                 <option key={o.id} value={o.id}>{o.label}</option>
-              ))}
-            </select>
-          </div>
-
-          <div className="vdrawer-edit-field">
-            <label className="vdrawer-edit-label" htmlFor="seg-cita">Tipo de cita</label>
-            <select
-              id="seg-cita"
-              className="vdrawer-select"
-              value={tipoCita}
-              onChange={(e) => setTipoCita(e.target.value)}
-            >
-              {TIPO_CITA_OPTIONS.map((o) => (
-                <option key={o} value={o}>{o}</option>
               ))}
             </select>
           </div>

@@ -60,7 +60,9 @@ export function SolicitudesTable({
     {
       key: "petName",
       label: "Mascota",
-      sortable: true,
+      // No ordenable: el nombre de la mascota vive en otra tabla y no se puede
+      // ordenar server-side sin romper la paginación (ver adoption.controller).
+      sortable: false,
       render: (p) => (
         <div className="dash-user">
           <PetThumb pet={{ photo: p.petPhoto }} size={16} />
@@ -96,6 +98,12 @@ export function SolicitudesTable({
       sortable: true,
       tdClassName: "dash-muted",
       render: (item) => item.fecha,
+    },
+    {
+      key: "fechaModificacion",
+      label: "Modificación",
+      tdClassName: "dash-muted",
+      render: (item) => item.fechaModificacion ?? "—",
     },
     {
       key: "actions",

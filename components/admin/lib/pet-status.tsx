@@ -10,6 +10,7 @@ export const ESTADO_META: Record<
   activo: { label: "Publicada", tone: "green" },
   rechazado: { label: "Rechazada", tone: "red" },
   finalizado: { label: "Finalizada", tone: "gray" },
+  reservada: { label: "Reservada", tone: "blue" },
 };
 
 export function EstadoPill({ status }: { status?: PetReportStatus | null }) {

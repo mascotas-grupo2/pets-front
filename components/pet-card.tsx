@@ -10,6 +10,7 @@ const REPORT_STATUS_META: Record<
   activo: { label: "Publicado", tone: "active" },
   finalizado: { label: "Finalizado", tone: "done" },
   rechazado: { label: "Rechazado", tone: "rejected" },
+  reservada: { label: "Reservada", tone: "active" },
 };
 
 export function PetCard({
@@ -29,7 +30,7 @@ export function PetCard({
     <li className="pet-card">
       <Link href={`/mascotas-perdidas/${pet.id}`} className="pet-photo-wrap">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={Array.isArray(pet.photos) && pet.photos.length > 0 ? pet.photos[0] : "/images/pet-dog.png"} alt={pet.name ?? pet.description} />
+        <img src={Array.isArray(pet.photos) && pet.photos.length > 0 ? pet.photos[0] : "/images/pet-dog.jpg"} alt={pet.name ?? pet.description} />
         <span className="pet-badge">{pet.status && pet.status.toLocaleUpperCase() || "PERDIDO"}</span>
         {reportMeta && (
           <span className={`pet-report-badge pet-report-badge--${reportMeta.tone}`}>
@@ -43,6 +44,13 @@ export function PetCard({
             pet.animalType.charAt(0).toUpperCase() + pet.animalType.slice(1)}
         </h3>
         <p className="pet-desc">{pet.description}</p>
+        {showReportStatus &&
+          pet.reportStatus === "rechazado" &&
+          pet.rejectionReason && (
+            <p className="pet-reject-reason">
+              <strong>Motivo del rechazo:</strong> {pet.rejectionReason}
+            </p>
+          )}
         <div className="pet-meta">
           <span>📍 {pet.location}</span>
           <span>📅 {pet.date}</span>

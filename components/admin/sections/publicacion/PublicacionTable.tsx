@@ -48,7 +48,14 @@ export function PublicacionTable({
         <div className="dash-user">
           <PetThumb pet={pet} />
           <span className="dash-user-text">
-            <span className="dash-user-name">{pet.name ?? "Sin nombre"}</span>
+            <span className="dash-user-name">
+              {pet.name ?? "Sin nombre"}
+              {pet.ownerIsAdmin && (
+                <span className="pub-admin-tag" title="Publicación creada por un admin">
+                  Admin
+                </span>
+              )}
+            </span>
             <span className="dash-user-email">{pet.location}</span>
           </span>
         </div>
@@ -106,12 +113,15 @@ export function PublicacionTable({
             ariaLabel="Ver publicación"
             title="Ver"
           />
-          <ActionButton
-            icon={Pencil}
-            onClick={() => onEdit(pet.id)}
-            ariaLabel="Editar publicación"
-            title="Editar"
-          />
+          {/* Solo se editan publicaciones de admins; las de usuarios solo se moderan. */}
+          {pet.ownerIsAdmin && (
+            <ActionButton
+              icon={Pencil}
+              onClick={() => onEdit(pet.id)}
+              ariaLabel="Editar publicación"
+              title="Editar"
+            />
+          )}
         </div>
       ),
     },
@@ -126,7 +136,7 @@ export function PublicacionTable({
         loading={loading}
         loadingLabel="Cargando publicaciones…"
         empty="No hay publicaciones para mostrar."
-        sort={sort}
+        sort={sort as SortOrder<string>[]}
         onSort={(next) => onSort(next as SortOrder<SortKey>[])}
         tableClassName="pub-table"
         wrapClassName="pub-table-wrap"

@@ -25,17 +25,68 @@ export const createPetNote = (id: string, text: string, kind?: PetNoteKind) =>
 export const approvePet = (id: string) =>
   request<Pet>(() => axios.post(`mascotas/${id}/approve`));
 
-/** Rechaza una publicación pendiente: el back la pasa a reportStatus = rechazado. */
-export const rejectPet = (id: string) =>
-  request<Pet>(() => axios.post(`mascotas/${id}/reject`));
+export const rejectPet = (id: string, reason?: string) =>
+  request<Pet>(() =>
+    axios.post(`mascotas/${id}/reject`, reason ? { reason } : {}),
+  );
 
 /** Finaliza una publicación: el back la pasa a reportStatus = finalizado. */
 export const finalizePet = (id: string) =>
   request<Pet>(() => axios.post(`mascotas/${id}/finalize`));
 
-/** Elimina una publicación (solo admin). */
-export const deletePet = (id: string) =>
-  request<null>(() => axios.delete(`mascotas/${id}`));
+/** Elimina una publicación (solo admin). El motivo es opcional. */
+export const deletePet = (id: string, reason?: string) =>
+  request<null>(() =>
+    axios.delete(`mascotas/${id}`, reason ? { data: { reason } } : undefined),
+  );
+
+/** Entrega directa: marca la mascota como adoptada registrando a quién se entregó. */
+export const entregaDirectaPet = (id: string, recipientName: string) =>
+  request<Pet>(() =>
+    axios.post(`mascotas/${id}/entrega-directa`, { recipientName }),
+  );
 
 export const getAdminPets = (params?: { sort?: string }) =>
-  request<AdminPetSummary[]>(() => axios.get(`mascotas/admin/list`, { params }));
+  request<AdminPetSummary[]>(() =>
+    axios.get(`mascotas/admin/list`, { params }),
+  );
+
+export type PetReportStatusTotals = {
+  pendiente: number;
+  activo: number;
+  rechazado: number;
+  finalizado: number;
+  reservada: number;
+};
+
+export type PetStatusTotals = {
+  todas: number;
+  perdido: number;
+  refugio: number;
+  adopcion: number;
+  adoptados: number;
+};
+
+export type AdminPetsPagedResponse = {
+  items: AdminPetSummary[];
+  total: number;
+  page: number;
+  pageSize: number;
+  statusTotals: PetReportStatusTotals;
+  petStatusTotals: PetStatusTotals;
+};
+
+/** Listado admin de publicaciones/mascotas paginado, filtrado y ordenado en el back. */
+export const getAdminPetsPaged = (params: {
+  page?: number;
+  pageSize?: number;
+  reportStatus?: string;
+  /** Categoría de situación para la sección Mascotas: perdido|refugio|adopcion|adoptados */
+  statusCategory?: string;
+  animalTypeId?: number;
+  q?: string;
+  sort?: string;
+}) =>
+  request<AdminPetsPagedResponse>(() =>
+    axios.get(`mascotas/admin/paged`, { params }),
+  );

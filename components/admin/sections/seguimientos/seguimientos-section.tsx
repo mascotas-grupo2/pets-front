@@ -10,11 +10,7 @@ import { SeguimientoFormDrawer } from "./SeguimientoFormDrawer";
 import { SeguimientoDetailDrawer } from "./SeguimientoDetailDrawer";
 import type { Seguimiento, SeguimientoTab } from "./seguimientos.data";
 
-const TABS: { id: SeguimientoTab; label: string }[] = [
-  { id: "proximos", label: "Próximos" },
-  { id: "todos", label: "Todos" },
-  { id: "completados", label: "Completados" },
-];
+import { SeguimientosStats } from "./SeguimientosStats";
 
 export function SeguimientosSection() {
   const {
@@ -39,9 +35,12 @@ export function SeguimientosSection() {
     totalPages,
     desde,
     hasta,
+    counts,
     items,
     now,
-    handleToggleEstado,
+    handleConfirm,
+    handleComplete,
+    handleDelete,
   } = useSeguimientos();
 
   const [showFilters, setShowFilters] = useState(false);
@@ -56,20 +55,7 @@ export function SeguimientosSection() {
         </button>
       </div>
 
-      <div className="seg-tabs" role="tablist">
-        {TABS.map((t) => (
-          <button
-            key={t.id}
-            type="button"
-            role="tab"
-            aria-selected={tab === t.id}
-            className={`seg-tab${tab === t.id ? " active" : ""}`}
-            onClick={() => setTab(t.id)}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
+      <SeguimientosStats counts={counts} tab={tab} onTab={setTab} loading={loading} />
 
       <div className="seg-layout">
         <div className="seg-main">
@@ -114,7 +100,9 @@ export function SeguimientosSection() {
             hasta={hasta}
             onPage={setPage}
             onView={setDetail}
-            onToggleEstado={handleToggleEstado}
+            onConfirm={handleConfirm}
+            onComplete={handleComplete}
+            onDelete={handleDelete}
           />
         </div>
 

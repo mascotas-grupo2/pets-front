@@ -52,9 +52,7 @@ export default function LoginPage() {
             "Credenciales inválidas. Por favor, intentá de nuevo.",
           );
         }
-      } catch (error) {
-        console.log(error)
-        console.error(error);
+      } catch {
         toast.error("Ocurrió un error al intentar ingresar.");
       }
     },

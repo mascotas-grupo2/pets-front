@@ -7,10 +7,20 @@ import {
   updateUserRole,
   type AdminUser,
 } from "@/services/user.admin";
+import { usePagination } from "./usePagination";
 
 export type TipoFiltro = "todos" | "admin" | "adoptante" | "comun";
 
 const PAGE_SIZE = 8;
+const ROLE_ID = { admin: 502, user: 501 } as const;
+
+/** Traduce el filtro de tipo a los params que entiende el back. */
+function tipoToParams(tipo: TipoFiltro): { roleId?: number; adopter?: boolean } {
+  if (tipo === "admin") return { roleId: ROLE_ID.admin };
+  if (tipo === "adoptante") return { adopter: true };
+  if (tipo === "comun") return { roleId: ROLE_ID.user, adopter: false };
+  return {};
+}
 
 export function categoriaUsuario(u: AdminUser): Exclude<TipoFiltro, "todos"> {
   if (u.role === "admin") return "admin";
@@ -37,42 +47,26 @@ export function usePersonas() {
 
   const [query, setQueryRaw] = useState("");
   const [tipo, setTipoRaw] = useState<TipoFiltro>("todos");
-  const [page, setPageRaw] = useState(1);
+  const { page, setPage, resetPage, totalPages, desde, hasta } = usePagination(PAGE_SIZE, total);
 
-  // ── Fetch + filtrado cliente (temporal hasta que el back soporte params) ──
-  // TODO: reemplazar por:
-  // const res = await getAdminUsers({ tipo, q, page, pageSize: PAGE_SIZE });
-  // setVisible(res.data.items); setTotal(res.data.total); setCounts(res.data.counts);
+  // El back pagina, filtra y devuelve los conteos globales (cards correctas).
   const loadUsers = useCallback(async (params: Params) => {
     setLoading(true);
-    // Traemos toda la base (cap 100 del back) y contamos/filtramos/paginamos en
-    // el cliente, así los conteos por categoría son sobre toda la base y no sobre
-    // una sola página.
-    const res = await getAdminUsers({ pageSize: PAGE_SIZE });
+    const res = await getAdminUsers({
+      ...tipoToParams(params.tipo),
+      search: params.q.trim() || undefined,
+      page: params.page,
+      pageSize: PAGE_SIZE,
+    });
     if (res.ok && res.data) {
-      const all = res.data.items;
-
+      setVisible(res.data.items);
+      setTotal(res.data.total);
       setCounts({
-        todos: res.data.total,
-        admin: all.filter((u) => categoriaUsuario(u) === "admin").length,
-        adoptante: all.filter((u) => categoriaUsuario(u) === "adoptante")
-          .length,
-        comun: all.filter((u) => categoriaUsuario(u) === "comun").length,
+        todos: res.data.totals.total,
+        admin: res.data.totals.admins,
+        adoptante: res.data.totals.adopters,
+        comun: res.data.totals.comunes,
       });
-
-      const q = params.q.trim().toLowerCase();
-      const filtered = all.filter((u) => {
-        if (params.tipo !== "todos" && categoriaUsuario(u) !== params.tipo)
-          return false;
-        if (!q) return true;
-        return (
-          u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)
-        );
-      });
-
-      setTotal(filtered.length);
-      const from = (params.page - 1) * PAGE_SIZE;
-      setVisible(filtered.slice(from, from + PAGE_SIZE));
     } else {
       toast.error("No se pudieron cargar las personas.");
     }
@@ -82,9 +76,11 @@ export function usePersonas() {
   const currentParams: Params = useMemo(() => ({ tipo, q: query, page }), [tipo, query, page]);
 
   useEffect(() => {
-    loadUsers(currentParams);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [query, tipo, page]);
+    const trigger = async () => {
+      await loadUsers(currentParams);
+    };
+    void trigger();
+  }, [loadUsers, currentParams]);
 
   const reload = useCallback(
     () => loadUsers(currentParams),
@@ -93,31 +89,16 @@ export function usePersonas() {
 
   function setQuery(v: string) {
     setQueryRaw(v);
-    setPageRaw(1);
+    resetPage();
   }
   function setTipo(v: TipoFiltro) {
     setTipoRaw(v);
-    setPageRaw(1);
-  }
-  function setPage(n: number) {
-    setPageRaw(n);
+    resetPage();
   }
 
   // ── Acciones ──────────────────────────────────────────────────────────────
-  // TODO: implementar cuando existan los endpoints
-  async function handleDelete(user: AdminUser): Promise<boolean> {
-    if (
-      !window.confirm(
-        `¿Eliminar a "${user.name}"? Esta acción no se puede deshacer.`,
-      )
-    )
-      return false;
-    // const res = await deleteUser(user.id);
-    // if (res.ok) { toast.success("Usuario eliminado."); await reload(); return true; }
-    toast.error("Eliminar usuario no está disponible aún.");
-    return false;
-  }
-
+  // Nota: no hay endpoint para eliminar usuarios todavía, por eso la sección
+  // solo expone promover/degradar (handlePromote/handleDemote).
   async function handlePromote(user: AdminUser): Promise<boolean> {
     if (!window.confirm(`¿Promover a "${user.name}" como administrador?`))
       return false;
@@ -142,17 +123,13 @@ export function usePersonas() {
     }
     // El back devuelve 400 si es el último admin del sistema.
     toast.error(
-      res.status === 400
-        ? "No se puede: es el único administrador."
-        : "No se pudo cambiar el rol.",
+      res.error ||
+        (res.status === 400
+          ? "No se puede: es el único administrador."
+          : "No se pudo cambiar el rol."),
     );
     return false;
   }
-
-  // ── Paginación derivada ───────────────────────────────────────────────────
-  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
-  const desde = total === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
-  const hasta = Math.min(page * PAGE_SIZE, total);
 
   return {
     visible,
@@ -168,7 +145,6 @@ export function usePersonas() {
     total,
     desde,
     hasta,
-    handleDelete,
     handlePromote,
     handleDemote,
     reload,

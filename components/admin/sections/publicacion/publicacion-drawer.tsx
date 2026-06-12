@@ -8,17 +8,21 @@ import { EditForm, PublicacionEditForm, toInitial } from "./drawer/PublicacionEd
 import { useDrawerActions } from "./drawer/useDrawerActions";
 import { Pill } from "../../ui/pill";
 import { EditableField } from "./drawer/EditableField";
+import { ConfirmDialog } from "../../ui/confirm-dialog";
 
 const yesNo = (v?: boolean | null) =>
   v === true ? "Sí" : v === false ? "No" : null;
 
 type Actions = {
   handleApprove: (id: string) => Promise<boolean>;
-  handleReject: (id: string) => Promise<boolean>;
+  handleReject: (id: string, reason?: string) => Promise<boolean>;
   handleFinalize: (id: string) => Promise<boolean>;
-  handleDelete: (id: string) => Promise<boolean>;
+  handleDelete: (id: string, reason?: string) => Promise<boolean>;
   handleSave: (id: string, patch: Partial<Pet>) => Promise<boolean>;
 };
+
+/** Acción pendiente de confirmación en el modal. */
+type PendingAction = "delete" | "reject" | "approve";
 
 type Props = {
   pet: AdminPetSummary;
@@ -28,8 +32,41 @@ type Props = {
   initialEditing?: boolean;
 };
 
+/** Config del modal de confirmación según la acción pendiente. */
+const CONFIRM_CONFIG: Record<
+  PendingAction,
+  {
+    title: string;
+    message: (name: string) => string;
+    requireReason: boolean;
+    reasonLabel?: string;
+    danger?: boolean;
+  }
+> = {
+  delete: {
+    title: "Eliminar publicación",
+    message: (name) =>
+      `¿Seguro que querés eliminar la publicación "${name}"? Esta acción no se puede deshacer.`,
+    requireReason: true,
+    reasonLabel: "Motivo de la eliminación",
+    danger: true,
+  },
+  reject: {
+    title: "Rechazar publicación",
+    message: (name) => `¿Seguro que querés rechazar la publicación "${name}"?`,
+    requireReason: true,
+    reasonLabel: "Motivo del rechazo",
+  },
+  approve: {
+    title: "Aceptar publicación",
+    message: () => "¿Seguro de que querés aceptar la publicación y aceptarlo?",
+    requireReason: false,
+  },
+};
+
 export function PublicacionDrawer({ pet, onClose, actions, initialEditing = false }: Props) {
   const [editing, setEditing] = useState(initialEditing);
+  const [pending, setPending] = useState<PendingAction | null>(null);
 
   const formik = useFormik<EditForm>({
     initialValues: toInitial(pet),
@@ -42,9 +79,38 @@ export function PublicacionDrawer({ pet, onClose, actions, initialEditing = fals
   const drawerActions = useDrawerActions(pet, actions, onClose);
   const photo = pet.photos?.[0] ?? pet.photo ?? null;
 
+  // Aprobar/Rechazar son acciones de MODERACIÓN: solo aplican mientras la
+  // publicación está "pendiente". Una vez aprobada (activo), rechazada,
+  // finalizada o reservada, los botones se deshabilitan; el dueño debe editarla
+  // (vuelve a pendiente) o el admin la elimina.
+  const canModerate = pet.reportStatus === "pendiente";
+  const moderationHint = (() => {
+    switch (pet.reportStatus) {
+      case "rechazado":
+        return "Esta publicación está rechazada. El dueño debe editarla para que vuelva a revisión, o podés eliminarla.";
+      case "activo":
+        return "Esta publicación ya está aprobada y publicada. No se puede volver a aprobar ni rechazar; el dueño debe editarla (vuelve a revisión) o podés eliminarla.";
+      case "finalizado":
+        return "Esta publicación está finalizada y no admite cambios de moderación.";
+      case "reservada":
+        return "Esta publicación está reservada por una solicitud de adopción en curso.";
+      default:
+        return null;
+    }
+  })();
+
   function handleCancelEdit() {
     formik.resetForm();
     onClose();
+  }
+
+  // Ejecuta la acción confirmada. Si falla, el drawer y el modal quedan
+  // abiertos para reintentar; si tiene éxito, run() cierra el drawer entero.
+  async function handleConfirm(reason: string) {
+    if (pending === "delete") await drawerActions.remove(reason);
+    else if (pending === "reject") await drawerActions.reject(reason);
+    else if (pending === "approve") await drawerActions.approve();
+    setPending(null);
   }
 
   return (
@@ -75,7 +141,7 @@ export function PublicacionDrawer({ pet, onClose, actions, initialEditing = fals
         <div className="vdrawer-body">
           {photo && (
             // eslint-disable-next-line @next/next/no-img-element
-            <img className="vdrawer-photo" src={photo} alt={pet.name ?? ""} />
+            <img className="vdrawer-photo" src={photo} alt={pet.name ? `Foto de ${pet.name}` : "Foto de la mascota"} />
           )}
 
           {editing ? (
@@ -145,6 +211,9 @@ export function PublicacionDrawer({ pet, onClose, actions, initialEditing = fals
         </div>
 
         {/* ── Footer ─────────────────────────────────────────────────────── */}
+        {!editing && !canModerate && moderationHint && (
+          <p className="vdrawer-foot-hint">{moderationHint}</p>
+        )}
         <footer className="vdrawer-foot">
           {editing ? (
             <>
@@ -171,7 +240,7 @@ export function PublicacionDrawer({ pet, onClose, actions, initialEditing = fals
               <button
                 type="button"
                 className="btn btn-danger"
-                onClick={drawerActions.remove}
+                onClick={() => setPending("delete")}
                 disabled={drawerActions.busy}
               >
                 <Trash2 size={16} aria-hidden />
@@ -179,16 +248,18 @@ export function PublicacionDrawer({ pet, onClose, actions, initialEditing = fals
               <button
                 type="button"
                 className="btn btn-outline"
-                onClick={drawerActions.reject}
-                disabled={drawerActions.busy}
+                onClick={() => setPending("reject")}
+                disabled={drawerActions.busy || !canModerate}
+                title={!canModerate ? moderationHint ?? undefined : undefined}
               >
                 <X size={16} aria-hidden /> Rechazar
               </button>
               <button
                 type="button"
                 className="btn btn-primary"
-                onClick={drawerActions.approve}
-                disabled={drawerActions.busy}
+                onClick={() => setPending("approve")}
+                disabled={drawerActions.busy || !canModerate}
+                title={!canModerate ? moderationHint ?? undefined : undefined}
               >
                 <Check size={16} aria-hidden />
                 {drawerActions.busy ? "Procesando…" : "Aprobar"}
@@ -197,6 +268,22 @@ export function PublicacionDrawer({ pet, onClose, actions, initialEditing = fals
           )}
         </footer>
       </aside>
+
+      {pending && (
+        <ConfirmDialog
+          open
+          title={CONFIRM_CONFIG[pending].title}
+          message={CONFIRM_CONFIG[pending].message(pet.name ?? "sin nombre")}
+          requireReason={CONFIRM_CONFIG[pending].requireReason}
+          reasonLabel={CONFIRM_CONFIG[pending].reasonLabel}
+          danger={CONFIRM_CONFIG[pending].danger}
+          busy={drawerActions.busy}
+          confirmLabel="Sí"
+          cancelLabel="No"
+          onConfirm={handleConfirm}
+          onCancel={() => setPending(null)}
+        />
+      )}
     </div>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import Image from "next/image";
 import {
   PawPrint,
@@ -15,12 +16,23 @@ import {
   Download,
   ImageIcon,
   Trash2,
+  AlertTriangle,
 } from "lucide-react";
 import { useSolicitudDetail } from "../../hook/useSolicitudDetail";
+import { useEvaluacion } from "../../hook/useEvaluacion";
 import type { AdoptionDetail } from "@/types/adoption-detail";
 import type { Solicitud } from "../solicitudes.data";
 import { AdoptanteModal } from "./adoptante-modal";
 import { MascotaModal } from "./mascota-modal";
+import { MatchingModal } from "./matching-modal";
+import { Pill } from "../../../ui/pill";
+import {
+  ESTADO_LABELS,
+  esEstadoTerminal,
+  transicionesPermitidas,
+  efectoTransicion,
+  solicitudEstadoTone,
+} from "../../../lib/solicitud-status";
 
 type Props = {
   solicitud: Solicitud;
@@ -37,15 +49,6 @@ const TABS = [
 ] as const;
 
 type TabId = (typeof TABS)[number]["id"];
-
-const ESTADO_LABELS: Record<Solicitud["estado"], string> = {
-  NUEVA: "Nueva",
-  EN_EVALUACION: "En evaluación",
-  ENTREVISTA_PENDIENTE: "Entrevista pendiente",
-  ACEPTADA_CON_SEGUIMIENTO: "Aceptada con seguimiento",
-  ACEPTADA: "Aceptada",
-  DESCARTADA: "Descartada",
-};
 
 // Compatibility helpers (same logic used elsewhere)
 function compatTone(pct: number) {
@@ -107,51 +110,35 @@ import type {
   AdoptionHistoryItem
 } from "@/types/adoption-detail";
 
-function TabEvaluacion() {
-  const [checks, setChecks] = useState<Record<string, boolean>>({});
+function TabEvaluacion({ adoptionId }: { adoptionId: number }) {
+  const { items, checked, notes, toggle, addNote } = useEvaluacion(adoptionId);
   const [nota, setNota] = useState("");
-  const [notas, setNotas] = useState<{ texto: string; fecha: string }[]>([]);
 
-  function toggle(label: string) {
-    setChecks((prev) => ({ ...prev, [label]: !prev[label] }));
+  async function guardarNota() {
+    const ok = await addNote(nota);
+    if (ok) setNota("");
   }
-  function guardarNota() {
-    const texto = nota.trim();
-    if (!texto) return;
-    const fecha = new Date().toLocaleString("es-AR", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-    setNotas((prev) => [{ texto, fecha }, ...prev]);
-    setNota("");
-  }
-
-  const CHECKLIST = [
-    "Verificó identidad",
-    "Consultó sobre vivienda",
-    "Evaluó experiencia previa",
-    "Revisó situación familiar",
-    "Coordinó visita al hogar",
-  ];
 
   return (
     <div className="sdet-tab-content sdet-eval">
-      <p className="sdet-section-label">Checklist</p>
+      <p className="sdet-section-label">
+        Checklist · {checked.length}/{items.length}
+      </p>
       <div className="sdet-chips">
-        {CHECKLIST.map((item) => (
-          <button
-            key={item}
-            type="button"
-            className={`sdet-chip-check${checks[item] ? " is-checked" : ""}`}
-            onClick={() => toggle(item)}
-          >
-            {checks[item] && <CheckCircle2 size={12} aria-hidden />}
-            {item}
-          </button>
-        ))}
+        {items.map((item) => {
+          const on = checked.includes(item);
+          return (
+            <button
+              key={item}
+              type="button"
+              className={`sdet-chip-check${on ? " is-checked" : ""}`}
+              onClick={() => toggle(item)}
+            >
+              {on && <CheckCircle2 size={12} aria-hidden />}
+              {item}
+            </button>
+          );
+        })}
       </div>
 
       <p className="sdet-section-label" style={{ marginTop: "1rem" }}>
@@ -176,12 +163,20 @@ function TabEvaluacion() {
         </button>
       </div>
 
-      {notas.length > 0 && (
+      {notes.length > 0 && (
         <ul className="sdet-notas-list">
-          {notas.map((n, i) => (
-            <li key={i} className="sdet-nota-item">
-              <p className="sdet-nota-texto">{n.texto}</p>
-              <time className="sdet-nota-fecha">{n.fecha}</time>
+          {notes.map((n) => (
+            <li key={n.id} className="sdet-nota-item">
+              <p className="sdet-nota-texto">{n.text}</p>
+              <time className="sdet-nota-fecha">
+                {new Date(n.createdAt).toLocaleString("es-AR", {
+                  day: "2-digit",
+                  month: "2-digit",
+                  year: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </time>
             </li>
           ))}
         </ul>
@@ -193,26 +188,33 @@ function TabEvaluacion() {
 function TabMensajes({
   nombre,
   onIrAMensajes,
-  solicitudId,
+  userId,
   messages,
 }: {
   nombre?: string;
-  onIrAMensajes: (id: string) => void;
-  solicitudId: string;
+  onIrAMensajes: (userId: string) => void;
+  userId?: string;
   messages?: AdoptionMessage[];
 }) {
   const msgs = messages ?? [];
+  const irBtn = (
+    <button
+      type="button"
+      className="btn btn-primary sdet-ir-mensajes"
+      onClick={() => userId && onIrAMensajes(userId)}
+      disabled={!userId}
+      title={!userId ? "No se pudo identificar al solicitante" : undefined}
+    >
+      <MessageSquare size={15} /> Ir a la conversación
+    </button>
+  );
   if (msgs.length === 0) {
     return (
       <div className="sdet-tab-content sdet-mensajes-readonly">
-        <div className="sdet-empty">No hay mensajes disponibles.</div>
-        <button
-          type="button"
-          className="btn btn-primary sdet-ir-mensajes"
-          onClick={() => onIrAMensajes(solicitudId)}
-        >
-          <MessageSquare size={15} /> Ir al mensaje
-        </button>
+        <div className="sdet-empty">
+          Todavía no hay mensajes con este solicitante.
+        </div>
+        {irBtn}
       </div>
     );
   }
@@ -236,13 +238,7 @@ function TabMensajes({
           </div>
         ))}
       </div>
-      <button
-        type="button"
-        className="btn btn-primary sdet-ir-mensajes"
-        onClick={() => onIrAMensajes(solicitudId)}
-      >
-        <MessageSquare size={15} /> Ir al mensaje
-      </button>
+      {irBtn}
     </div>
   );
 }
@@ -342,6 +338,88 @@ function TabHistorial({ history }: { history?: AdoptionHistoryItem[] }) {
   );
 }
 
+/* --- Modal de confirmación de cambio de estado --- */
+
+function ConfirmarEstadoModal({
+  actual,
+  destino,
+  loading,
+  onConfirm,
+  onCancel,
+}: {
+  actual: Solicitud["estado"];
+  destino: Solicitud["estado"];
+  loading: boolean;
+  onConfirm: () => void;
+  onCancel: () => void;
+}) {
+  const efecto = efectoTransicion(destino);
+  const esRechazo = destino === "DESCARTADA";
+
+  return createPortal(
+    <div className="sdet-modal-overlay" onClick={onCancel} role="presentation">
+      <div
+        className="sdet-modal sdet-modal--sm"
+        role="dialog"
+        aria-label="Confirmar cambio de estado"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="sdet-modal-head">
+          <h2>Confirmar cambio de estado</h2>
+          <button
+            type="button"
+            className="vdrawer-close"
+            aria-label="Cerrar"
+            onClick={onCancel}
+          >
+            <X size={18} />
+          </button>
+        </div>
+
+        <div className="sdet-modal-body">
+          <p className="sdet-confirm-text">
+            Vas a cambiar el estado de{" "}
+            <Pill tone={solicitudEstadoTone(actual)}>{ESTADO_LABELS[actual]}</Pill>{" "}
+            a{" "}
+            <Pill tone={solicitudEstadoTone(destino)}>{ESTADO_LABELS[destino]}</Pill>.
+          </p>
+
+          {efecto && (
+            <div
+              className={`sdet-confirm-alert${esRechazo ? " sdet-confirm-alert--danger" : ""}`}
+            >
+              <AlertTriangle size={16} aria-hidden />
+              <span>{efecto}</span>
+            </div>
+          )}
+
+          <p className="sdet-confirm-question">¿Confirmás el cambio?</p>
+        </div>
+
+        <div className="sdet-modal-foot">
+          <button
+            type="button"
+            className="btn btn-outline"
+            onClick={onCancel}
+            disabled={loading}
+          >
+            Cancelar
+          </button>
+          <button
+            type="button"
+            className={`btn ${esRechazo ? "btn-danger" : "btn-primary"}`}
+            onClick={onConfirm}
+            disabled={loading}
+          >
+            {loading ? "Cambiando..." : "Sí, cambiar estado"}
+          </button>
+        </div>
+      </div>
+    </div>,
+    document.body,
+  );
+}
+
 /* --- Main drawer component: fetches detail and builds compat criteria dynamically --- */
 
 export function SolicitudDetail({
@@ -351,20 +429,30 @@ export function SolicitudDetail({
   onUpdateStatus,
 }: Props) {
   const [tab, setTab] = useState<TabId>("evaluacion");
+  const opciones = transicionesPermitidas(solicitud.estado);
+  const terminal = esEstadoTerminal(solicitud.estado);
   const [selectedEstado, setSelectedEstado] = useState<Solicitud["estado"]>(
-    solicitud.estado,
+    opciones[0] ?? solicitud.estado,
   );
   const [showAdoptante, setShowAdoptante] = useState(false);
   const [showMascota, setShowMascota] = useState(false);
+  const [showMatchingModal, setShowMatchingModal] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
   const { data: detail, loading: loadingDetail } = useSolicitudDetail(solicitud.id);
 
   const [isUpdating, setIsUpdating] = useState(false);
-  const handleCambiarEstado = async () => {
+  const handleConfirmarCambio = async () => {
     if (!onUpdateStatus) return;
     setIsUpdating(true);
-    await onUpdateStatus(solicitud.id, selectedEstado);
+    const ok = await onUpdateStatus(solicitud.id, selectedEstado);
     setIsUpdating(false);
+    if (ok) {
+      setConfirmOpen(false);
+      // El listado se recarga con el nuevo estado y la fecha de modificación;
+      // cerramos el drawer para que el cambio quede reflejado en la tabla.
+      onClose();
+    }
   };
 
   const userPhoto = solicitud.userPhoto?.trim() ? solicitud.userPhoto : null;
@@ -532,35 +620,65 @@ export function SolicitudDetail({
                   ))}
                 </ul>
               </div>
+              {detail && (
+                <div style={{ marginTop: "1rem", textAlign: "right" }}>
+                  <button 
+                    type="button" 
+                    className="btn btn-outline btn-sm"
+                    onClick={() => setShowMatchingModal(true)}
+                  >
+                    Ver detalle del cálculo
+                  </button>
+                </div>
+              )}
             </section>
 
             <section className="sdet-estado-section">
               <p className="sdet-section-label">Estado actual</p>
-              <div className="sdet-estado-row">
-                <div className="field sdet-estado-select-wrap">
-                  <select
-                    className="select"
-                    value={selectedEstado}
-                    onChange={(e) =>
-                      setSelectedEstado(e.target.value as Solicitud["estado"])
-                    }
-                  >
-                    {Object.entries(ESTADO_LABELS).map(([value, label]) => (
-                      <option key={value} value={value}>
-                        {label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <button
-                  type="button"
-                  className="btn btn-primary sdet-estado-btn"
-                  onClick={handleCambiarEstado}
-                  disabled={isUpdating || selectedEstado === solicitud.estado}
-                >
-                  {isUpdating ? "Cambiando..." : "Cambiar estado"}
-                </button>
+              <div className="sdet-estado-actual">
+                <Pill tone={solicitudEstadoTone(solicitud.estado)}>
+                  {ESTADO_LABELS[solicitud.estado]}
+                </Pill>
+                <span className="sdet-estado-fecha">
+                  Última modificación: {solicitud.fechaModificacion ?? solicitud.fecha}
+                </span>
               </div>
+
+              {terminal ? (
+                <p className="sdet-estado-terminal">
+                  Esta solicitud está finalizada y no admite más cambios de estado.
+                </p>
+              ) : (
+                <div className="sdet-estado-row">
+                  <div className="field sdet-estado-select-wrap">
+                    <label className="sdet-estado-sublabel" htmlFor="sdet-estado-select">
+                      Cambiar a
+                    </label>
+                    <select
+                      id="sdet-estado-select"
+                      className="select"
+                      value={selectedEstado}
+                      onChange={(e) =>
+                        setSelectedEstado(e.target.value as Solicitud["estado"])
+                      }
+                    >
+                      {opciones.map((value) => (
+                        <option key={value} value={value}>
+                          {ESTADO_LABELS[value]}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <button
+                    type="button"
+                    className="btn btn-primary sdet-estado-btn"
+                    onClick={() => setConfirmOpen(true)}
+                    disabled={isUpdating || !onUpdateStatus}
+                  >
+                    Cambiar estado
+                  </button>
+                </div>
+              )}
             </section>
 
             <div className="sdet-tabs" role="tablist">
@@ -578,12 +696,14 @@ export function SolicitudDetail({
               ))}
             </div>
 
-            {tab === "evaluacion" && <TabEvaluacion />}
+            {tab === "evaluacion" && (
+              <TabEvaluacion adoptionId={Number(solicitud.id)} />
+            )}
             {tab === "mensajes" && (
               <TabMensajes
                 nombre={detail?.user?.name ?? solicitud.userName}
                 onIrAMensajes={onIrAMensajes}
-                solicitudId={solicitud.id}
+                userId={detail?.user?.id ? String(detail.user.id) : undefined}
                 messages={detail?.messages}
               />
             )}
@@ -605,6 +725,21 @@ export function SolicitudDetail({
         <MascotaModal
           solicitud={solicitud}
           onClose={() => setShowMascota(false)}
+        />
+      )}
+      {showMatchingModal && detail && (
+        <MatchingModal
+          detail={detail}
+          onClose={() => setShowMatchingModal(false)}
+        />
+      )}
+      {confirmOpen && (
+        <ConfirmarEstadoModal
+          actual={solicitud.estado}
+          destino={selectedEstado}
+          loading={isUpdating}
+          onConfirm={handleConfirmarCambio}
+          onCancel={() => setConfirmOpen(false)}
         />
       )}
     </>

@@ -1,13 +1,15 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import {
   getConversation,
   getInbox,
   sendMessage,
+  deleteMessage,
   type InboxConversation,
   type Message,
+  type userMessage,
 } from "@/services/messages.services";
 import { useAppSelector } from "@/redux/hooks";
 
@@ -25,11 +27,21 @@ export function useMessages() {
   const [loadingInbox, setLoadingInbox] = useState(true);
 
   const [activaId, setActivaId] = useState<number | null>(null);
+  // Espejo de `activaId` para que los fetch en vuelo detecten si la conversación
+  // cambió mientras esperaban la respuesta (evita pintar mensajes de otra charla).
+  const activaIdRef = useRef<number | null>(null);
+  useEffect(() => {
+    activaIdRef.current = activaId;
+  }, [activaId]);
+  // Usuario de la conversación activa. Se mantiene aparte del inbox para poder
+  // abrir una conversación nueva con alguien que todavía no está en la bandeja.
+  const [activaUser, setActivaUser] = useState<userMessage | null>(null);
   const [activaMessages, setActivaMessages] = useState<Message[]>([]);
   const [loadingChat, setLoadingChat] = useState(false);
 
   const [query, setQuery] = useState("");
   const [draft, setDraft] = useState("");
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [sending, setSending] = useState(false);
 
   const fetchInbox = useCallback(async () => {
@@ -49,6 +61,9 @@ export function useMessages() {
     if (showLoading) setLoadingChat(true);
     try {
       const res = await getConversation(userId);
+      // Si el usuario cambió de conversación mientras esperábamos, descartamos
+      // esta respuesta (sino pintaría mensajes de la charla anterior).
+      if (activaIdRef.current !== userId) return;
       if (res.ok && res.data) {
         setActivaMessages(res.data.messages || []);
         // Marcar como leído localmente
@@ -90,24 +105,42 @@ export function useMessages() {
     );
   }, [inbox, query]);
 
-  const activaConv = inbox.find((c) => c.user?.id === activaId) ?? null;
-
   function abrir(id: number) {
     if (id === activaId) return;
+    const conv = inbox.find((c) => c.user?.id === id);
+    if (conv?.user) setActivaUser(conv.user);
     setActivaId(id);
+  }
+
+  /** Abre (o crea) una conversación con un usuario elegido desde "Nuevo mensaje". */
+  function abrirConUsuario(user: userMessage) {
+    setActivaUser(user);
+    setActivaId(user.id);
+    if (!inbox.some((c) => c.user?.id === user.id)) setActivaMessages([]);
+  }
+
+  async function eliminar(messageId: number) {
+    const res = await deleteMessage(messageId);
+    if (res.ok) {
+      setActivaMessages((prev) => prev.filter((m) => m.id !== messageId));
+      void fetchInbox();
+    } else {
+      toast.error("No se pudo eliminar el mensaje.");
+    }
   }
 
   async function enviar(e: React.FormEvent) {
     e.preventDefault();
     const texto = draft.trim();
-    if (!texto || !activaId || sending) return;
+    if ((!texto && !photoFile) || !activaId || sending) return;
 
     setSending(true);
     try {
-      const res = await sendMessage(activaId, texto);
+      const res = await sendMessage(activaId, texto, photoFile);
       if (res.ok && res.data) {
         setActivaMessages((prev) => [...prev, res.data!]);
         setDraft("");
+        setPhotoFile(null);
         void fetchInbox();
       } else {
         toast.error("No se pudo enviar el mensaje");
@@ -122,6 +155,7 @@ export function useMessages() {
   return {
     isLoggedIn: currentUser.isLoggedIn,
     currentUserId: currentUser.id,
+    isAdmin: currentUser.role === "admin",
     loadingInbox,
     activaId,
     activaMessages,
@@ -130,10 +164,14 @@ export function useMessages() {
     setQuery,
     draft,
     setDraft,
+    photoFile,
+    setPhotoFile,
     sending,
     visibles,
-    activaConv,
+    activaUser,
     abrir,
+    abrirConUsuario,
     enviar,
+    eliminar,
   };
 }

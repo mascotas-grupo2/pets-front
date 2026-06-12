@@ -5,6 +5,8 @@
 @import "./navigation.css";
 @import "./admin.css";
 @import "./drawer-solicitud.css";
+@import "./utils.css";
+@import "./responsive.css";
 
 /* ===== Hero ===== */
 .hero {
@@ -633,6 +635,17 @@
   font-size: 0.88rem;
   color: var(--primary-900);
   text-align: center;
+}
+
+/* Aceptar términos en el paso "Confirmar" (flujo rápido de adoptante recurrente). */
+.adopt-confirm-terms {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.5rem 0 1.25rem;
+  font-size: 0.9rem;
+  color: var(--gray-700);
+  cursor: pointer;
 }
 
 .wizard-heading {
@@ -2145,6 +2158,16 @@
   margin-top: 1rem;
 }
 
+.similar-empty {
+  text-align: center;
+  color: var(--gray-500);
+  background: var(--gray-50);
+  border: 1px dashed var(--border);
+  border-radius: 0.8rem;
+  padding: 1.5rem;
+  font-size: 0.95rem;
+}
+
 .similar-grid {
   list-style: none;
   display: grid;
@@ -2780,4 +2803,239 @@
   .admin-edit-header > a {
     margin-left: 0;
   }
+}
+
+/* ===== Fila estado/entrega en el drawer de mascota ===== */
+.mdrawer-estado-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+.mdrawer-estado-row .input {
+  flex: 1;
+}
+
+/* ===== Tag "Admin" en publicaciones creadas por un admin ===== */
+.pub-admin-tag {
+  margin-left: 0.45rem;
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--primary-700, #473bb3);
+  background: var(--primary-50, #f1eeff);
+  border: 1px solid var(--primary-200, #beb0ff);
+  padding: 0.05rem 0.4rem;
+  border-radius: 0.4rem;
+  vertical-align: middle;
+}
+
+/* ===== Valor de campo no editable en el form del drawer ===== */
+.vdrawer-readonly {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.vdrawer-readonly small {
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--gray-400);
+  background: var(--gray-100);
+  padding: 0.1rem 0.4rem;
+  border-radius: 0.4rem;
+}
+
+/* ===== Hint de publicación rechazada en el drawer admin ===== */
+.vdrawer-foot-hint {
+  margin: 0;
+  padding: 0.6rem 1.4rem;
+  background: #fef2f2;
+  border-top: 1px solid #fecaca;
+  color: #b91c1c;
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
+/* ===== Motivo de rechazo en la card de "Mis Reportes" ===== */
+.pet-reject-reason {
+  margin: 0.5rem 0 0;
+  padding: 0.5rem 0.7rem;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 0.5rem;
+  color: #b91c1c;
+  font-size: 0.82rem;
+  line-height: 1.4;
+}
+
+.pet-reject-reason strong {
+  font-weight: 600;
+}
+
+/* ===== Mensajes: header de bandeja, borrar, nuevo mensaje ===== */
+.msg-list-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1rem 0.25rem;
+}
+.msg-list-head h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--gray-900);
+}
+
+/* Botón de borrar mensaje (aparece al pasar el mouse por la fila). */
+.msg-bubble-row .msg-delete {
+  opacity: 0;
+  border: none;
+  background: transparent;
+  color: var(--gray-400);
+  cursor: pointer;
+  padding: 0.2rem;
+  border-radius: 0.3rem;
+  align-self: center;
+  transition: opacity 0.12s, color 0.12s;
+}
+.msg-bubble-row:hover .msg-delete {
+  opacity: 1;
+}
+.msg-bubble-row .msg-delete:hover {
+  color: #dc2626;
+  background: #fef2f2;
+}
+
+.nuevo-mensaje {
+  max-width: 460px;
+}
+.nm-list {
+  list-style: none;
+  margin: 0.75rem 0 0;
+  padding: 0;
+  max-height: 320px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+.nm-empty {
+  display: flex;
+  justify-content: center;
+  padding: 1.5rem;
+  color: var(--gray-400);
+  font-size: 0.9rem;
+}
+.nm-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.5rem 0.6rem;
+  border: none;
+  background: transparent;
+  border-radius: 0.6rem;
+  cursor: pointer;
+  text-align: left;
+}
+.nm-item:hover {
+  background: var(--gray-100);
+}
+.nm-item-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+.nm-item-name {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--gray-900);
+}
+.nm-item-sub {
+  font-size: 0.78rem;
+  color: var(--gray-500);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.nm-role {
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.1rem 0.4rem;
+  border-radius: 0.4rem;
+}
+.nm-role--admin {
+  color: var(--primary-700, #473bb3);
+  background: var(--primary-50, #f1eeff);
+}
+.nm-role--user {
+  color: var(--gray-600);
+  background: var(--gray-100);
+}
+
+/* ===== Confirm dialog (modal genérico Sí/No) ===== */
+.confirm-dialog {
+  background: #fff;
+  border-radius: 1rem;
+  box-shadow: 0 20px 50px rgba(31, 25, 87, 0.25);
+  width: 100%;
+  max-width: 440px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.confirm-dialog-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.1rem 1.4rem;
+  border-bottom: 1px solid var(--border, #eee);
+}
+
+.confirm-dialog-head h2 {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--gray-900);
+}
+
+.confirm-dialog-body {
+  padding: 1.3rem 1.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.confirm-dialog-message {
+  margin: 0;
+  color: var(--gray-600);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.confirm-dialog-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.confirm-dialog-textarea {
+  resize: vertical;
+  min-height: 90px;
+  font-family: inherit;
+}
+
+.confirm-dialog-foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  padding: 1rem 1.4rem 1.3rem;
 }

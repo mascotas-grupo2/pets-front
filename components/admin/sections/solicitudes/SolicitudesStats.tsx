@@ -56,10 +56,7 @@ export function SolicitudesStats({ counts, loading, estado, onToggle }: Props) {
   const val = (n: number) => (loading ? "…" : n);
 
   return (
-    <div
-      className="pub-stats"
-      style={{ gridTemplateColumns: "repeat(6, minmax(0, 1fr))" }}
-    >
+    <div className="pub-stats pub-stats--6">
       {STATS.map((stat) => (
         <StatCard
           key={stat.key}

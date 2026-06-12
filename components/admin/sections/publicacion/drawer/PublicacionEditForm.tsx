@@ -6,19 +6,10 @@ import type {
   Pet,
   PetMedicalStatus,
   PetSex,
-  PetStatus,
 } from "@/types/pet";
 
 // ── Opciones ─────────────────────────────────────────────────────────────────
 
-const STATUS_OPTS: PetStatus[] = [
-  "perdido",
-  "encontrado",
-  "en tránsito",
-  "en tratamiento médico",
-  "en adopción",
-  "adoptado",
-];
 const TYPE_OPTS: AnimalType[] = ["perro", "gato", "otro"];
 const SEX_OPTS: PetSex[] = ["macho", "hembra"];
 const MED_OPTS: PetMedicalStatus[] = [
@@ -178,8 +169,18 @@ export function PublicacionEditForm({ formik }: Props) {
           <TextInput field="name" formik={formik} />
         </EditableField>
 
-        <EditableField label="Estado" value="" editing>
-          <SelectInput field="status" options={STATUS_OPTS} formik={formik} />
+        {/* El Estado del animal lo define quien publica; el admin no lo edita. */}
+        <EditableField
+          label="Estado"
+          editing={false}
+          value={
+            <span className="vdrawer-readonly">
+              {formik.values.status ? cap(String(formik.values.status)) : "—"}
+              <small>No editable</small>
+            </span>
+          }
+        >
+          {null}
         </EditableField>
 
         <EditableField label="Especie" value="" editing>

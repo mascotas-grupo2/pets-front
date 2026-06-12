@@ -4,6 +4,7 @@ const regex_email = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 const regex_phone = /^[\d+\-\s()]+$/;
 
 export const adoptStartSchema = Yup.object({
+  petId: Yup.string(),
   firstName: Yup.string().min(2, "Mínimo 2 caracteres").required("Requerido"),
   lastName: Yup.string().min(2, "Mínimo 2 caracteres").required("Requerido"),
   email: Yup.string()
@@ -13,7 +14,13 @@ export const adoptStartSchema = Yup.object({
   phone: Yup.string()
     .matches(regex_phone, "Teléfono inválido")
     .required("Requerido"),
-  preferredAnimal: Yup.string().required("Requerido"),
+  // Cuando se solicita una mascota puntual (petId presente) el selector de
+  // "qué mascota querés adoptar" se oculta, así que no debe ser obligatorio.
+  preferredAnimal: Yup.string().when("petId", {
+    is: (petId?: string) => !!petId,
+    then: (schema) => schema,
+    otherwise: (schema) => schema.required("Requerido"),
+  }),
   acceptsTerms: Yup.boolean().oneOf([true], "Debés aceptar los términos"),
 });
 
