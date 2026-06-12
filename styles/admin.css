@@ -1874,6 +1874,13 @@
   min-height: 520px;
 }
 
+/* En la cuenta del usuario el panel va contenido (no a 100vh como en el admin),
+   así no genera scroll/espacio vacío de más. */
+.account-messages .msg-layout {
+  height: clamp(420px, 62vh, 600px);
+  min-height: 0;
+}
+
 .msg-list-panel,
 .msg-chat-panel {
   display: flex;
@@ -2962,4 +2969,164 @@
     grid-template-columns: 1fr;
     height: auto;
   }
+}
+
+/* ══════════════════════════════════════════
+   Notificaciones (campana del admin + vista de la cuenta)
+   ══════════════════════════════════════════ */
+.notif-wrap {
+  position: relative;
+}
+
+.notif-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 340px;
+  max-width: 90vw;
+  background: var(--surface, #fff);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.16);
+  z-index: 50;
+  overflow: hidden;
+}
+
+.notif-dropdown-head,
+.notif-view-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.notif-dropdown-head h4,
+.notif-view-head h3 {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--gray-900);
+}
+
+.notif-markall {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  color: var(--primary-600, #6d5dfc);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.notif-list {
+  max-height: 380px;
+  overflow-y: auto;
+}
+
+.notif-empty {
+  padding: 24px 14px;
+  text-align: center;
+  color: var(--gray-500);
+  font-size: 0.88rem;
+}
+
+.notif-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+  text-align: left;
+  padding: 11px 14px;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--gray-100);
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+
+.notif-item-icon {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-full);
+}
+
+.notif-item-icon.tone-violet {
+  background: var(--primary-50);
+  color: var(--primary-600);
+}
+.notif-item-icon.tone-green {
+  background: #e6f7f2;
+  color: #0f6e52;
+}
+.notif-item-icon.tone-amber {
+  background: #fff7ed;
+  color: #b45309;
+}
+
+.notif-item-main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.notif-item:hover {
+  background: var(--gray-50, #f9fafb);
+}
+
+.notif-item.is-unread {
+  background: var(--primary-50, #f1efff);
+}
+
+.notif-item.is-unread:hover {
+  background: var(--primary-100, #e6e2ff);
+}
+
+.notif-item-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--gray-900);
+}
+
+.notif-item.is-unread .notif-item-title {
+  font-weight: 700;
+}
+
+.notif-item-body {
+  font-size: 0.8rem;
+  color: var(--gray-600);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.notif-item-time {
+  font-size: 0.72rem;
+  color: var(--gray-400);
+}
+
+/* Vista completa en la cuenta del usuario */
+.notif-view {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.notif-view-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.notif-view-list .notif-item:last-child {
+  border-bottom: none;
 }
