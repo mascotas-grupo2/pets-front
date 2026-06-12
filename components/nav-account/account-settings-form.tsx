@@ -38,18 +38,18 @@ export default function AccountSettingsForm({
       allergies: userDetails.allergies || "",
       otherAnimalsDetail: userDetails.otherAnimalsDetail || "",
     },
-    validationSchema: validationSchemaUpdateUserDetails,
+    validationSchema: validationSchemaUpdateUserDetails(adopter),
     onSubmit: async (values) => {
       try {
         const res = await putUserDetails(values);
         if (!res) return;
         if (res.ok) {
           dispatch({ type: "user/setFormAdoption", payload: res.data });
-          handleToast("success", "¡Solicitud enviada con éxito!");
+          handleToast("success", "Perfil actualizado.");
         } else {
           handleToast(
             "error",
-            `Error (${res.status}): No se pudo enviar la solicitud.`,
+            `Error (${res.status}): No se pudieron guardar los cambios.`,
           );
         }
       } catch (error) {
