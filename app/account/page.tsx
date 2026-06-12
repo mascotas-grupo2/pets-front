@@ -10,6 +10,7 @@ import Link from "next/link";
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import AccountSettingsForm from "../../components/nav-account/account-settings-form";
+import { CatLoader } from "@/components/cat-loader";
 import { UserDetails } from "../../types/user-details";
 import { MessagesPanel } from "@/components/messages/messages-panel";
 import { NotificationsView } from "@/components/notifications/NotificationsView";
@@ -105,8 +106,8 @@ function AccountPageContent() {
   }
   if (!userDetails) {
     return (
-      <main className="container" style={{ padding: "3rem 0", textAlign: "center" }}>
-        <p>Cargando tu cuenta…</p>
+      <main className="container" style={{ padding: "3rem 0" }}>
+        <CatLoader label="CARGANDO" />
       </main>
     );
   }

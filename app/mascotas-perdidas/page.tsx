@@ -7,10 +7,28 @@ import { AnimalType, Pet } from "@/types/pet";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { X, PawPrint, Search, MapPin, SlidersHorizontal } from "lucide-react";
+import {
+  X,
+  PawPrint,
+  Search,
+  MapPin,
+  SlidersHorizontal,
+  LayoutGrid,
+  Map as MapIcon,
+} from "lucide-react";
+import { PetsMap } from "@/components/pets-map";
+import { CatLoader } from "@/components/cat-loader";
 
 type Filter = AnimalType | "todos";
-type SortBy = "recientes" | "antiguos" | "nombre";
+type SortBy = "urgentes" | "recientes" | "antiguos" | "nombre";
+type View = "grid" | "map";
+
+const SORT_LABELS: Record<SortBy, string> = {
+  urgentes: "Más urgentes",
+  recientes: "Más recientes",
+  antiguos: "Más antiguos",
+  nombre: "Nombre (A-Z)",
+};
 type Size = "pequeño" | "mediano" | "grande";
 type Sex = "cualquiera" | "macho" | "hembra";
 type DateFilter = "todos" | "hoy" | "semana" | "mes";
@@ -79,6 +97,7 @@ export default function LostPetsPage() {
     hasCollar: false,
   });
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [view, setView] = useState<View>("grid");
 
   const dispatch = useDispatch();
 
@@ -172,6 +191,21 @@ export default function LostPetsPage() {
     });
 
     switch (filters.sortBy) {
+      case "urgentes": {
+        // Casos activos (perdido/encontrado/en tránsito) primero, los más
+        // recientes arriba; adopción/adoptado quedan al final.
+        const score = (p: Pet) => {
+          const active =
+            p.status === "perdido" ||
+            p.status === "encontrado" ||
+            p.status === "en tránsito";
+          const days =
+            (referenceDate - new Date(p.date).getTime()) / 86_400_000;
+          return (active ? 1_000_000 : 0) - days;
+        };
+        result.sort((a, b) => score(b) - score(a));
+        break;
+      }
       case "recientes":
         result.sort(
           (a, b) =>
@@ -281,7 +315,7 @@ export default function LostPetsPage() {
   if (filters.sortBy !== "recientes")
     chips.push({
       key: "sort",
-      label: `Orden: ${filters.sortBy === "antiguos" ? "Más antiguos" : "Nombre (A-Z)"}`,
+      label: `Orden: ${SORT_LABELS[filters.sortBy]}`,
       onRemove: () => updateFilter({ sortBy: "recientes" }),
     });
 
@@ -480,6 +514,7 @@ export default function LostPetsPage() {
                 updateFilter({ sortBy: e.target.value as SortBy })
               }
             >
+              <option value="urgentes">Más urgentes</option>
               <option value="recientes">Más recientes</option>
               <option value="antiguos">Más antiguos</option>
               <option value="nombre">Nombre (A-Z)</option>
@@ -500,6 +535,24 @@ export default function LostPetsPage() {
               <strong>{filtered.length}</strong>{" "}
               {filtered.length === 1 ? "resultado" : "resultados"}
             </p>
+            <div className="listing-view-toggle" role="group" aria-label="Vista">
+              <button
+                type="button"
+                className={`view-btn${view === "grid" ? " is-on" : ""}`}
+                aria-pressed={view === "grid"}
+                onClick={() => setView("grid")}
+              >
+                <LayoutGrid size={15} aria-hidden /> Grilla
+              </button>
+              <button
+                type="button"
+                className={`view-btn${view === "map" ? " is-on" : ""}`}
+                aria-pressed={view === "map"}
+                onClick={() => setView("map")}
+              >
+                <MapIcon size={15} aria-hidden /> Mapa
+              </button>
+            </div>
             <button
               type="button"
               className="btn btn-outline btn-sm listing-filters-toggle"
@@ -535,18 +588,7 @@ export default function LostPetsPage() {
           )}
 
           {loading ? (
-            <ul className="pet-grid listing-grid" aria-hidden>
-              {Array.from({ length: 6 }).map((_, i) => (
-                <li key={i} className="pet-skeleton">
-                  <div className="pet-skeleton-img" />
-                  <div className="pet-skeleton-body">
-                    <div className="pet-skeleton-line" style={{ width: "70%" }} />
-                    <div className="pet-skeleton-line" style={{ width: "40%" }} />
-                    <div className="pet-skeleton-line" style={{ width: "90%" }} />
-                  </div>
-                </li>
-              ))}
-            </ul>
+            <CatLoader label="CARGANDO" />
           ) : filtered.length === 0 ? (
             <div className="listing-empty">
               <span className="listing-empty-icon" aria-hidden>
@@ -571,6 +613,8 @@ export default function LostPetsPage() {
                 </Link>
               </div>
             </div>
+          ) : view === "map" ? (
+            <PetsMap pets={filtered} />
           ) : (
             <>
               <ul className="pet-grid listing-grid">

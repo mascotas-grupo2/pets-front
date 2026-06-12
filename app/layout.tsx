@@ -5,6 +5,7 @@ import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { Providers } from "@/components/Providers";
 import { ChatbotWidget } from "@/components/chatbot/chatbot-widget";
+import { AppPreloader } from "@/components/cat-loader";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -48,6 +49,7 @@ export default function RootLayout({
     >
       <body>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+        <AppPreloader />
         <Providers>
           <SiteHeader />
           {children}
