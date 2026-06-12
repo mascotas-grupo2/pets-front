@@ -119,7 +119,7 @@
 }
 
 .pet-card {
-  background: #fff;
+  background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   overflow: hidden;
@@ -384,7 +384,7 @@
 }
 
 .steps-connected .step-icon {
-  background: #fff;
+  background: var(--surface);
   border: 2px solid var(--primary-200);
 }
 
@@ -422,7 +422,7 @@
 }
 
 .testimonial {
-  background: #fff;
+  background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   padding: 1.75rem;
@@ -463,7 +463,7 @@
 }
 
 .faq-item {
-  background: #fff;
+  background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   padding: 1.1rem 1.25rem;
@@ -518,7 +518,7 @@
 .form-card {
   max-width: 720px;
   margin: 0 auto 5rem;
-  background: #fff;
+  background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   padding: 2.5rem;
@@ -698,7 +698,7 @@
 .wizard-card {
   max-width: 860px;
   margin: 0 auto 5rem;
-  background: #fff;
+  background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   padding: 2.25rem 2.5rem 2rem;
@@ -817,7 +817,7 @@
   padding: 0.75rem 0.9rem;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  background: #fff;
+  background: var(--surface);
   font-size: 0.88rem;
   color: var(--gray-700);
   cursor: pointer;
@@ -918,7 +918,7 @@
   top: calc(100% - 1.25rem);
   left: 0;
   right: 0;
-  background: #fff;
+  background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   box-shadow: var(--shadow-md);
@@ -1082,7 +1082,7 @@
 .filter-chip {
   padding: 0.5rem 1.1rem;
   border-radius: var(--radius-full);
-  background: #fff;
+  background: var(--surface);
   border: 1px solid var(--border);
   font-size: 0.85rem;
   color: var(--gray-700);
@@ -1134,7 +1134,7 @@
 }
 
 .auth-card {
-  background: #fff;
+  background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   padding: 2.5rem;
@@ -1189,7 +1189,7 @@
 
 .auth-visual {
   padding: 0;
-  background: #ffffff;
+  background: var(--surface);
   position: relative;
   overflow: hidden;
 }
@@ -1315,7 +1315,7 @@
   height: 38px;
   border-radius: var(--radius-full);
   border: 1px solid var(--border);
-  background: #fff;
+  background: var(--surface);
   display: grid;
   place-items: center;
   font-weight: 700;
@@ -1382,7 +1382,7 @@
 }
 
 .guide-card {
-  background: #fff;
+  background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   overflow: hidden;
@@ -1491,7 +1491,7 @@
 }
 
 .account-nav {
-  background: #fff;
+  background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   padding: 0.6rem;
@@ -1587,7 +1587,7 @@
 }
 
 .account-body {
-  background: #fff;
+  background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   padding: 2rem;
@@ -1643,7 +1643,7 @@
 }
 
 .coex-card {
-  background: #fff;
+  background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   padding: 1.1rem 1.1rem 0.75rem;
@@ -1695,7 +1695,7 @@
 }
 
 .faq-card {
-  background: #fff;
+  background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   padding: 2rem;
@@ -1752,7 +1752,7 @@
 }
 
 .listing-sidebar {
-  background: #fff;
+  background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   padding: 1.5rem;
@@ -1916,7 +1916,7 @@
 }
 
 .listing-empty {
-  background: #fff;
+  background: var(--surface);
   border: 1px dashed var(--border);
   border-radius: var(--radius-lg);
   padding: 4rem 2rem;
@@ -1940,7 +1940,7 @@
   padding: 0 0.75rem;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border);
-  background: #fff;
+  background: var(--surface);
   color: var(--gray-700);
   font-size: 0.9rem;
   font-weight: 500;
@@ -2196,7 +2196,7 @@
   width: 36px;
   height: 36px;
   border-radius: var(--radius-full);
-  background: #fff;
+  background: var(--surface);
   display: grid;
   place-items: center;
   color: var(--primary-500);
@@ -2221,7 +2221,7 @@
 .pet-vacc-table {
   width: 100%;
   border-collapse: collapse;
-  background: #fff;
+  background: var(--surface);
   font-size: 0.85rem;
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
@@ -2256,7 +2256,7 @@
 .pet-vacc-table tbody td {
   color: var(--gray-700);
   line-height: 1.6;
-  background: #fff;
+  background: var(--surface);
 }
 
 .pet-detail-col-side {
@@ -2268,7 +2268,7 @@
 }
 
 .pet-detail-story {
-  background: #fff;
+  background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   padding: 1.5rem;
@@ -2326,7 +2326,7 @@
 }
 
 .pet-detail-cta {
-  background: #fff;
+  background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   padding: 1.25rem;
@@ -2370,7 +2370,7 @@
 }
 
 .similar-card {
-  background: #fff;
+  background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   padding: 1.25rem;
@@ -2697,7 +2697,7 @@
   grid-template-columns: 2fr 1fr auto;
   gap: 1rem;
   align-items: end;
-  background: #fff;
+  background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   padding: 1.25rem;
@@ -2712,7 +2712,7 @@
 }
 
 .admin-table-wrap {
-  background: #fff;
+  background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   overflow-x: auto;
@@ -2799,7 +2799,7 @@
   display: flex;
   align-items: center;
   gap: 1.25rem;
-  background: #fff;
+  background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   padding: 1.5rem;
@@ -2859,7 +2859,7 @@
 }
 
 .admin-card {
-  background: #fff;
+  background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   padding: 1.5rem;

@@ -18,6 +18,22 @@ export const metadata: Metadata = {
     "Reportá y encontrá mascotas perdidas cerca tuyo. Comunidad para reunir animales con sus familias.",
 };
 
+
+const themeInitScript = `
+(function () {
+  try {
+    var stored = localStorage.getItem("huellitas-theme");
+    var theme =
+      stored === "light" || stored === "dark"
+        ? stored
+        : window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light";
+    document.documentElement.setAttribute("data-theme", theme);
+  } catch (e) {}
+})();
+`;
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -31,6 +47,7 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body>
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
         <Providers>
           <SiteHeader />
           {children}
