@@ -76,7 +76,7 @@ function Burbuja({
  * Bandeja de conversaciones + chat activo contra la API real de mensajes.
  * Lo usan la sección Mensajes del admin y la pestaña Mensajes de la cuenta.
  */
-export function MessagesPanel() {
+export function MessagesPanel({ initialUserId }: { initialUserId?: number }) {
   const {
     isLoggedIn,
     currentUserId,
@@ -103,6 +103,20 @@ export function MessagesPanel() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [activaMessages]);
+
+  // Abrir directo una conversación cuando se llega con ?user=<id> (ej. desde una
+  // notificación de mensaje). Esperamos a que esa conversación esté en la bandeja.
+  const openedRef = useRef(false);
+  useEffect(() => {
+    if (
+      initialUserId &&
+      !openedRef.current &&
+      visibles.some((c) => c.user?.id === initialUserId)
+    ) {
+      openedRef.current = true;
+      abrir(initialUserId);
+    }
+  }, [initialUserId, visibles, abrir]);
 
   if (!isLoggedIn) {
     return (
