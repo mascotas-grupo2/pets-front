@@ -67,6 +67,7 @@ export function SolicitudesTable({
         <div className="dash-user">
           <PetThumb pet={{ photo: p.petPhoto }} size={16} />
           <span className="dash-user-name">{p.petName ?? "Sin nombre"}</span>
+          {p.kind === "transito" && <span className="req-kind-chip">Tránsito</span>}
         </div>
       ),
     },
