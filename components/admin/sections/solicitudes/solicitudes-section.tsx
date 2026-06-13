@@ -1,12 +1,13 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useSolicitudes } from "../hook/useSolicitudes";
 import { SolicitudesStats } from "./SolicitudesStats";
 import { SolicitudesFilters } from "./SolicitudesFilters";
 import { SolicitudesTable } from "./SolicitudesTable";
 import { SolicitudDetail } from "./drawer/detail-solicitud";
+import { ConfirmDialog } from "../../ui/confirm-dialog";
 
 export function SolicitudesSection() {
   const searchParams = useSearchParams();
@@ -35,6 +36,13 @@ export function SolicitudesSection() {
     handleDelete,
     handleUpdateStatus,
   } = useSolicitudes();
+
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const pendingDelete = useMemo(
+    () => visible.find((s) => s.id === pendingDeleteId) ?? null,
+    [visible, pendingDeleteId],
+  );
 
   const matchedSolicitud = useMemo(() => {
     if (!requestId) return null;
@@ -73,7 +81,7 @@ export function SolicitudesSection() {
         loading={loading}
         sort={sort}
         onSort={setSort}
-        onDelete={handleDelete}
+        onDelete={setPendingDeleteId}
         page={page}
         totalPages={totalPages}
         total={total}
@@ -99,6 +107,26 @@ export function SolicitudesSection() {
           </aside>
         </div>
       ) : null}
+
+      <ConfirmDialog
+        open={pendingDeleteId != null}
+        title="Eliminar solicitud"
+        message={`¿Eliminar la solicitud${
+          pendingDelete?.userName ? ` de ${pendingDelete.userName}` : ""
+        }? Esta acción no se puede deshacer.`}
+        confirmLabel="Sí, eliminar"
+        cancelLabel="Cancelar"
+        danger
+        busy={deleting}
+        onConfirm={async () => {
+          if (!pendingDeleteId) return;
+          setDeleting(true);
+          await handleDelete(pendingDeleteId);
+          setDeleting(false);
+          setPendingDeleteId(null);
+        }}
+        onCancel={() => setPendingDeleteId(null)}
+      />
     </div>
   );
 }
