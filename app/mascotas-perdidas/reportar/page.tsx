@@ -40,10 +40,12 @@ export default function ReportPage() {
         // optimista: mostrar localmente
         dispatch({ type: "pets/ReportPet", payload: pet });
         const res = await reportPet(values);
-        if (res && res.ok) {
+        if (res.ok) {
           dispatch({ type: "pets/ReportPet", payload: res.data });
-          handleToast("success", "¡Publicación creada con éxito!");
+          handleToast("success", "¡Reporte enviado! Queda pendiente de revisión.");
           setIsDone(true);
+        } else {
+          handleToast("error", res.error ?? "No se pudo crear la publicación");
         }
       } catch (err) {
         console.warn("Error enviando reporte", err);
@@ -106,7 +108,7 @@ export default function ReportPage() {
     return (
       <DoneScreen
         onGoHome={() => router.push("/")}
-        onGoToList={() => router.push("/mascotas-perdidas")}
+        onGoToList={() => router.push("/account?tab=reports")}
       />
     );
   }
@@ -220,8 +222,8 @@ function DoneScreen({
     <main>
       <div className="page-title">
         <div className="container">
-          <h1>¡Publicación enviada!</h1>
-          <p>La comunidad ya puede ayudarte.</p>
+          <h1>¡Reporte enviado!</h1>
+          <p>Queda pendiente de revisión antes de aparecer en el listado.</p>
         </div>
       </div>
       <div className="container">
@@ -234,7 +236,9 @@ function DoneScreen({
             className="wizard-illustration"
           />
           <p style={{ marginBottom: "1.5rem" }}>
-            Vamos a notificarte ante cualquier avistaje. Mucha suerte.
+            Un administrador va a revisar tu publicación. Cuando se apruebe vas a
+            recibir una notificación y va a aparecer en el listado. Mientras
+            tanto podés seguirla desde <strong>Mis Reportes</strong>.
           </p>
           <div
             style={{
@@ -255,7 +259,7 @@ function DoneScreen({
               className="btn btn-primary"
               onClick={onGoToList}
             >
-              Ver reportes
+              Ver mis reportes
             </button>
           </div>
         </div>
