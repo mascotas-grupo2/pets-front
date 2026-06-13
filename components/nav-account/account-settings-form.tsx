@@ -42,14 +42,13 @@ export default function AccountSettingsForm({
     onSubmit: async (values) => {
       try {
         const res = await putUserDetails(values);
-        if (!res) return;
         if (res.ok) {
           dispatch({ type: "user/setFormAdoption", payload: res.data });
           handleToast("success", "Perfil actualizado.");
         } else {
           handleToast(
             "error",
-            `Error (${res.status}): No se pudieron guardar los cambios.`,
+            res.error ?? "No se pudieron guardar los cambios.",
           );
         }
       } catch (error) {
