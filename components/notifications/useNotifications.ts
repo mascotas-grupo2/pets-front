@@ -1,16 +1,20 @@
 "use client";
 
 import { useCallback, useEffect, useSyncExternalStore } from "react";
+import { io, type Socket } from "socket.io-client";
 import { useAppSelector } from "@/redux/hooks";
 import {
   getNotifications,
   getUnreadCount,
+  getWsToken,
   markNotificationRead,
   markAllNotificationsRead,
   type Notification,
 } from "@/services/notifications";
 
-const POLL_MS = 20000;
+// El polling queda como FALLBACK; el push en tiempo real lo da el websocket.
+const POLL_MS = 60000;
+const WS_URL = process.env.NEXT_PUBLIC_WS_URL || "http://localhost:3001";
 
 type State = { items: Notification[]; unread: number; loading: boolean };
 
@@ -69,18 +73,44 @@ async function markAll() {
 let pollTimer: ReturnType<typeof setInterval> | null = null;
 let refCount = 0;
 
+let socket: Socket | null = null;
+
+async function connectSocket() {
+  if (socket) return;
+  const res = await getWsToken();
+  if (!res.ok || !res.data?.token) return; // sin token: seguimos solo con polling
+  socket = io(WS_URL, {
+    auth: { token: res.data.token },
+    transports: ["websocket", "polling"],
+    withCredentials: true,
+  });
+  // Push: al llegar una notificación nueva, refrescamos lista + contador al instante.
+  socket.on("notification:new", () => void refresh());
+}
+
+function disconnectSocket() {
+  if (socket) {
+    socket.disconnect();
+    socket = null;
+  }
+}
+
 function startPolling() {
   refCount += 1;
   if (refCount === 1) {
     void pollCount();
+    void connectSocket();
     pollTimer = setInterval(() => void pollCount(), POLL_MS);
   }
 }
 function stopPolling() {
   refCount = Math.max(0, refCount - 1);
-  if (refCount === 0 && pollTimer) {
-    clearInterval(pollTimer);
-    pollTimer = null;
+  if (refCount === 0) {
+    if (pollTimer) {
+      clearInterval(pollTimer);
+      pollTimer = null;
+    }
+    disconnectSocket();
   }
 }
 
