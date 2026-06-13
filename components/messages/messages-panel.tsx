@@ -154,15 +154,13 @@ export function MessagesPanel({ initialUserId }: { initialUserId?: number }) {
               <p>Tus conversaciones</p>
             </div>
           </div>
-          {isAdmin && (
-            <button
-              type="button"
-              className="btn btn-primary btn-sm"
-              onClick={() => setShowNuevo(true)}
-            >
-              <Plus size={15} aria-hidden /> Nuevo
-            </button>
-          )}
+          <button
+            type="button"
+            className="btn btn-primary btn-sm"
+            onClick={() => setShowNuevo(true)}
+          >
+            <Plus size={15} aria-hidden /> Nuevo
+          </button>
         </div>
         <div className="admin-search msg-search msg-search-block">
           <Search size={16} aria-hidden />
@@ -318,6 +316,7 @@ export function MessagesPanel({ initialUserId }: { initialUserId?: number }) {
       {showNuevo && (
         <NuevoMensaje
           currentUserId={currentUserId}
+          mode={isAdmin ? "all" : "admins"}
           onSelect={(user) => {
             abrirConUsuario(user);
             setShowNuevo(false);
