@@ -79,16 +79,6 @@ export interface AdminInboxResponse {
 export const getInbox = () =>
   request<InboxResponse>(() => axios.get(`messages/inbox`));
 
-export const getAdminInbox = (page = 1, limit = 20) =>
-  request<AdminInboxResponse>(() =>
-    axios.get(`messages/admin/inbox`, { params: { page, limit } }),
-  );
-
-export const getAdminConversations = (page = 1, limit = 20) =>
-  request<AdminInboxResponse>(() =>
-    axios.get(`messages/admin/conversations`, { params: { page, limit } }),
-  );
-
 export const getConversation = (
   userId: number,
   params?: { before?: number; limit?: number },
@@ -112,9 +102,6 @@ export const sendMessage = (receiverId: number, content: string, photo?: File | 
     }
     return axios.post(`messages/`, { receiverId, content });
   });
-
-export const deleteConversation = (userId: number) =>
-  request<void>(() => axios.delete(`messages/conversation/${userId}`));
 
 /** Elimina un mensaje puntual (lo puede borrar un participante o un admin). */
 export const deleteMessage = (id: number) =>
