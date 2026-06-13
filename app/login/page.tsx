@@ -7,7 +7,7 @@ import {
 import ShowError from "@/components/utils/ShowError";
 import handleToast from "@/components/utils/toast";
 import { useUserContext } from "@/context/UserContext";
-import { login } from "@/services/auth.login";
+import { login, resendVerification } from "@/services/auth.login";
 import { LoginForm } from "@/types/login";
 import { loginValidationSchema } from "@/validation/login";
 import { useFormik } from "formik";
@@ -21,6 +21,24 @@ export default function LoginPage() {
   const { saveUser } = useUserContext();
   const [showPassword, setShowPassword] = useState(false);
   const [keepLogged, setKeepLogged] = useState(true);
+  // Email a verificar (se setea si el login devuelve 403 por email sin verificar).
+  const [unverifiedEmail, setUnverifiedEmail] = useState<string | null>(null);
+  const [resending, setResending] = useState(false);
+
+  async function handleResend() {
+    if (!unverifiedEmail) return;
+    setResending(true);
+    const res = await resendVerification(unverifiedEmail);
+    setResending(false);
+    if (res.ok) {
+      handleToast(
+        "success",
+        "Si el email está registrado y sin verificar, te reenviamos el enlace. Revisá tu correo (y spam).",
+      );
+    } else {
+      handleToast("error", res.error ?? "No se pudo reenviar el email.");
+    }
+  }
 
   const formik = useFormik<LoginForm>({
     initialValues: {
@@ -30,6 +48,7 @@ export default function LoginPage() {
     validationSchema: loginValidationSchema,
     onSubmit: async (values) => {
       try {
+        setUnverifiedEmail(null);
         const userData = await login(values.email, values.password);
         if (userData?.ok) {
           // Mapear userData.data a tipo User si es necesario, asumiendo que login devuelve User
@@ -45,6 +64,7 @@ export default function LoginPage() {
         } else {
           if (userData?.status === 403) {
             handleToast("error", "Verificá tu email antes de iniciar sesión.");
+            setUnverifiedEmail(values.email);
             return;
           }
           handleToast(
@@ -149,6 +169,22 @@ export default function LoginPage() {
               Ingresar
             </button>
           </form>
+
+          {unverifiedEmail && (
+            <div className="auth-resend">
+              <p>
+                Tu email todavía no está verificado. ¿No te llegó el enlace?
+              </p>
+              <button
+                type="button"
+                className="btn btn-outline btn-sm"
+                onClick={handleResend}
+                disabled={resending}
+              >
+                {resending ? "Reenviando…" : "Reenviar email de verificación"}
+              </button>
+            </div>
+          )}
 
           <div className="auth-divider">
             <span>O ingresá con</span>
