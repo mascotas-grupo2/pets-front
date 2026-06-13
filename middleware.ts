@@ -1,11 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
 
-/**
- * Lee el claim `role` del payload de un JWT SIN verificar la firma.
- * Sirve solo como gate de UX/existencia: la autorización real la hace el
- * backend (`requireAdmin`). Decodificar alcanza para no servir el panel a
- * usuarios normales; un token forjado igual sería rechazado por el backend.
- */
 function roleFromToken(token: string): string | null {
   try {
     const payload = token.split(".")[1];
@@ -18,15 +12,6 @@ function roleFromToken(token: string): string | null {
   }
 }
 
-/**
- * Gate server-side del panel admin: corre ANTES de renderizar `/admin`, así un
- * no-admin nunca recibe el HTML/JS del panel (no "descubre" que existe).
- * Deny-by-default: solo pasa con un token cuyo rol sea "admin".
- *
- * Intentamos un refresh server-side consultando el endpoint de refresh a
- * través del proxy (`/api/proxy/auth/refresh-token`) para reutilizar la
- * misma lógica centralizada del proxy y evitar discrepancias de URL/headers.
- */
 export async function middleware(req: NextRequest) {
   const token = req.cookies.get("auth_token")?.value;
 
@@ -36,9 +21,15 @@ export async function middleware(req: NextRequest) {
     if (refreshToken) {
       try {
         const proxyUrl = `${req.nextUrl.origin}/api/proxy/auth/refresh-token`;
+        // Forward cookies desde la request original para que el proxy pueda
+        // leer el refresh_token via `cookies()` de next/headers.
+        const cookieHeader = req.headers.get("cookie") || "";
         const res = await fetch(proxyUrl, {
           method: "POST",
-          headers: { "content-type": "application/json" },
+          headers: {
+            "content-type": "application/json",
+            ...(cookieHeader ? { cookie: cookieHeader } : {}),
+          },
           body: JSON.stringify({ refreshToken }),
         });
 

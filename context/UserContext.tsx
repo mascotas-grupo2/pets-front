@@ -67,29 +67,35 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
         }
       }
 
-      if (
-        typeof document !== "undefined" &&
-        (document.cookie.includes("auth_token") ||
-          document.cookie.includes("id_token_hint"))
-      ) {
-        if (saved) {
-          const localUser = JSON.parse(saved) as User;
-          if (localUser.signature) {
-            const check = await verifyUserSignature(localUser);
-            if (!check.valid) {
-              console.error("Firma inválida o datos manipulados.");
-              await logoutSession();
-              return;
-            }
+      // Verificamos qué cookies existen (refresh_token puede ser httpOnly
+      const hasAuthToken = document.cookie.includes("auth_token");
+      const hasIdTokenHint = document.cookie.includes("id_token_hint");
+
+      if (saved) {
+        const localUser = JSON.parse(saved) as User;
+        if (localUser.signature && (hasAuthToken || hasIdTokenHint)) {
+          const check = await verifyUserSignature(localUser);
+          if (!check.valid) {
+            console.error("Firma inválida o datos manipulados.");
+            await logoutSession();
             return;
           }
+          // Tenemos firma válida Y token de acceso visible → todo ok
+          return;
         }
 
+        //   automático si existe refresh_token en cookies httpOnly.
+        const response = await getUser();
+        if (response?.ok && response.data) {
+          saveUser(response.data);
+        } else {
+          await logoutSession();
+        }
+      } else if (hasAuthToken || hasIdTokenHint) {
+        // Hay token de acceso pero no hay saved → obtener datos
         const response = await getUser();
         if (response?.ok && response.data) saveUser(response.data);
         else await logoutSession();
-      } else if (saved) {
-        await logoutSession();
       }
     }
   }, [dispatch, saveUser, logoutSession]);
