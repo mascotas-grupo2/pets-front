@@ -10,6 +10,7 @@ import Link from "next/link";
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import AccountSettingsForm from "../../components/nav-account/account-settings-form";
+import MyAdoptionsView from "../../components/nav-account/account-adoptions";
 import { CatLoader } from "@/components/cat-loader";
 import { UserDetails } from "../../types/user-details";
 import { MessagesPanel } from "@/components/messages/messages-panel";
@@ -22,11 +23,13 @@ import {
   Bell,
   Settings,
   LogOut,
+  Package,
 } from "lucide-react";
 
 const ACCOUNT_TABS = [
   { id: "profile", label: "Perfil", icon: User },
   { id: "reports", label: "Mis reportes", icon: FileText },
+  { id: "adoptions", label: "Mis solicitudes", icon: Package },
   { id: "messages", label: "Mensajes", icon: MessageSquare },
   { id: "notifications", label: "Notificaciones", icon: Bell },
   { id: "settings", label: "Configuración", icon: Settings },
@@ -38,7 +41,7 @@ function AccountPageContent() {
   const [userDetails, setUserDetails] = useState<UserDetails | null>(null);
   const [pets, setPets] = useState<Pet[]>([]);
   const [activeSection, setActiveSection] = useState<
-    "profile" | "reports" | "messages" | "notifications" | "settings"
+    "profile" | "reports" | "adoptions" | "messages" | "notifications" | "settings"
   >("profile");
   const [loadError, setLoadError] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
@@ -51,7 +54,7 @@ function AccountPageContent() {
     ? Number(searchParams.get("user"))
     : undefined;
   useEffect(() => {
-    const valid = ["profile", "reports", "messages", "notifications", "settings"];
+    const valid = ["profile", "reports", "adoptions", "messages", "notifications", "settings"];
     if (tabParam && valid.includes(tabParam)) {
       setActiveSection(tabParam as typeof activeSection);
     }
@@ -160,6 +163,7 @@ function AccountPageContent() {
               </>
             )}
             {activeSection === "reports" && <MyReportsView pets={pets} />}
+            {activeSection === "adoptions" && <MyAdoptionsView />}
             {activeSection === "messages" && (
               <div className="account-messages">
                 <MessagesPanel initialUserId={initialUserId} />

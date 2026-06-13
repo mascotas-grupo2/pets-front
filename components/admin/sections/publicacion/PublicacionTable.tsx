@@ -99,7 +99,7 @@ export function PublicacionTable({
       label: "Vistas",
       sortable: true,
       tdClassName: "dash-muted",
-      render: () => "—",
+      render: (pet) => pet.viewsCount ?? 0,
     },
     {
       key: "actions",

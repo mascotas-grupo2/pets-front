@@ -47,6 +47,25 @@ export const getAdminAdoptions = (params?: {
 export const getAdoptionById = (id: number | string) =>
   request<AdoptionDetail>(() => axios.get(`adoptions/${id}`));
 
+export type PetCompatibilityFactor = {
+  criteria: string;
+  applicantValue: string;
+  petValue: string;
+  scoreImpact: number;
+  isPositive: boolean;
+  label: string;
+};
+
+export type PetCompatibility = {
+  score: number;
+  factors: PetCompatibilityFactor[];
+  source: "application" | "profile" | "latest";
+  adoptionId: number;
+};
+
+export const getMyPetCompatibility = (petId: string) =>
+  request<PetCompatibility>(() => axios.get(`adoptions/match/${petId}`));
+
 /** Solicitudes del usuario logueado (el back filtra por su userId). */
 export type MyAdoption = {
   id: number;

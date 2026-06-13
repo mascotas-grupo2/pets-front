@@ -114,8 +114,15 @@ export function MessagesPanel({ initialUserId }: { initialUserId?: number }) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Scroll solo al contenedor .msg-thread. Evita que scrollee toda la página
+  // y solo baja al último mensaje si el usuario ya estaba al fondo.
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    const thread = document.querySelector(".msg-thread");
+    if (!thread) return;
+    const isNearBottom = thread.scrollHeight - thread.scrollTop - thread.clientHeight < 150;
+    if (isNearBottom) {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
   }, [activaMessages]);
 
   // Abrir directo una conversación cuando se llega con ?user=<id> (ej. desde una
@@ -231,6 +238,11 @@ export function MessagesPanel({ initialUserId }: { initialUserId?: number }) {
               <Avatar user={activaUser} />
               <div className="msg-chat-head-info">
                 <h3>{activaUser?.name || "Usuario"}</h3>
+                {activaUser?.role && (
+                  <span className="msg-chat-role">
+                    {activaUser.role === "admin" ? "Administrador" : activaUser.role}
+                  </span>
+                )}
               </div>
             </header>
             <div className="msg-thread">

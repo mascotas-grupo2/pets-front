@@ -11,7 +11,7 @@ function petLabel(pet: Pet): string {
 }
 
 /** Acciones de la tarjeta: Compartir (difundir), "La vi" (avistamiento) y Ver más. */
-export function PetCardActions({ pet }: { pet: Pet }) {
+export function PetCardActions({ pet, hideMore }: { pet: Pet; hideMore?: boolean }) {
   const [copied, setCopied] = useState(false);
   const [sightOpen, setSightOpen] = useState(false);
 
@@ -47,17 +47,19 @@ export function PetCardActions({ pet }: { pet: Pet }) {
           {copied ? <Check size={15} aria-hidden /> : <Share2 size={15} aria-hidden />}
           {copied ? "¡Copiado!" : "Compartir"}
         </button>
-        <button
+        {pet.status === "perdido" && <button
           type="button"
           className="pet-action pet-action--sight"
           onClick={() => setSightOpen(true)}
           aria-label={`Reportar que viste a ${name}`}
         >
           <Eye size={15} aria-hidden /> La vi
-        </button>
-        <Link href={href} className="pet-action pet-action--more">
-          Ver más →
-        </Link>
+        </button>}
+        {!hideMore && (
+          <Link href={href} className="pet-action pet-action--more">
+            Ver más →
+          </Link>
+        )}
       </div>
 
       {sightOpen && (

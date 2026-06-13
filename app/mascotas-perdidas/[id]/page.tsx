@@ -3,11 +3,18 @@
 import { useUserContext } from "@/context/UserContext";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import { getIdPets, getAllPets } from "@/services/mascotas.pets";
-import { getMyAdoptions } from "@/services/adoptions";
+import {
+  getMyAdoptions,
+  getMyPetCompatibility,
+  type PetCompatibility,
+} from "@/services/adoptions";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { CatLoader } from "@/components/cat-loader";
+import { PetCardActions } from "@/components/pet-card-actions";
+import { PetComments } from "@/components/pet-comments";
+import { Share2, Eye } from "lucide-react";
 
 function formatAge(months?: number): string {
   if (!months) return "—";
@@ -16,6 +23,60 @@ function formatAge(months?: number): string {
   const rest = months % 12;
   if (rest === 0) return `${years} ${years === 1 ? "año" : "años"}`;
   return `${years} a ${rest} m`;
+}
+
+function compatTone(pct: number) {
+  if (pct >= 75) return { stroke: "#22c55e", label: "tone-green" };
+  if (pct >= 50) return { stroke: "#f59e0b", label: "tone-amber" };
+  return { stroke: "#ef4444", label: "tone-red" };
+}
+
+function compatLabel(score: number): string {
+  if (score >= 90) return "Excelente";
+  if (score >= 80) return "Alta";
+  if (score >= 65) return "Buena";
+  if (score >= 50) return "Moderada";
+  return "Baja";
+}
+
+function CompatCircle({ pct }: { pct: number }) {
+  const tone = compatTone(pct);
+  const r = 52;
+  const circ = 2 * Math.PI * r;
+  const dash = (pct / 100) * circ;
+
+  return (
+    <div className="sdet-compat-circle-wrap">
+      <svg width="136" height="136" viewBox="0 0 136 136">
+        <circle
+          cx="68"
+          cy="68"
+          r={r}
+          fill="none"
+          stroke="var(--gray-100)"
+          strokeWidth="10"
+        />
+        <circle
+          cx="68"
+          cy="68"
+          r={r}
+          fill="none"
+          stroke={tone.stroke}
+          strokeWidth="10"
+          strokeLinecap="round"
+          strokeDasharray={`${dash} ${circ}`}
+          strokeDashoffset={circ / 4}
+          style={{ transition: "stroke-dasharray 0.6s ease" }}
+        />
+      </svg>
+      <div className="sdet-compat-inner">
+        <span className="sdet-compat-value">{pct}%</span>
+        <span className={`sdet-compat-sublabel ${tone.label}`}>
+          {compatLabel(pct)}
+        </span>
+      </div>
+    </div>
+  );
 }
 
 export default function PetDetailPage() {
@@ -27,6 +88,10 @@ export default function PetDetailPage() {
   const [loading, setLoading] = useState(true);
   // Si el usuario ya envió una solicitud para esta mascota, deshabilitamos el CTA.
   const [alreadyApplied, setAlreadyApplied] = useState(false);
+  const [compatibility, setCompatibility] = useState<PetCompatibility | null>(
+    null,
+  );
+  const [compatibilityLoading, setCompatibilityLoading] = useState(false);
 
   const pet = useAppSelector((state) => state.pet);
   const pets = useAppSelector((state) => state.allPets);
@@ -74,6 +139,33 @@ export default function PetDetailPage() {
       .catch(() => {});
   }, [id, user.isLoggedIn]);
 
+  // Matching visible para mascotas en adopción: se calcula contra el perfil o
+  // solicitud más reciente del usuario autenticado.
+  useEffect(() => {
+    if (!id || !user.isLoggedIn || pet?.status !== "en adopción") {
+      setCompatibility(null);
+      return;
+    }
+
+    let cancelled = false;
+    setCompatibilityLoading(true);
+    getMyPetCompatibility(id)
+      .then((res) => {
+        if (!cancelled && res?.ok && res.data) setCompatibility(res.data);
+        if (!cancelled && (!res?.ok || !res.data)) setCompatibility(null);
+      })
+      .catch(() => {
+        if (!cancelled) setCompatibility(null);
+      })
+      .finally(() => {
+        if (!cancelled) setCompatibilityLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [id, user.isLoggedIn, pet?.status]);
+
   // Similares = misma especie, que todavía buscan familia (no adoptadas) y
   // distintas a la actual. Sin relleno con otras especies.
   const similar = useMemo(() => {
@@ -93,7 +185,8 @@ export default function PetDetailPage() {
     const animalLabel =
       pet.animalType.charAt(0).toUpperCase() + pet.animalType.slice(1);
     const photoUrls = (pet.photos as unknown as string[]) || [];
-    const mainPhoto = activePhoto ?? (photoUrls.length > 0 ? photoUrls[0] : null);
+    const mainPhoto =
+      activePhoto ?? (photoUrls.length > 0 ? photoUrls[0] : null);
 
     const specs = [
       {
@@ -168,7 +261,10 @@ export default function PetDetailPage() {
             <div className="pet-detail-avatar">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={(pet.photos?.[0] as unknown as string) || "/images/avatar-placeholder.svg"}
+                src={
+                  (pet.photos?.[0] as unknown as string) ||
+                  "/images/avatar-placeholder.svg"
+                }
                 alt={pet.name ?? detail.animalLabel}
               />
             </div>
@@ -297,36 +393,140 @@ export default function PetDetailPage() {
               </ul>
             </section>
 
-            {pet.status === "en adopción" && (
-              <section className="pet-detail-cta">
-                <p>{adopter ? "¿Me querés adoptar?" : "¿Te interesa adoptar?"}</p>
-                {alreadyApplied ? (
+            <section className="pet-detail-actions-bar">
+              <div className="pet-action-buttons">
+                <button
+                  type="button"
+                  className="btn btn-primary btn-lg pet-action-btn pet-action-btn--share"
+                  onClick={() => {
+                    const url =
+                      typeof window !== "undefined"
+                        ? `${window.location.origin}/mascotas-perdidas/${pet.id}`
+                        : `/mascotas-perdidas/${pet.id}`;
+                    const text = `${pet.name ?? detail.animalLabel} — ${pet.status} en ${pet.location}. Ayudá a difundir 🐾`;
+                    if (typeof navigator !== "undefined" && navigator.share) {
+                      navigator.share({
+                        title: pet.name ?? detail.animalLabel,
+                        text,
+                        url,
+                      });
+                    } else {
+                      navigator.clipboard.writeText(url);
+                    }
+                  }}
+                  aria-label="Compartir"
+                >
+                  <Share2 size={18} aria-hidden /> Compartir
+                </button>
+                {pet.status === "perdido" && (
                   <button
                     type="button"
-                    className="btn btn-primary"
-                    disabled
-                    title="Ya enviaste una solicitud para esta mascota"
-                  >
-                    Solicitud enviada
-                  </button>
-                ) : (
-                  <Link
-                    href={{
-                      pathname: "/adoptar/solicitar",
-                      query: {
-                        pet: pet.id,
-                        name: pet.name ?? detail.animalLabel,
-                      },
+                    className="btn btn-outline btn-lg pet-action-btn pet-action-btn--sight"
+                    onClick={() => {
+                      // Dispara el modal de PetCardActions buscando el botón "La vi" en el DOM
+                      const sightBtn =
+                        document.querySelector<HTMLButtonElement>(
+                          '[aria-label*="Reportar que viste"]',
+                        );
+                      sightBtn?.click();
                     }}
-                    className="btn btn-primary"
+                    aria-label="Reportar avistamiento"
+                    style={{
+                      border: "1px solid var(--border)",
+                      padding: "0.75rem 1.5rem",
+                      backgroundColor: "transparent",
+                      color: "var(--primary-500)",
+                      borderRadius: "var(--radius-md)",
+                    }}
                   >
-                    Empezar
-                  </Link>
+                    <Eye size={18} aria-hidden /> Lo vi
+                  </button>
                 )}
-              </section>
+              </div>
+            </section>
+
+            {pet.status === "perdido" && (
+              <div style={{ display: "none" }}>
+                <PetCardActions pet={pet} hideMore />
+              </div>
+            )}
+
+            {pet.status === "en adopción" && (
+              <>
+                <section className="pet-detail-story">
+                  <p className="sdet-section-label">Compatibilidad</p>
+                  <div style={{ display: "flex", alignItems: "center" }}>
+                    {user.isLoggedIn && compatibility && (
+                      <CompatCircle pct={compatibility.score} />
+                    )}
+                    <ul className="pet-detail-checklist">
+                      {!user.isLoggedIn ? (
+                        <p className="sdet-empty">
+                          Iniciá sesión para ver tu matching con{" "}
+                          {pet.name ?? detail.animalLabel}.
+                        </p>
+                      ) : compatibilityLoading ? (
+                        <p className="sdet-empty">Calculando compatibilidad…</p>
+                      ) : compatibility ? (
+                        compatibility.factors.slice(0, 5).map((item) => (
+                          <li key={item.label}>
+                            <span
+                              className={`pet-detail-check${item.isPositive ? " ok" : item.isPositive === false ? " no" : ""}`}
+                              aria-hidden
+                            >
+                              {item.isPositive === true
+                                ? "✓"
+                                : item.isPositive === false
+                                  ? "✗"
+                                  : "—"}
+                            </span>
+                            <span>{item.label}</span>
+                          </li>
+                        ))
+                      ) : (
+                        <li className="sdet-empty">
+                          Completá una solicitud o tu perfil de adopción para
+                          ver el matching.
+                        </li>
+                      )}
+                    </ul>
+                  </div>
+                </section>
+
+                <section className="pet-detail-cta">
+                  <p>
+                    {adopter ? "¿Me querés adoptar?" : "¿Te interesa adoptar?"}
+                  </p>
+                  {alreadyApplied ? (
+                    <button
+                      type="button"
+                      className="btn btn-primary"
+                      disabled
+                      title="Ya enviaste una solicitud para esta mascota"
+                    >
+                      Solicitud enviada
+                    </button>
+                  ) : (
+                    <Link
+                      href={{
+                        pathname: "/adoptar/solicitar",
+                        query: {
+                          pet: pet.id,
+                          name: pet.name ?? detail.animalLabel,
+                        },
+                      }}
+                      className="btn btn-primary"
+                    >
+                      Empezar
+                    </Link>
+                  )}
+                </section>
+              </>
             )}
           </aside>
         </div>
+
+        <PetComments petId={pet.id} />
 
         <section className="pet-detail-similar">
           <div className="section-title">
