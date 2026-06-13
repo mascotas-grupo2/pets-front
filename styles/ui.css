@@ -85,6 +85,238 @@
   color: #fff;
 }
 
+.btn-success {
+  background: transparent;
+  color: #1ba07a;
+  border-color: #1ba07a;
+}
+.btn-success:hover {
+  background: #1ba07a;
+  color: #fff;
+}
+
+/* ===== Acciones de dueño en tarjeta (Mis Reportes) ===== */
+.pet-card-manage {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 0.6rem;
+  padding-top: 0.6rem;
+  border-top: 1px solid var(--border);
+}
+
+/* ===== Mis Solicitudes ===== */
+.req-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 1rem;
+}
+.req-card {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1rem 1.2rem;
+  background: var(--surface, #fff);
+}
+.req-card--cancelled {
+  opacity: 0.65;
+}
+.req-card-head {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+.req-pet-photo {
+  width: 56px;
+  height: 56px;
+  border-radius: 10px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+.req-card-info {
+  flex: 1;
+  min-width: 0;
+}
+.req-card-info h3 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+.req-card-meta {
+  margin: 0.15rem 0 0;
+  font-size: 0.85rem;
+  color: var(--text-muted, #6b7280);
+}
+.req-status-badge {
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.req-status-badge--active {
+  background: var(--primary-50);
+  color: var(--primary-600);
+}
+.req-status-badge--accepted {
+  background: #e6f6f0;
+  color: #1ba07a;
+}
+.req-status-badge--cancelled {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+.req-steps {
+  list-style: none;
+  display: flex;
+  gap: 0;
+  margin: 1rem 0 0.4rem;
+  padding: 0;
+}
+.req-step {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  position: relative;
+  font-size: 0.72rem;
+  color: var(--text-muted, #9ca3af);
+}
+.req-step::before {
+  content: "";
+  position: absolute;
+  top: 7px;
+  left: -50%;
+  width: 100%;
+  height: 2px;
+  background: var(--border);
+  z-index: 0;
+}
+.req-step:first-child::before {
+  display: none;
+}
+.req-step.is-done::before {
+  background: var(--primary-500);
+}
+.req-step-dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--border);
+  border: 2px solid var(--border);
+  position: relative;
+  z-index: 1;
+  margin-bottom: 0.35rem;
+}
+.req-step.is-done .req-step-dot {
+  background: var(--primary-500);
+  border-color: var(--primary-500);
+}
+.req-step.is-current .req-step-dot {
+  box-shadow: 0 0 0 4px var(--primary-50);
+}
+.req-step.is-done .req-step-label {
+  color: var(--text, #111827);
+  font-weight: 600;
+}
+.req-card-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+  margin-top: 0.8rem;
+}
+
+/* ===== Reenviar verificación (login) ===== */
+.auth-resend {
+  margin-top: 1rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--gray-50, #f9fafb);
+}
+.auth-resend p {
+  margin: 0 0 0.6rem;
+  font-size: 0.88rem;
+  color: var(--text-muted, #6b7280);
+}
+
+/* ===== Chip "Tránsito" (distingue ofrecimientos de tránsito de adopciones) ===== */
+.req-kind-chip {
+  display: inline-block;
+  margin-left: 0.5rem;
+  padding: 0.1rem 0.5rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  border-radius: 999px;
+  background: #fef3c7;
+  color: #b45309;
+  vertical-align: middle;
+}
+
+/* ===== Hint de gating del checklist (cambio de estado de solicitud) ===== */
+.sdet-estado-gating-hint {
+  margin: 0.5rem 0 0;
+  font-size: 0.82rem;
+  color: var(--danger);
+}
+
+/* ===== Contactar al dueño (detalle de mascota) ===== */
+.pet-detail-contact {
+  margin-top: 1rem;
+  padding: 1rem 1.2rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--gray-50, #f9fafb);
+}
+.pet-detail-contact h3 {
+  margin: 0 0 0.75rem;
+  font-size: 1rem;
+}
+.pet-detail-contact-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+/* ===== Stat cards clickeables (filtro Personas) ===== */
+.dash-stat-card--clickable {
+  font: inherit;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease;
+}
+.dash-stat-card--clickable:hover {
+  border-color: var(--primary-300, #c7b9f5);
+}
+.dash-stat-card--clickable:active {
+  transform: translateY(1px);
+}
+.dash-stat-card--clickable.is-active {
+  border-color: var(--primary-500);
+  box-shadow: 0 0 0 1px var(--primary-500);
+}
+
+/* ===== Zona de peligro (baja de cuenta) ===== */
+.danger-zone {
+  margin-top: 2.5rem;
+  padding: 1.25rem 1.5rem;
+  border: 1px solid var(--danger);
+  border-radius: 12px;
+  background: rgba(239, 68, 68, 0.04);
+}
+.danger-zone h3 {
+  margin: 0 0 0.5rem;
+  color: var(--danger);
+}
+.danger-zone p {
+  margin: 0 0 1rem;
+  font-size: 0.88rem;
+  color: var(--text-muted, #6b7280);
+}
+
 /* ===== Theme toggle ===== */
 .theme-toggle {
   display: inline-flex;

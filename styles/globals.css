@@ -360,40 +360,6 @@
   color: var(--primary-600);
 }
 
-/* Urgencia: realce de la tarjeta + cinta para casos recientes. */
-.pet-card--urgent {
-  border-color: var(--danger);
-  box-shadow: 0 0 0 1px var(--danger), var(--shadow-md);
-}
-
-.pet-card--recent {
-  border-color: var(--warning);
-}
-
-.pet-urgent-badge {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  background: var(--danger);
-  color: #fff;
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  padding: 4px 10px;
-  border-radius: var(--radius-full);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
-  animation: urgentPulse 1.8s ease-in-out infinite;
-}
-
-@keyframes urgentPulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.06); }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .pet-urgent-badge { animation: none; }
-}
-
 /* ===== Modal "La vi" (reportar avistamiento) ===== */
 .sight-overlay {
   position: fixed;
@@ -624,6 +590,55 @@
   margin-top: 0.25rem;
   color: var(--primary-500);
   font-weight: 600;
+}
+
+.map-pop-dist {
+  color: var(--secondary-700);
+  font-weight: 600;
+  font-size: 0.78rem;
+}
+
+/* Barra de acciones del mapa (Cerca de mí + resumen). */
+.pets-map-toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.9rem;
+}
+
+.pets-map-toolbar-msg {
+  font-size: 0.85rem;
+  color: var(--gray-600);
+}
+
+/* Marcador "Vos" (ubicación del usuario): punto azul con halo + etiqueta. */
+.map-you-icon {
+  position: relative;
+}
+
+.map-you-dot {
+  display: block;
+  width: 16px;
+  height: 16px;
+  border-radius: var(--radius-full);
+  background: #2563eb;
+  border: 3px solid #fff;
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.3);
+}
+
+.map-you-label {
+  position: absolute;
+  left: 50%;
+  bottom: 20px;
+  transform: translateX(-50%);
+  background: #2563eb;
+  color: #fff;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  padding: 1px 7px;
+  border-radius: var(--radius-full);
+  white-space: nowrap;
 }
 
 /* ===== Steps (how it works) ===== */
@@ -2485,8 +2500,15 @@
   font-weight: 600;
 }
 
+.pet-vacc-wrap {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
 .pet-vacc-table {
   width: 100%;
+  min-width: 460px;
   border-collapse: collapse;
   background: var(--surface);
   font-size: 0.85rem;

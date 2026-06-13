@@ -1537,7 +1537,10 @@
 
 /* overflow visible para que el menú "…" no se recorte */
 .pub-table-wrap {
-  overflow: visible;
+  /* Scroll horizontal en pantallas chicas (responsive). El menú ⋮ de fila se
+     renderiza por portal, así que ya no necesita overflow:visible para no
+     recortarse. */
+  overflow-x: auto;
 }
 
 /* el link de editar imita a los botones-ícono de la fila */
