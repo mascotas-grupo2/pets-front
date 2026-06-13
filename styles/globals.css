@@ -3511,7 +3511,7 @@
   padding: 4.75rem 0 3.25rem;
   background:
     radial-gradient(1100px 420px at 50% -12%, var(--primary-50), transparent 70%),
-    linear-gradient(180deg, #faf9ff 0%, #ffffff 100%);
+    linear-gradient(180deg, var(--surface-alt) 0%, var(--background) 100%);
 }
 
 /* glows que siguen el mouse (parallax) */
