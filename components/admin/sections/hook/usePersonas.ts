@@ -3,16 +3,27 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import {
+  deleteUser,
   getAdminUsers,
   updateUserRole,
   type AdminUser,
 } from "@/services/user.admin";
 import { usePagination } from "./usePagination";
+import type { SortOrder } from "../../ui/data-table";
 
 export type TipoFiltro = "todos" | "admin" | "adoptante" | "comun";
 
 const PAGE_SIZE = 8;
 const ROLE_ID = { admin: 502, user: 501 } as const;
+
+// Mapea las claves de columna de la tabla a los campos que ordena el backend
+// (USER_SORT_MAP: name | email | role | createdAt | id).
+const SORT_KEY_MAP: Record<string, string> = {
+  name: "name",
+  email: "email",
+  tipo: "role",
+  actividad: "createdAt",
+};
 
 /** Traduce el filtro de tipo a los params que entiende el back. */
 function tipoToParams(tipo: TipoFiltro): { roleId?: number; adopter?: boolean } {
@@ -32,6 +43,7 @@ type Params = {
   tipo: TipoFiltro;
   q: string;
   page: number;
+  sort: SortOrder<string>[];
 };
 
 export function usePersonas() {
@@ -47,16 +59,21 @@ export function usePersonas() {
 
   const [query, setQueryRaw] = useState("");
   const [tipo, setTipoRaw] = useState<TipoFiltro>("todos");
+  const [sort, setSortRaw] = useState<SortOrder<string>[]>([]);
   const { page, setPage, resetPage, totalPages, desde, hasta } = usePagination(PAGE_SIZE, total);
 
-  // El back pagina, filtra y devuelve los conteos globales (cards correctas).
+  // El back pagina, filtra, ordena y devuelve los conteos globales (cards correctas).
   const loadUsers = useCallback(async (params: Params) => {
     setLoading(true);
+    const sortQuery = params.sort
+      .map((s) => `${SORT_KEY_MAP[s.key] ?? s.key}:${s.direction}`)
+      .join(",");
     const res = await getAdminUsers({
       ...tipoToParams(params.tipo),
       search: params.q.trim() || undefined,
       page: params.page,
       pageSize: PAGE_SIZE,
+      sort: sortQuery || undefined,
     });
     if (res.ok && res.data) {
       setVisible(res.data.items);
@@ -73,7 +90,10 @@ export function usePersonas() {
     setLoading(false);
   }, []);
 
-  const currentParams: Params = useMemo(() => ({ tipo, q: query, page }), [tipo, query, page]);
+  const currentParams: Params = useMemo(
+    () => ({ tipo, q: query, page, sort }),
+    [tipo, query, page, sort],
+  );
 
   useEffect(() => {
     const trigger = async () => {
@@ -95,13 +115,15 @@ export function usePersonas() {
     setTipoRaw(v);
     resetPage();
   }
+  function setSort(next: SortOrder<string>[]) {
+    resetPage();
+    setSortRaw(next);
+  }
 
   // ── Acciones ──────────────────────────────────────────────────────────────
-  // Nota: no hay endpoint para eliminar usuarios todavía, por eso la sección
-  // solo expone promover/degradar (handlePromote/handleDemote).
+  // La confirmación la maneja la sección con ConfirmDialog (modal propio), no
+  // con window.confirm: estos handlers ejecutan directamente la acción.
   async function handlePromote(user: AdminUser): Promise<boolean> {
-    if (!window.confirm(`¿Promover a "${user.name}" como administrador?`))
-      return false;
     const res = await updateUserRole(user.id, "admin");
     if (res.ok) {
       toast.success(`"${user.name}" ahora es administrador.`);
@@ -113,8 +135,6 @@ export function usePersonas() {
   }
 
   async function handleDemote(user: AdminUser): Promise<boolean> {
-    if (!window.confirm(`¿Quitar el rol de administrador a "${user.name}"?`))
-      return false;
     const res = await updateUserRole(user.id, "user");
     if (res.ok) {
       toast.success(`"${user.name}" ya no es administrador.`);
@@ -131,6 +151,18 @@ export function usePersonas() {
     return false;
   }
 
+  async function handleDelete(user: AdminUser): Promise<boolean> {
+    const res = await deleteUser(user.id);
+    if (res.ok) {
+      toast.success(`"${user.name}" fue eliminado.`);
+      await reload();
+      return true;
+    }
+    // El back devuelve 400 si es el último admin o si intentás borrarte a vos mismo.
+    toast.error(res.error || "No se pudo eliminar el usuario.");
+    return false;
+  }
+
   return {
     visible,
     loading,
@@ -139,6 +171,8 @@ export function usePersonas() {
     setQuery,
     tipo,
     setTipo,
+    sort,
+    setSort,
     page,
     setPage,
     totalPages,
@@ -147,6 +181,7 @@ export function usePersonas() {
     hasta,
     handlePromote,
     handleDemote,
+    handleDelete,
     reload,
   };
 }
