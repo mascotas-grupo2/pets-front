@@ -42,30 +42,6 @@ function relativeTime(iso: string): string {
   return `Hace ${Math.floor(diffDays / 365)} año(s)`;
 }
 
-/** Días transcurridos desde una fecha (ISO o YYYY-MM-DD); null si es inválida. */
-function daysSince(dateStr: string): number | null {
-  const t = new Date(dateStr).getTime();
-  if (Number.isNaN(t)) return null;
-  return Math.floor((Date.now() - t) / 86_400_000);
-}
-
-/**
- * Nivel de urgencia de un caso activo (perdido/encontrado/en tránsito) según
- * la antigüedad del reporte. Las mascotas en adopción/adoptadas no aplican.
- */
-function urgencyLevel(pet: Pet): "urgent" | "recent" | null {
-  const active =
-    pet.status === "perdido" ||
-    pet.status === "encontrado" ||
-    pet.status === "en tránsito";
-  if (!active) return null;
-  const d = daysSince(pet.date);
-  if (d == null) return null;
-  if (d <= 3) return "urgent";
-  if (d <= 10) return "recent";
-  return null;
-}
-
 /** Rasgos destacables de la mascota (solo los presentes/verdaderos). */
 function petTraits(pet: Pet): string[] {
   const traits: string[] = [];
@@ -80,10 +56,17 @@ function petTraits(pet: Pet): string[] {
 export function PetCard({
   pet,
   showReportStatus = false,
+  manageable = false,
+  onDelete,
+  onResolve,
 }: {
   pet: Pet;
   /** Muestra el estado de validación (pendiente/publicado/finalizado). Usar en "Mis reportes". */
   showReportStatus?: boolean;
+  /** Muestra acciones de dueño (editar / eliminar / marcar como aparecida). */
+  manageable?: boolean;
+  onDelete?: (pet: Pet) => void;
+  onResolve?: (pet: Pet) => void;
 }) {
   const reportMeta =
     showReportStatus && pet.reportStatus
@@ -96,7 +79,6 @@ export function PetCard({
   const visibleTraits = traits.slice(0, 3);
   const extraTraits = traits.length - visibleTraits.length;
   const when = relativeTime(pet.date || pet.createdAt);
-  const urgency = urgencyLevel(pet);
 
   // Subtítulo compacto: tipo · raza · sexo (solo los datos disponibles).
   const subtitleParts = [
@@ -107,7 +89,7 @@ export function PetCard({
   ].filter(Boolean);
 
   return (
-    <li className={`pet-card${urgency ? ` pet-card--${urgency}` : ""}`}>
+    <li className="pet-card">
       <Link href={href} className="pet-photo-wrap">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
@@ -122,16 +104,12 @@ export function PetCard({
           {(pet.status && pet.status.toLocaleUpperCase()) || "PERDIDO"}
         </span>
         {when && <span className="pet-when">{when}</span>}
-        {reportMeta ? (
+        {reportMeta && (
           <span
             className={`pet-report-badge pet-report-badge--${reportMeta.tone}`}
           >
             {reportMeta.label}
           </span>
-        ) : (
-          urgency === "urgent" && (
-            <span className="pet-urgent-badge">⏰ Urgente</span>
-          )
         )}
       </Link>
       <div className="pet-body">
@@ -174,6 +152,35 @@ export function PetCard({
         </div>
 
         <PetCardActions pet={pet} />
+
+        {manageable && (
+          <div className="pet-card-manage">
+            <Link href={`${href}/editar`} className="btn btn-outline btn-sm">
+              Editar
+            </Link>
+            {onResolve &&
+              pet.reportStatus !== "finalizado" &&
+              pet.status !== "en adopción" &&
+              pet.status !== "adoptado" && (
+                <button
+                  type="button"
+                  className="btn btn-success btn-sm"
+                  onClick={() => onResolve(pet)}
+                >
+                  Apareció
+                </button>
+              )}
+            {onDelete && (
+              <button
+                type="button"
+                className="btn btn-danger btn-sm"
+                onClick={() => onDelete(pet)}
+              >
+                Eliminar
+              </button>
+            )}
+          </div>
+        )}
       </div>
     </li>
   );
