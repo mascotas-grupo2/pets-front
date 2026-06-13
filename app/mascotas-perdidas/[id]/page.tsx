@@ -235,6 +235,7 @@ export default function PetDetailPage() {
               ))}
             </div>
 
+            <div className="pet-vacc-wrap">
             <table className="pet-vacc-table">
               <thead>
                 <tr>
@@ -271,6 +272,7 @@ export default function PetDetailPage() {
                 </tr>
               </tbody>
             </table>
+            </div>
           </div>
 
           <aside className="pet-detail-col-side">
@@ -296,6 +298,41 @@ export default function PetDetailPage() {
                 ))}
               </ul>
             </section>
+
+            {!isOwner &&
+              (pet.contactPhone ||
+                pet.contactEmail ||
+                (user.isLoggedIn && pet.userId)) && (
+                <section className="pet-detail-contact">
+                  <h3>Contactar al dueño</h3>
+                  <div className="pet-detail-contact-actions">
+                    {pet.contactPhone && (
+                      <a
+                        className="btn btn-outline btn-sm"
+                        href={`tel:${pet.contactPhone}`}
+                      >
+                        📞 Llamar
+                      </a>
+                    )}
+                    {pet.contactEmail && (
+                      <a
+                        className="btn btn-outline btn-sm"
+                        href={`mailto:${pet.contactEmail}`}
+                      >
+                        ✉️ Email
+                      </a>
+                    )}
+                    {user.isLoggedIn && pet.userId && (
+                      <Link
+                        className="btn btn-primary btn-sm"
+                        href={`/account?tab=messages&user=${pet.userId}`}
+                      >
+                        💬 Enviar mensaje
+                      </Link>
+                    )}
+                  </div>
+                </section>
+              )}
 
             {pet.status === "en adopción" && (
               <section className="pet-detail-cta">
@@ -323,6 +360,25 @@ export default function PetDetailPage() {
                     Empezar
                   </Link>
                 )}
+              </section>
+            )}
+
+            {pet.status === "en tránsito" && !isOwner && (
+              <section className="pet-detail-cta">
+                <p>¿Podés darle un hogar temporal?</p>
+                <Link
+                  href={{
+                    pathname: "/adoptar/solicitar",
+                    query: {
+                      pet: pet.id,
+                      name: pet.name ?? detail.animalLabel,
+                      modo: "transito",
+                    },
+                  }}
+                  className="btn btn-primary"
+                >
+                  Ofrecerme de tránsito
+                </Link>
               </section>
             )}
           </aside>
