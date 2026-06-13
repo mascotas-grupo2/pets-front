@@ -3,41 +3,71 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { Search, X, Loader2 } from "lucide-react";
-import { getAdminUsers, type AdminUser } from "@/services/user.admin";
+import { getAdminUsers } from "@/services/user.admin";
+import { getContactableAdmins } from "@/services/user.info";
 import type { userMessage } from "@/services/messages.services";
 import { initials } from "./messages.data";
+
+type Recipient = {
+  id: number;
+  name: string;
+  email: string;
+  photo: string | null;
+  role: string;
+};
 
 type Props = {
   /** Para no permitir abrir una conversación con uno mismo. */
   currentUserId?: number;
+  /** "all" (admin: cualquier persona) | "admins" (usuario común: solo el refugio). */
+  mode?: "all" | "admins";
   onSelect: (user: userMessage) => void;
   onClose: () => void;
 };
 
-/** Modal para elegir destinatario (usuario o admin) e iniciar una conversación. */
-export function NuevoMensaje({ currentUserId, onSelect, onClose }: Props) {
+/** Modal para elegir destinatario e iniciar una conversación. */
+export function NuevoMensaje({ currentUserId, mode = "all", onSelect, onClose }: Props) {
+  const adminsMode = mode === "admins";
   const [q, setQ] = useState("");
-  const [users, setUsers] = useState<AdminUser[]>([]);
+  const [users, setUsers] = useState<Recipient[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Búsqueda con un pequeño debounce.
+  // Búsqueda con un pequeño debounce. En modo "admins" el listado es chico y se
+  // filtra del lado del cliente (el endpoint no recibe search).
   useEffect(() => {
     let cancel = false;
     setLoading(true);
     const t = setTimeout(async () => {
-      const res = await getAdminUsers({ search: q.trim() || undefined, pageSize: 20 });
-      if (!cancel) {
-        setUsers(res.ok && res.data ? res.data.items : []);
-        setLoading(false);
+      if (adminsMode) {
+        const res = await getContactableAdmins();
+        if (!cancel) {
+          setUsers(res.ok && res.data ? res.data : []);
+          setLoading(false);
+        }
+      } else {
+        const res = await getAdminUsers({ search: q.trim() || undefined, pageSize: 20 });
+        if (!cancel) {
+          setUsers(res.ok && res.data ? res.data.items : []);
+          setLoading(false);
+        }
       }
     }, 250);
     return () => {
       cancel = true;
       clearTimeout(t);
     };
-  }, [q]);
+  }, [q, adminsMode]);
 
-  const visibles = users.filter((u) => u.id !== currentUserId);
+  const needle = q.trim().toLowerCase();
+  const visibles = users
+    .filter((u) => u.id !== currentUserId)
+    .filter(
+      (u) =>
+        !adminsMode ||
+        !needle ||
+        u.name.toLowerCase().includes(needle) ||
+        u.email.toLowerCase().includes(needle),
+    );
 
   return createPortal(
     <div className="modal-overlay" onClick={onClose} role="presentation">
