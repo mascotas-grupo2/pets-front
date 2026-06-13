@@ -41,6 +41,8 @@ export type AdoptForm = {
   vaccinated: YesNoNA;
   experience: string;
   acceptsTerms: boolean;
+  /** "adopcion" (default) | "transito": ofrecimiento de hogar de tránsito. */
+  kind?: "adopcion" | "transito";
 };
 
 export const adoptInitialValues: AdoptForm = {
