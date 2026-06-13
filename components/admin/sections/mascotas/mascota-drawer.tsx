@@ -10,8 +10,9 @@ import {
   esEstadoMascotaTerminal,
 } from "../../lib/pet-status";
 import { formatEdad } from "../../lib/pet-format";
-import { updatePet, entregaDirectaPet } from "@/services/mascotas.pets";
+import { updatePet, entregaDirectaPet, resolvePet } from "@/services/mascotas.pets";
 import { useMascotaDetalle } from "../hook/useMascotaDetalle";
+import { ConfirmDialog } from "../../ui/confirm-dialog";
 import type { AdminPetSummary, PetStatus } from "@/types/pet";
 
 type Props = {
@@ -76,8 +77,15 @@ export function MascotaDrawer({ pet, onClose, onChanged }: Props) {
   const [estado, setEstado] = useState<PetStatus>(pet.status);
   const [recipient, setRecipient] = useState("");
   const [showEntrega, setShowEntrega] = useState(false);
+  const [showCerrar, setShowCerrar] = useState(false);
   const [busy, setBusy] = useState(false);
   const yaAdoptada = esEstadoMascotaTerminal(pet.status);
+  // Una publicación de adopción se cierra por su flujo (entrega/adopción); el
+  // cierre "apareció/resuelta" aplica a perdidas/encontradas/tránsito/médico.
+  const puedeCerrar =
+    !yaAdoptada &&
+    pet.status !== "en adopción" &&
+    pet.reportStatus !== "finalizado";
   // Estados ofrecidos: el actual + solo los siguientes válidos (incremental).
   const opcionesEstado: PetStatus[] = [
     pet.status,
@@ -110,6 +118,20 @@ export function MascotaDrawer({ pet, onClose, onChanged }: Props) {
       onClose();
     } else {
       toast.error(res.error || "No se pudo registrar la entrega.");
+    }
+  }
+
+  async function cerrarPublicacion() {
+    setBusy(true);
+    const res = await resolvePet(pet.id);
+    setBusy(false);
+    if (res.ok) {
+      toast.success("Publicación cerrada.");
+      setShowCerrar(false);
+      onChanged?.();
+      onClose();
+    } else {
+      toast.error(res.error || "No se pudo cerrar la publicación.");
     }
   }
   const especie = pet.animalTypeLabel ?? pet.animalType ?? "—";
@@ -377,6 +399,16 @@ export function MascotaDrawer({ pet, onClose, onChanged }: Props) {
                 <Heart size={16} aria-hidden /> Registrar adopción directa
               </button>
             ))}
+          {puedeCerrar && (
+            <button
+              type="button"
+              className="btn btn-outline"
+              onClick={() => setShowCerrar(true)}
+              disabled={busy}
+            >
+              Cerrar publicación (apareció / resuelta)
+            </button>
+          )}
           <Link
             href={`/mascotas-perdidas/${pet.id}`}
             className="btn btn-primary"
@@ -385,6 +417,19 @@ export function MascotaDrawer({ pet, onClose, onChanged }: Props) {
             Ver perfil completo
           </Link>
         </div>
+
+        <ConfirmDialog
+          open={showCerrar}
+          title="Cerrar publicación"
+          message={`¿Cerrar la publicación de ${
+            pet.name ?? "esta mascota"
+          }? Se marca como resuelta y deja de mostrarse en el listado.`}
+          confirmLabel="Sí, cerrar"
+          cancelLabel="Cancelar"
+          busy={busy}
+          onConfirm={cerrarPublicacion}
+          onCancel={() => setShowCerrar(false)}
+        />
       </aside>
     </div>
   );
