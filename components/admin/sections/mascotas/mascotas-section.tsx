@@ -9,9 +9,12 @@ import { MascotasFilters } from "./MascotasFilters";
 import { MascotasTable } from "./MascotasTable";
 import type { AdminPetSummary } from "@/types/pet";
 import { MascotaDrawer } from "./mascota-drawer";
+import { ConfirmDialog } from "../../ui/confirm-dialog";
 
 export function MascotasSection() {
   const [selected, setSelected] = useState<AdminPetSummary | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<AdminPetSummary | null>(null);
+  const [busy, setBusy] = useState(false);
 
   const {
     visible, loading,
@@ -52,7 +55,7 @@ export function MascotasSection() {
         sort={sort}
         onSort={setSort}
         onView={setSelected}
-        onDelete={handleDelete}
+        onDelete={setPendingDelete}
         page={page}
         totalPages={totalPages}
         total={total}
@@ -68,6 +71,26 @@ export function MascotasSection() {
           onChanged={reload}
         />
       )}
+
+      <ConfirmDialog
+        open={pendingDelete != null}
+        title="Eliminar mascota"
+        message={`¿Eliminar "${
+          pendingDelete?.name ?? "sin nombre"
+        }"? Esta acción no se puede deshacer.`}
+        confirmLabel="Sí, eliminar"
+        cancelLabel="Cancelar"
+        danger
+        busy={busy}
+        onConfirm={async () => {
+          if (!pendingDelete) return;
+          setBusy(true);
+          await handleDelete(pendingDelete);
+          setBusy(false);
+          setPendingDelete(null);
+        }}
+        onCancel={() => setPendingDelete(null)}
+      />
     </div>
   );
 }
