@@ -1,5 +1,5 @@
 import axiosInstance from "./axios";
-import { requestSafe } from "./request";
+import { request } from "./request";
 import { ReportForm } from "@/types/reportar";
 
 const axios = axiosInstance;
@@ -36,5 +36,5 @@ export const reportPet = (values: ReportForm) => {
     }
   });
 
-  return requestSafe<object>(() => axios.post("pet/reportar", formData));
+  return request<object>(() => axios.post("pet/reportar", formData));
 };

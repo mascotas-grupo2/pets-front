@@ -34,6 +34,10 @@ export const rejectPet = (id: string, reason?: string) =>
 export const finalizePet = (id: string) =>
   request<Pet>(() => axios.post(`mascotas/${id}/finalize`));
 
+/** Cierre "apareció/reunido": el dueño cierra una mascota perdida que apareció. */
+export const resolvePet = (id: string) =>
+  request<Pet>(() => axios.post(`mascotas/${id}/resolve`));
+
 /** Elimina una publicación (solo admin). El motivo es opcional. */
 export const deletePet = (id: string, reason?: string) =>
   request<null>(() =>
