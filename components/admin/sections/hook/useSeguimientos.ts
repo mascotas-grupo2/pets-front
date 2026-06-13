@@ -232,9 +232,7 @@ export function useSeguimientos() {
   }
 
   async function handleDelete(s: Seguimiento) {
-    if (!window.confirm("¿Estás seguro que deseas eliminar este seguimiento?")) {
-      return false;
-    }
+    // La confirmación la maneja la sección con ConfirmDialog (modal propio).
     const res = await deleteFollowup(s.id);
     if (res.ok) {
       toast.success("Seguimiento eliminado.");
