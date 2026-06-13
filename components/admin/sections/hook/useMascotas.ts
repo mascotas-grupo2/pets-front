@@ -113,12 +113,7 @@ export function useMascotas() {
 
   // ── Acciones ──────────────────────────────────────────────────────────────
   async function handleDelete(pet: AdminPetSummary) {
-    if (
-      !window.confirm(
-        `¿Eliminar "${pet.name ?? "sin nombre"}"? Esta acción no se puede deshacer.`,
-      )
-    )
-      return false;
+    // La confirmación la maneja la sección con ConfirmDialog (modal propio).
     const res = await deletePet(pet.id);
     if (res.ok) {
       toast.success("Mascota eliminada.");
