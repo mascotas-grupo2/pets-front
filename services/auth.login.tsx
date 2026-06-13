@@ -1,8 +1,25 @@
 import { ErrorGeneric } from "@/components/utils/catchErrors";
 import { User } from "@/types/user";
 import axiosInstance from "./axios"; // Assuming this is configured to send cookies
+import { request } from "./request";
 
 const axios = axiosInstance;
+
+/** Reenvía el email de verificación. Siempre 204 (no revela si el email existe). */
+export const resendVerification = (email: string) =>
+  request<unknown>(() => axios.post("auth/resend-verification", { email }));
+
+/** Cambia la contraseña del usuario logueado. El back invalida la sesión. */
+export const changePassword = (currentPassword: string, newPassword: string) =>
+  request<unknown>(() =>
+    axios.post("auth/change-password", { currentPassword, newPassword }),
+  );
+
+/** Da de baja la cuenta del usuario logueado (con confirmación por contraseña). */
+export const deleteAccount = (password?: string) =>
+  request<unknown>(() =>
+    axios.delete("auth/account", password ? { data: { password } } : undefined),
+  );
 
 type ResponseAxios = {
   ok: boolean;
