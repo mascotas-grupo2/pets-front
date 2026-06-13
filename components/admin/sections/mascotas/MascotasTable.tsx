@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import { Eye, MoreVertical, Trash2 } from "lucide-react";
 import { DataTable, type Column } from "../../ui/data-table";
@@ -18,7 +19,7 @@ type Props = {
   sort: SortOrder<string>[];
   onSort: (next: SortOrder<string>[]) => void;
   onView: (pet: AdminPetSummary) => void;
-  onDelete: (pet: AdminPetSummary) => Promise<boolean>;
+  onDelete: (pet: AdminPetSummary) => void;
   page: number;
   totalPages: number;
   total: number;
@@ -27,7 +28,8 @@ type Props = {
   onPage: (n: number) => void;
 };
 
-/** Menú contextual por fila. Se cierra al hacer click afuera. */
+/** Menú contextual por fila. Se renderiza por portal para que el scroll
+ * horizontal de la tabla (responsive) no lo recorte. */
 function RowMenu({
   pet,
   onView,
@@ -38,54 +40,71 @@ function RowMenu({
   onDelete: () => void;
 }) {
   const [open, setOpen] = useState(false);
-  const [busy, setBusy] = useState(false);
-  const ref = useRef<HTMLSpanElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const [coords, setCoords] = useState<{ top: number; right: number } | null>(null);
 
   useEffect(() => {
     if (!open) return;
-    function onClick(e: MouseEvent) {
-      if (!ref.current?.contains(e.target as Node)) setOpen(false);
+    function close() {
+      setOpen(false);
     }
-    document.addEventListener("click", onClick);
-    return () => document.removeEventListener("click", onClick);
+    // Cualquier click cierra (los items corren su onClick antes de propagar).
+    document.addEventListener("click", close);
+    // Si la página/tabla scrollea o cambia de tamaño, la posición ya no sirve.
+    window.addEventListener("scroll", close, true);
+    window.addEventListener("resize", close);
+    return () => {
+      document.removeEventListener("click", close);
+      window.removeEventListener("scroll", close, true);
+      window.removeEventListener("resize", close);
+    };
   }, [open]);
 
-  async function handleDelete() {
-    setOpen(false);
-    setBusy(true);
-    await onDelete();
-    setBusy(false);
+  function toggle() {
+    const rect = triggerRef.current?.getBoundingClientRect();
+    if (rect) {
+      setCoords({ top: rect.bottom + 4, right: window.innerWidth - rect.right });
+    }
+    setOpen((s) => !s);
   }
 
   return (
-    <span className="pub-menu-wrap" ref={ref}>
+    <span className="pub-menu-wrap">
       <button
+        ref={triggerRef}
         type="button"
         className="pub-menu-trigger"
         aria-label="Más acciones"
         title="Más acciones"
-        disabled={busy}
-        onClick={() => setOpen((s) => !s)}
+        onClick={toggle}
       >
         <MoreVertical size={15} />
       </button>
-      {open && (
-        <div className="pub-menu">
-          <button type="button" className="pub-menu-item" onClick={() => { setOpen(false); onView(); }}>
-            <Eye size={15} /> Ver detalle
-          </button>
-          <Link
-            href={`/admin/mascotas/${pet.id}`}
-            className="pub-menu-item"
-            onClick={() => setOpen(false)}
+      {open &&
+        coords &&
+        createPortal(
+          <div
+            className="pub-menu"
+            style={{ position: "fixed", top: coords.top, right: coords.right, zIndex: 1000 }}
           >
-            <Eye size={15} /> Ver perfil completo
-          </Link>
-          <button type="button" className="pub-menu-item danger" onClick={handleDelete}>
-            <Trash2 size={15} /> Eliminar
-          </button>
-        </div>
-      )}
+            <button type="button" className="pub-menu-item" onClick={() => { setOpen(false); onView(); }}>
+              <Eye size={15} /> Ver detalle
+            </button>
+            <Link
+              href={`/mascotas-perdidas/${pet.id}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="pub-menu-item"
+              onClick={() => setOpen(false)}
+            >
+              <Eye size={15} /> Ver perfil completo
+            </Link>
+            <button type="button" className="pub-menu-item danger" onClick={() => { setOpen(false); onDelete(); }}>
+              <Trash2 size={15} /> Eliminar
+            </button>
+          </div>,
+          document.body,
+        )}
     </span>
   );
 }
