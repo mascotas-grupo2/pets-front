@@ -67,6 +67,7 @@ function AdoptarSolicitarContent() {
   const searchParams = useSearchParams();
   const targetPetId = searchParams.get("pet") ?? "";
   const targetPetName = searchParams.get("name") ?? "";
+  const esTransito = searchParams.get("modo") === "transito";
   const [step, setStep] = useState(0);
   const [submitted, setSubmitted] = useState(false);
   // True cuando precargamos los datos de una solicitud anterior y saltamos a "Confirmar".
@@ -81,17 +82,22 @@ function AdoptarSolicitarContent() {
         const res = await submitAdoption({
           ...values,
           petId: targetPetId || values.petId || undefined,
+          kind: esTransito ? "transito" : "adopcion",
         });
-        if (!res) return;
         if (res.ok) {
           dispatch({ type: "user/setFormAdoption", payload: res.data });
           saveUser(res.data)
-          handleToast("success", "¡Solicitud enviada con éxito!");
+          handleToast(
+            "success",
+            esTransito
+              ? "¡Ofrecimiento de tránsito enviado con éxito!"
+              : "¡Solicitud enviada con éxito!",
+          );
           setSubmitted(true);
         } else {
           handleToast(
             "error",
-            `Error (${res.status}): No se pudo enviar la solicitud.`,
+            res.error ?? "No se pudo enviar la solicitud. Intentá de nuevo.",
           );
         }
       } catch (error) {
@@ -183,8 +189,12 @@ function AdoptarSolicitarContent() {
     <main>
       <div className="page-title">
         <div className="container">
-          <h1>Solicitud de adopción</h1>
-          <p>Contanos un poco sobre vos para poder emparejarte mejor.</p>
+          <h1>{esTransito ? "Ofrecimiento de tránsito" : "Solicitud de adopción"}</h1>
+          <p>
+            {esTransito
+              ? "Contanos sobre vos y tu hogar para ofrecerte como hogar temporal."
+              : "Contanos un poco sobre vos para poder emparejarte mejor."}
+          </p>
         </div>
       </div>
 
