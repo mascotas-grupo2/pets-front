@@ -9,6 +9,7 @@ import { SeguimientosFilters } from "./SeguimientosFilters";
 import { SeguimientoFormDrawer } from "./SeguimientoFormDrawer";
 import { SeguimientoDetailDrawer } from "./SeguimientoDetailDrawer";
 import type { Seguimiento, SeguimientoTab } from "./seguimientos.data";
+import { ConfirmDialog } from "../../ui/confirm-dialog";
 
 import { SeguimientosStats } from "./SeguimientosStats";
 
@@ -46,6 +47,8 @@ export function SeguimientosSection() {
   const [showFilters, setShowFilters] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [detail, setDetail] = useState<Seguimiento | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<Seguimiento | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   return (
     <div className="pub seg">
@@ -102,7 +105,7 @@ export function SeguimientosSection() {
             onView={setDetail}
             onConfirm={handleConfirm}
             onComplete={handleComplete}
-            onDelete={handleDelete}
+            onDelete={setPendingDelete}
           />
         </div>
 
@@ -122,6 +125,24 @@ export function SeguimientosSection() {
       {detail && (
         <SeguimientoDetailDrawer seguimiento={detail} onClose={() => setDetail(null)} />
       )}
+
+      <ConfirmDialog
+        open={pendingDelete != null}
+        title="Eliminar seguimiento"
+        message="¿Seguro que querés eliminar este seguimiento? Esta acción no se puede deshacer."
+        confirmLabel="Sí, eliminar"
+        cancelLabel="Cancelar"
+        danger
+        busy={deleting}
+        onConfirm={async () => {
+          if (!pendingDelete) return;
+          setDeleting(true);
+          await handleDelete(pendingDelete);
+          setDeleting(false);
+          setPendingDelete(null);
+        }}
+        onCancel={() => setPendingDelete(null)}
+      />
     </div>
   );
 }
