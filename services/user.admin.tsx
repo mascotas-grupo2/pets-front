@@ -44,3 +44,7 @@ export const getAdminUsers = (params?: {
 /** Cambia el rol de un usuario. El back resuelve el código ("admin" | "user"). */
 export const updateUserRole = (id: number, role: "admin" | "user") =>
   request<AdminUser>(() => axios.patch(`user/admin/${id}/role`, { role }));
+
+/** Elimina un usuario y todo lo asociado (cascade en el back). Solo admin. */
+export const deleteUser = (id: number) =>
+  request<void>(() => axios.delete(`user/admin/${id}`));
