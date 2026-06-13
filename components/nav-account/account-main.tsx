@@ -68,12 +68,12 @@ export default function ProfileView({
     setIsUpdating(true);
     try {
       const res = await uploadUserPhoto(selectedFile);
-      if (res && res.ok) {
+      if (res.ok && res.data) {
         handleToast("success", "Foto de perfil actualizada");
         const updatedUserData = { ...userDetails, photo: res.data.photo };
         setUserDetails(updatedUserData);
       } else {
-        handleToast("error", "No se pudo actualizar la foto");
+        handleToast("error", res.error ?? "No se pudo actualizar la foto");
       }
     } catch (error) {
       ErrorGeneric(error);
