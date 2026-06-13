@@ -105,14 +105,25 @@ function CompatCircle({ pct, label }: { pct: number; label: string }) {
 
 /* --- Tabs implemented to accept data from detail --- */
 
-import type {
-  AdoptionMessage,
-  AdoptionFile,
-  AdoptionHistoryItem,
-} from "@/types/adoption-detail";
+import type { AdoptionMessage } from "@/types/adoption-detail";
 
-function TabEvaluacion({ adoptionId }: { adoptionId: number }) {
-  const { items, checked, notes, toggle, addNote } = useEvaluacion(adoptionId);
+const REQUIRED_CHECKS: Partial<Record<Solicitud["estado"], string[]>> = {
+  ENTREVISTA_PENDIENTE: ["Verificó identidad", "Consultó sobre vivienda"],
+  ACEPTADA_CON_SEGUIMIENTO: [
+    "Verificó identidad",
+    "Consultó sobre vivienda",
+    "Evaluó experiencia previa",
+    "Revisó situación familiar",
+    "Coordinó visita al hogar",
+  ],
+};
+
+function TabEvaluacion({
+  evaluacion,
+}: {
+  evaluacion: ReturnType<typeof useEvaluacion>;
+}) {
+  const { items, checked, notes, toggle, addNote } = evaluacion;
   const [nota, setNota] = useState("");
 
   async function guardarNota() {
@@ -244,101 +255,6 @@ function TabMensajes({
   );
 }
 
-function MimeIcon({ mime }: { mime: string }) {
-  const isImage = mime.startsWith("image/");
-  return (
-    <span
-      className={`sdet-archivo-mime${isImage ? "" : " sdet-archivo-mime--pdf"}`}
-    >
-      {isImage ? <ImageIcon size={15} /> : <FileText size={15} />}
-    </span>
-  );
-}
-function TabArchivos({ files }: { files?: AdoptionFile[] }) {
-  const [localFiles, setLocalFiles] = useState<AdoptionFile[]>(files ?? []);
-  function eliminar(id: string) {
-    setLocalFiles((p) => p.filter((f) => f.id !== id));
-  }
-  if (localFiles.length === 0) {
-    return (
-      <div className="sdet-tab-content sdet-archivos">
-        <div className="sdet-tab-empty">
-          <FileText size={28} /> <p>El adoptante aún no subió archivos.</p>
-        </div>
-      </div>
-    );
-  }
-  return (
-    <div className="sdet-tab-content sdet-archivos">
-      {localFiles.map((f) => (
-        <div key={f.id} className="sdet-archivo-row">
-          <MimeIcon mime={f.mimeType} />
-          <div className="sdet-archivo-info">
-            <span className="sdet-archivo-label">{f.label ?? f.name}</span>
-            <span className="sdet-archivo-meta">
-              {f.sizeBytes ? `${(f.sizeBytes / 1024) | 0} KB` : ""} ·{" "}
-              {f.uploadedAt}
-            </span>
-          </div>
-          <div className="sdet-archivo-actions">
-            <a
-              href={f.url ?? "#"}
-              className="btn btn-xs btn-outline"
-              aria-label={`Descargar ${f.label ?? f.name}`}
-              download
-            >
-              <Download size={13} />
-            </a>
-            <button
-              type="button"
-              className="btn btn-xs btn-ghost"
-              aria-label={`Eliminar ${f.label ?? f.name}`}
-              onClick={() => eliminar(f.id)}
-              style={{ color: "var(--danger)" }}
-            >
-              <Trash2 size={13} />
-            </button>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function TabHistorial({ history }: { history?: AdoptionHistoryItem[] }) {
-  const list = history ?? [];
-  if (list.length === 0) {
-    return (
-      <div className="sdet-tab-content sdet-historial">
-        <div className="sdet-tab-empty">
-          <Clock size={28} /> <p>No hay eventos en el historial.</p>
-        </div>
-      </div>
-    );
-  }
-  return (
-    <div className="sdet-tab-content sdet-historial">
-      <ul className="sdet-historial-list">
-        {list.map((h) => (
-          <li key={h.id} className="sdet-historial-item">
-            <span className="sdet-historial-icon">
-              {h.type &&
-                {
-                  solicitud: <ChevronRight size={14} />,
-                  mensaje: <MessageSquare size={14} />,
-                  archivo: <FileText size={14} />,
-                  comentario: <Clock size={14} />,
-                }[h.type]}
-            </span>
-            <span className="sdet-historial-texto">{h.text}</span>
-            <time className="sdet-historial-fecha">{h.timestamp}</time>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}
-
 /* --- Modal de confirmación de cambio de estado --- */
 
 function ConfirmarEstadoModal({
@@ -448,6 +364,17 @@ export function SolicitudDetail({
   const { data: detail, loading: loadingDetail } = useSolicitudDetail(
     solicitud.id,
   );
+
+  // Evaluación compartida: alimenta la pestaña Evaluación Y el gating del select
+  // de estado (se actualiza en vivo al tildar ítems).
+  const evaluacion = useEvaluacion(Number(solicitud.id));
+  // Ítems del checklist que el backend exige para cada transición (espejo de
+  // requiredChecksFor en adoption.controller). Si faltan, el back devuelve 409.
+  const checksFaltantes = (estado: Solicitud["estado"]): string[] => {
+    const req = REQUIRED_CHECKS[estado] ?? [];
+    return req.filter((r) => !evaluacion.checked.includes(r));
+  };
+  const faltantesSeleccion = checksFaltantes(selectedEstado);
 
   const [isUpdating, setIsUpdating] = useState(false);
   const handleConfirmarCambio = async () => {
@@ -630,8 +557,8 @@ export function SolicitudDetail({
               </div>
               {detail && (
                 <div style={{ marginTop: "1rem", textAlign: "right" }}>
-                  <button 
-                    type="button" 
+                  <button
+                    type="button"
                     className="btn btn-outline btn-sm"
                     onClick={() => setShowMatchingModal(true)}
                   >
@@ -675,22 +602,40 @@ export function SolicitudDetail({
                         setSelectedEstado(e.target.value as Solicitud["estado"])
                       }
                     >
-                      {opciones.map((value) => (
-                        <option key={value} value={value}>
-                          {ESTADO_LABELS[value]}
-                        </option>
-                      ))}
+                      {opciones.map((value) => {
+                        const faltan = checksFaltantes(value).length;
+                        return (
+                          <option
+                            key={value}
+                            value={value}
+                            disabled={faltan > 0}
+                          >
+                            {ESTADO_LABELS[value]}
+                            {faltan > 0 ? ` (faltan ${faltan} ítem(s))` : ""}
+                          </option>
+                        );
+                      })}
                     </select>
                   </div>
                   <button
                     type="button"
                     className="btn btn-primary sdet-estado-btn"
                     onClick={() => setConfirmOpen(true)}
-                    disabled={isUpdating || !onUpdateStatus}
+                    disabled={
+                      isUpdating ||
+                      !onUpdateStatus ||
+                      faltantesSeleccion.length > 0
+                    }
                   >
                     Cambiar estado
                   </button>
                 </div>
+              )}
+              {!terminal && faltantesSeleccion.length > 0 && (
+                <p className="sdet-estado-gating-hint">
+                  Para pasar a “{ESTADO_LABELS[selectedEstado]}” faltan ítems de
+                  la evaluación: {faltantesSeleccion.join(", ")}.
+                </p>
               )}
             </section>
 
@@ -709,9 +654,7 @@ export function SolicitudDetail({
               ))}
             </div>
 
-            {tab === "evaluacion" && (
-              <TabEvaluacion adoptionId={Number(solicitud.id)} />
-            )}
+            {tab === "evaluacion" && <TabEvaluacion evaluacion={evaluacion} />}
             {tab === "mensajes" && (
               <TabMensajes
                 nombre={detail?.user?.name ?? solicitud.userName}
