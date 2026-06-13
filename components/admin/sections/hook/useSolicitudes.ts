@@ -54,6 +54,7 @@ export function toSolicitud(a: AdminAdoptionItem): Solicitud {
     userPhoto: a.userPhoto ?? "",
     petName: a.petName ?? "Sin nombre",
     petPhoto: a.petPhoto ?? "",
+    kind: a.kind,
     compatPct:
       a.compatibilityScore != null ? Math.round(a.compatibilityScore) : 0,
     compatLabel: compatLabel(a.compatibilityScore),
@@ -109,6 +110,7 @@ export function useSolicitudes() {
       pageSize: PAGE_SIZE,
       status: params.estado,
       sort: sortQuery,
+      q: params.q,
     });
 
     if (!res.ok || !res.data) {
@@ -132,8 +134,8 @@ export function useSolicitudes() {
 
     setTotal(res.data.total);
 
-    // El ordenamiento y filtrado por estado ya vienen del backend.
-    // El filtrado por 'q' también debería delegarse al backend idealmente.
+    // Ordenamiento, filtro por estado y búsqueda de texto (q) los resuelve el
+    // backend (q filtra por nombre/apellido/email del solicitante o ciudad).
     setVisible(mapped);
     setLoading(false);
   }, []);
@@ -179,9 +181,7 @@ export function useSolicitudes() {
   }
 
   async function handleDelete(id: string) {
-    if (!window.confirm("¿Estás seguro de que querés eliminar esta solicitud?"))
-      return false;
-
+    // La confirmación la maneja la sección con ConfirmDialog (modal propio).
     const res = await deleteAdoption(id);
     if (res.ok) {
       toast.success("Solicitud eliminada correctamente.");
