@@ -28,3 +28,7 @@ export const markNotificationRead = (id: number) =>
 
 export const markAllNotificationsRead = () =>
   request<{ ok: true }>(() => axios.patch("notifications/read-all"));
+
+/** Token corto para autenticar el handshake del websocket (push en tiempo real). */
+export const getWsToken = () =>
+  request<{ token: string }>(() => axios.get("auth/ws-token"));
