@@ -2,6 +2,7 @@
 
 import ProfileView from "@/components/nav-account/account-main";
 import MyReportsView from "@/components/nav-account/account-report";
+import MyRequestsView from "@/components/nav-account/account-requests";
 import { useUserContext } from "@/context/UserContext";
 import { getIdsPets } from "@/services/mascotas.pets";
 import { getUserDetails } from "@/services/user.info";
@@ -10,6 +11,7 @@ import Link from "next/link";
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import AccountSettingsForm from "../../components/nav-account/account-settings-form";
+import AccountSecurity from "../../components/nav-account/account-security";
 import { CatLoader } from "@/components/cat-loader";
 import { UserDetails } from "../../types/user-details";
 import { MessagesPanel } from "@/components/messages/messages-panel";
@@ -18,6 +20,7 @@ import { useNotifications } from "@/components/notifications/useNotifications";
 import {
   User,
   FileText,
+  ClipboardList,
   MessageSquare,
   Bell,
   Settings,
@@ -27,6 +30,7 @@ import {
 const ACCOUNT_TABS = [
   { id: "profile", label: "Perfil", icon: User },
   { id: "reports", label: "Mis reportes", icon: FileText },
+  { id: "requests", label: "Mis solicitudes", icon: ClipboardList },
   { id: "messages", label: "Mensajes", icon: MessageSquare },
   { id: "notifications", label: "Notificaciones", icon: Bell },
   { id: "settings", label: "Configuración", icon: Settings },
@@ -38,7 +42,7 @@ function AccountPageContent() {
   const [userDetails, setUserDetails] = useState<UserDetails | null>(null);
   const [pets, setPets] = useState<Pet[]>([]);
   const [activeSection, setActiveSection] = useState<
-    "profile" | "reports" | "messages" | "notifications" | "settings"
+    "profile" | "reports" | "requests" | "messages" | "notifications" | "settings"
   >("profile");
   const [loadError, setLoadError] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
@@ -51,7 +55,7 @@ function AccountPageContent() {
     ? Number(searchParams.get("user"))
     : undefined;
   useEffect(() => {
-    const valid = ["profile", "reports", "messages", "notifications", "settings"];
+    const valid = ["profile", "reports", "requests", "messages", "notifications", "settings"];
     if (tabParam && valid.includes(tabParam)) {
       setActiveSection(tabParam as typeof activeSection);
     }
@@ -159,7 +163,10 @@ function AccountPageContent() {
                 />
               </>
             )}
-            {activeSection === "reports" && <MyReportsView pets={pets} />}
+            {activeSection === "reports" && (
+              <MyReportsView pets={pets} onChange={() => setReloadKey((k) => k + 1)} />
+            )}
+            {activeSection === "requests" && <MyRequestsView />}
             {activeSection === "messages" && (
               <div className="account-messages">
                 <MessagesPanel initialUserId={initialUserId} />
@@ -167,7 +174,10 @@ function AccountPageContent() {
             )}
             {activeSection === "notifications" && <NotificationsView />}
             {activeSection === "settings" && (
-              <AccountSettingsForm userDetails={userDetails}/>
+              <>
+                <AccountSettingsForm userDetails={userDetails}/>
+                <AccountSecurity />
+              </>
             )}
           </div>
         </div>
