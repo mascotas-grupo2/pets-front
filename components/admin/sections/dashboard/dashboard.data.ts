@@ -66,52 +66,6 @@ export const STATS: Stat[] = [
 ];
 
 
-export type Actividad = {
-  icon: LucideIcon;
-  tone: Tone;
-  titulo: string;
-  detalle: string;
-  tiempo: string;
-};
-
-export const ACTIVIDAD: Actividad[] = [
-  {
-    icon: FileText,
-    tone: "violet",
-    titulo: "Nueva solicitud para Toby",
-    detalle: "Juan Pérez solicitó adoptar a Toby",
-    tiempo: "Hace 10 min",
-  },
-  {
-    icon: ClipboardCheck,
-    tone: "green",
-    titulo: "Seguimiento completado",
-    detalle: "Control general de Luna completado",
-    tiempo: "Hace 1 h",
-  },
-  {
-    icon: MessageSquare,
-    tone: "blue",
-    titulo: "Nuevo mensaje",
-    detalle: "María Gómez te envió un mensaje",
-    tiempo: "Hace 2 h",
-  },
-  {
-    icon: Megaphone,
-    tone: "pink",
-    titulo: "Nueva publicación",
-    detalle: "Publicación de Simba creada",
-    tiempo: "Hace 3 h",
-  },
-  {
-    icon: UserPlus,
-    tone: "amber",
-    titulo: "Usuario registrado",
-    detalle: "Laura Martínez se registró en la plataforma",
-    tiempo: "Hace 5 h",
-  },
-];
-
 /** Color de la compatibilidad según el porcentaje. */
 export function compatTone(pct: number): Tone {
   if (pct >= 85) return "green";
