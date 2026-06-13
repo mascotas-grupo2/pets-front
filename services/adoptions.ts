@@ -10,6 +10,7 @@ export type AdminAdoptionItem = {
   petId: string | null;
   statusId: number;
   status: string;
+  kind: string;
   compatibilityScore: number | null;
   createdAt: string;
   updatedAt: string;
@@ -38,6 +39,7 @@ export const getAdminAdoptions = (params?: {
   userId?: number;
   petId?: string;
   sort?: string;
+  q?: string;
 }) =>
   request<AdminAdoptionsResponse>(() =>
     axios.get("adoptions/admin/paged", { params }),
@@ -53,9 +55,20 @@ export type MyAdoption = {
   petId: string | null;
   statusId: number;
   status: string;
+  kind: string;
+  compatibilityScore: number | null;
+  createdAt: string;
+  updatedAt: string;
+  petName: string | null;
+  petPhoto: string | null;
+  petAnimalTypeId: number | null;
 };
 export const getMyAdoptions = () =>
   request<MyAdoption[]>(() => axios.get("adoptions"));
+
+/** Cancela (retira) una solicitud propia → pasa a DESCARTADA. */
+export const cancelMyAdoption = (id: number | string) =>
+  request<unknown>(() => axios.patch(`adoptions/${id}/cancel`));
 
 /** Elimina una solicitud (solo admin). */
 export const deleteAdoption = (id: number | string) =>
