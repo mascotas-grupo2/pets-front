@@ -15,6 +15,8 @@ export type Solicitud = {
   userPhoto?: string | null;
   petName?: string | null;
   petPhoto?: string | null;
+  /** "adopcion" (default) | "transito". */
+  kind?: string;
   compatPct: number;
   compatLabel: string;
   estado: "NUEVA" | "EN_EVALUACION" | "ENTREVISTA_PENDIENTE" | "ACEPTADA_CON_SEGUIMIENTO" | "ACEPTADA" | "DESCARTADA";
