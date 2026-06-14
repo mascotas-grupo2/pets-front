@@ -192,8 +192,12 @@ export function useSolicitudes() {
     return false;
   }
 
-  async function handleUpdateStatus(id: string, newStatus: EstadoSolicitud) {
-    const res = await updateAdoptionStatus(id, newStatus);
+  async function handleUpdateStatus(
+    id: string,
+    newStatus: EstadoSolicitud,
+    reason?: string,
+  ) {
+    const res = await updateAdoptionStatus(id, newStatus, reason);
     if (res.ok) {
       toast.success("Estado de la solicitud actualizado.");
       await loadSolicitudes(currentParams);
