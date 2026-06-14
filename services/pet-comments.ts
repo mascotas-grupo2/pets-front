@@ -8,6 +8,11 @@ const axios = axiosInstance;
 export const getApprovedComments = (petId: string) =>
   request<PetComment[]>(() => axios.get(`mascotas/${petId}/comments`));
 
+/** Cola global de comentarios pendientes (moderación centralizada del admin). */
+export type PendingComment = PetComment & { petName: string | null };
+export const getPendingComments = () =>
+  request<PendingComment[]>(() => axios.get(`comments/pending`));
+
 /** Comentarios pendientes + aprobados para el dueño/admin. */
 export const getOwnerComments = (petId: string) =>
   request<PetComment[]>(() => axios.get(`mascotas/${petId}/comments/admin`));
