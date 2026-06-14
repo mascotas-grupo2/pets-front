@@ -24,6 +24,8 @@ import { INITIAL_VALUES, LAST_STEP_INDEX, STEPS } from "./wizard-config";
 import { getUserDetails } from "@/services/user.info";
 import { useUserContext } from "@/context/UserContext";
 
+const DRAFT_KEY = "report-draft";
+
 export default function ReportPage() {
   const router = useRouter();
   const dispatch = useAppDispatch();
@@ -42,6 +44,7 @@ export default function ReportPage() {
         const res = await reportPet(values);
         if (res.ok) {
           dispatch({ type: "pets/ReportPet", payload: res.data });
+          localStorage.removeItem(DRAFT_KEY);
           handleToast("success", "¡Reporte enviado! Queda pendiente de revisión.");
           setIsDone(true);
         } else {
@@ -61,12 +64,31 @@ export default function ReportPage() {
       if (res && res.ok) {
         formik.setValues((prev) => ({
           ...prev,
-          contactEmail: res.data.email || "",
-          contactPhone: res.data.phone || "",
+          contactEmail: prev.contactEmail || res.data.email || "",
+          contactPhone: prev.contactPhone || res.data.phone || "",
         }));
       }
     });
   }, [isLoggedIn]);
+
+  // Borrador: restaurar al entrar y autoguardar (sin las fotos, que son archivos).
+  useEffect(() => {
+    const raw =
+      typeof window !== "undefined" ? localStorage.getItem(DRAFT_KEY) : null;
+    if (raw) {
+      try {
+        formik.setValues((prev) => ({ ...prev, ...JSON.parse(raw) }));
+      } catch {
+        /* borrador corrupto: lo ignoramos */
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    const { photos: _photos, ...rest } = formik.values;
+    localStorage.setItem(DRAFT_KEY, JSON.stringify(rest));
+  }, [formik.values]);
 
   function handleSelectFile(e: ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files || []);
