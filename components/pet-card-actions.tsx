@@ -47,14 +47,16 @@ export function PetCardActions({ pet }: { pet: Pet }) {
           {copied ? <Check size={15} aria-hidden /> : <Share2 size={15} aria-hidden />}
           {copied ? "¡Copiado!" : "Compartir"}
         </button>
-        <button
-          type="button"
-          className="pet-action pet-action--sight"
-          onClick={() => setSightOpen(true)}
-          aria-label={`Reportar que viste a ${name}`}
-        >
-          <Eye size={15} aria-hidden /> La vi
-        </button>
+        {pet.status === "perdido" && (
+          <button
+            type="button"
+            className="pet-action pet-action--sight"
+            onClick={() => setSightOpen(true)}
+            aria-label={`Reportar que viste a ${name}`}
+          >
+            <Eye size={15} aria-hidden /> La vi
+          </button>
+        )}
         <Link href={href} className="pet-action pet-action--more">
           Ver más →
         </Link>
