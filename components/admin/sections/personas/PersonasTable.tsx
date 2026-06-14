@@ -28,6 +28,10 @@ type Props = {
   loading: boolean;
   sort: SortOrder<string>[];
   onSort: (next: SortOrder<string>[]) => void;
+  /** Total de admins (para no permitir quitar/eliminar el último). */
+  adminCount: number;
+  /** Id del admin logueado (no puede degradarse ni eliminarse a sí mismo). */
+  currentUserId?: number;
   page: number;
   totalPages: number;
   total: number;
@@ -39,7 +43,7 @@ type Props = {
   onDelete: (u: AdminUser) => void;
 };
 
-export function PersonasTable({ data, loading, sort, onSort, page, totalPages, total, desde, hasta, onPage, onPromote, onDemote, onDelete }: Props) {
+export function PersonasTable({ data, loading, sort, onSort, adminCount, currentUserId, page, totalPages, total, desde, hasta, onPage, onPromote, onDemote, onDelete }: Props) {
   const columns: Column<AdminUser>[] = [
     {
       key: "name",
@@ -67,7 +71,7 @@ export function PersonasTable({ data, loading, sort, onSort, page, totalPages, t
         return <Pill tone={meta.tone}>{meta.label}</Pill>;
       },
     },
-    { key: "actividad", label: "Última actividad", sortable: true, tdClassName: "dash-muted", render: (u) => fecha(u.createdAt) },
+    { key: "actividad", label: "Registrado", sortable: true, tdClassName: "dash-muted", render: (u) => fecha(u.createdAt) },
     {
       key: "actions",
       label: "Acciones",
@@ -75,13 +79,24 @@ export function PersonasTable({ data, loading, sort, onSort, page, totalPages, t
       tdClassName: "dash-cell-action",
       render: (u) => {
         const esAdmin = categoriaUsuario(u) === "admin";
+        const isSelf = currentUserId != null && u.id === currentUserId;
+        const ultimoAdmin = esAdmin && adminCount <= 1;
+        // No se puede degradar/eliminar al único admin ni a uno mismo.
+        const demoteDisabled = isSelf || ultimoAdmin;
+        const deleteDisabled = isSelf || ultimoAdmin;
+        const motivo = isSelf
+          ? "No podés hacerte esto a vos mismo"
+          : ultimoAdmin
+            ? "Es el único administrador"
+            : "";
         return (
           <div className="dash-row-actions">
             {esAdmin ? (
               <button
                 type="button"
                 aria-label="Quitar administrador"
-                title="Quitar administrador"
+                title={demoteDisabled ? motivo : "Quitar administrador"}
+                disabled={demoteDisabled}
                 onClick={() => onDemote(u)}
               >
                 <ShieldOff size={15} />
@@ -99,7 +114,8 @@ export function PersonasTable({ data, loading, sort, onSort, page, totalPages, t
             <button
               type="button"
               aria-label="Eliminar usuario"
-              title="Eliminar usuario"
+              title={deleteDisabled ? motivo : "Eliminar usuario"}
+              disabled={deleteDisabled}
               onClick={() => onDelete(u)}
             >
               <Trash2 size={15} />
