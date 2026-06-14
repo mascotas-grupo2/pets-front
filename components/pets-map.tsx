@@ -6,6 +6,7 @@ import distance from "@turf/distance";
 import { point } from "@turf/helpers";
 import { CatLoader } from "@/components/cat-loader";
 import { LocateFixed } from "lucide-react";
+import DOMPurify from "dompurify";
 
 /**
  * Fallback de coordenadas para ubicaciones conocidas del seed que todavía no
@@ -94,9 +95,8 @@ function loadLeaflet(): Promise<any> {
       link.href = LEAFLET_CSS;
       document.head.appendChild(link);
     }
-    const existing = document.querySelector<HTMLScriptElement>(
-      `script[data-leaflet]`,
-    );
+    const existing =
+      document.querySelector<HTMLScriptElement>(`script[data-leaflet]`);
     if (existing) {
       existing.addEventListener("load", () => resolve(w.L));
       existing.addEventListener("error", reject);
@@ -148,7 +148,9 @@ export function PetsMap({ pets }: { pets: Pet[] }) {
     () =>
       pets
         .map((p) => ({ pet: p, pos: petLatLng(p) }))
-        .filter((x): x is { pet: Pet; pos: [number, number] } => x.pos !== null),
+        .filter(
+          (x): x is { pet: Pet; pos: [number, number] } => x.pos !== null,
+        ),
     [pets],
   );
 
@@ -222,7 +224,8 @@ export function PetsMap({ pets }: { pets: Pet[] }) {
   // Redibuja marcadores cuando cambian los resultados o la ubicación del usuario.
   useEffect(() => {
     const L = (window as any).L;
-    if (status !== "ready" || !L || !mapRef.current || !layerRef.current) return;
+    if (status !== "ready" || !L || !mapRef.current || !layerRef.current)
+      return;
     layerRef.current.clearLayers();
     const bounds: [number, number][] = [];
 
@@ -243,18 +246,27 @@ export function PetsMap({ pets }: { pets: Pet[] }) {
         fillColor: statusColor(pet.status),
         fillOpacity: 1,
       });
+
+      const clean = (value: unknown) =>
+        DOMPurify.sanitize(String(value ?? ""), {
+          ALLOWED_TAGS: [],
+          ALLOWED_ATTR: [],
+        });
+
       const name =
-        pet.name ?? pet.animalType.charAt(0).toUpperCase() + pet.animalType.slice(1);
+        pet.name ??
+        pet.animalType.charAt(0).toUpperCase() + pet.animalType.slice(1);
       const distHtml = distKm
-        ? `<span class="map-pop-dist">📏 a ${fmtDist(distKm(pos))} de vos</span>`
+        ? `<span class="map-pop-dist">📏 a ${clean(fmtDist(distKm(pos)))} de vos</span>`
         : "";
+
       marker.bindPopup(
         `<div class="map-pop">
-           <strong>${name}</strong>
-           <span class="map-pop-status">${pet.status}</span>
-           <span class="map-pop-loc">📍 ${pet.location}</span>
+           <strong>${clean(name)}</strong>
+           <span class="map-pop-status">${clean(pet.status)}</span>
+           <span class="map-pop-loc">📍 ${clean(pet.location)}</span>
            ${distHtml}
-           <a href="/mascotas-perdidas/${pet.id}">Ver más →</a>
+           <a href="/mascotas-perdidas/${encodeURIComponent(pet.id)}">Ver más →</a>
          </div>`,
       );
       layerRef.current.addLayer(marker);
@@ -322,7 +334,11 @@ export function PetsMap({ pets }: { pets: Pet[] }) {
         )}
       </div>
 
-      <div ref={containerRef} className="pets-map" aria-label="Mapa de mascotas">
+      <div
+        ref={containerRef}
+        className="pets-map"
+        aria-label="Mapa de mascotas"
+      >
         {status === "loading" && <CatLoader label="CARGANDO" variant="page" />}
       </div>
       {status === "error" && (
@@ -330,7 +346,11 @@ export function PetsMap({ pets }: { pets: Pet[] }) {
           No se pudo cargar el mapa. Probá la vista de grilla.
         </p>
       )}
-      <div className="pets-map-legend" role="group" aria-label="Filtrar por estado">
+      <div
+        className="pets-map-legend"
+        role="group"
+        aria-label="Filtrar por estado"
+      >
         {LEGEND.map((l) => {
           const on = active.has(l.key);
           const count = counts[l.key] ?? 0;
@@ -344,7 +364,9 @@ export function PetsMap({ pets }: { pets: Pet[] }) {
               title={on ? `Ocultar ${l.label}` : `Mostrar ${l.label}`}
             >
               <i style={{ background: l.color }} /> {l.label}
-              {count > 0 && <span className="pets-map-legend-count">{count}</span>}
+              {count > 0 && (
+                <span className="pets-map-legend-count">{count}</span>
+              )}
             </button>
           );
         })}
