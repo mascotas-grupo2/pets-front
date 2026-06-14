@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { Share2, Eye, Check, X } from "lucide-react";
+import { createSighting } from "@/services/mascotas.pets";
 
 function petLabel(pet: Pet): string {
   return pet.name ?? pet.animalType.charAt(0).toUpperCase() + pet.animalType.slice(1);
@@ -97,8 +98,11 @@ function SightingModal({
     };
   }, [onClose]);
 
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    // 1) Persistir el avistamiento (queda registrado + notifica al dueño).
+    await createSighting(pet.id, { place, sightedOn: when, note, contact });
+    // 2) Además abrir el mail al dueño (contacto directo).
     const url = `${window.location.origin}/mascotas-perdidas/${pet.id}`;
     const subject = `👀 Vi a ${name} (${pet.status})`;
     const body =
@@ -108,9 +112,11 @@ function SightingModal({
       `📝 Detalle: ${note || "—"}\n` +
       `📞 Mi contacto: ${contact || "—"}\n\n` +
       `Publicación: ${url}`;
-    window.location.href = `mailto:${pet.contactEmail}?subject=${encodeURIComponent(
-      subject,
-    )}&body=${encodeURIComponent(body)}`;
+    if (pet.contactEmail) {
+      window.location.href = `mailto:${pet.contactEmail}?subject=${encodeURIComponent(
+        subject,
+      )}&body=${encodeURIComponent(body)}`;
+    }
     onClose();
   };
 
