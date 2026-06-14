@@ -67,6 +67,96 @@
   align-items: center;
   gap: 0.75rem;
 }
+/* En desktop los botones participan del flex del header-actions;
+   en mobile (responsive.css) se ocultan y pasan al drawer. */
+.header-actions-desktop {
+  display: contents;
+}
+
+/* ===== Hamburguesa + drawer mobile ===== */
+.nav-toggle {
+  display: none; /* visible solo en mobile (ver responsive.css) */
+  width: 42px;
+  height: 42px;
+  border-radius: var(--radius-full);
+  align-items: center;
+  justify-content: center;
+  color: var(--gray-700);
+  border: 1px solid var(--border);
+  background: var(--surface);
+}
+.nav-toggle:hover {
+  color: var(--primary-500);
+  border-color: var(--primary-200);
+}
+
+.mobile-drawer-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease;
+  z-index: 60;
+}
+.mobile-drawer-overlay.open {
+  opacity: 1;
+  visibility: visible;
+}
+
+.mobile-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 100dvh;
+  width: min(80vw, 300px);
+  background: var(--surface);
+  border-left: 1px solid var(--border);
+  box-shadow: -8px 0 24px rgba(0, 0, 0, 0.12);
+  transform: translateX(100%);
+  transition: transform 0.25s ease;
+  z-index: 61;
+  padding: 5rem 1.25rem 1.5rem;
+  overflow-y: auto;
+}
+.mobile-drawer.open {
+  transform: translateX(0);
+}
+
+.mobile-drawer-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.mobile-drawer-nav a {
+  display: block;
+  padding: 0.85rem 1rem;
+  border-radius: var(--radius-md, 10px);
+  font-weight: 500;
+  color: var(--gray-700);
+  transition: background 0.15s, color 0.15s;
+}
+.mobile-drawer-nav a:hover {
+  background: var(--surface-alt);
+  color: var(--primary-500);
+}
+.mobile-drawer-nav a.active {
+  background: var(--primary-50, var(--surface-alt));
+  color: var(--primary-500);
+}
+
+.mobile-drawer-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-top: 1.25rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--border);
+}
+.mobile-drawer-actions .btn {
+  width: 100%;
+  justify-content: center;
+}
 
 .icon-btn {
   width: 40px;
