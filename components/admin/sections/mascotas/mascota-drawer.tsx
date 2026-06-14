@@ -175,22 +175,7 @@ export function MascotaDrawer({ pet, onClose, onChanged }: Props) {
           <p className="mdrawer-sub">{sub}</p>
           <p className="mdrawer-ingreso">Ingresó: {pet.date ?? "—"}</p>
 
-          <div className="mdrawer-tabs" role="tablist">
-            {TABS.map((t) => (
-              <button
-                key={t.id}
-                type="button"
-                role="tab"
-                aria-selected={tab === t.id}
-                className={`mdrawer-tab${tab === t.id ? " active" : ""}`}
-                onClick={() => setTab(t.id)}
-              >
-                {t.label}
-              </button>
-            ))}
-          </div>
-
-          {tab === "overview" ? (
+          <>
             <>
               <div className="vdrawer-section">
                 <h3>Información</h3>
@@ -347,11 +332,7 @@ export function MascotaDrawer({ pet, onClose, onChanged }: Props) {
                 )}
               </div>
             </>
-          ) : (
-            <div className="mdrawer-placeholder">
-              Esta sección estará disponible próximamente.
-            </div>
-          )}
+          </>
         </div>
 
         <div
