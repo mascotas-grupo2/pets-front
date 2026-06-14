@@ -9,6 +9,12 @@ const axios = axiosInstance;
 export const resendVerification = (email: string) =>
   request<unknown>(() => axios.post("auth/resend-verification", { email }));
 
+/** Cambia el email del usuario (con contraseña). Requiere re-verificar el nuevo. */
+export const changeEmail = (newEmail: string, password: string) =>
+  request<{ email: string; message: string }>(() =>
+    axios.post("auth/change-email", { newEmail, password }),
+  );
+
 /** Cambia la contraseña del usuario logueado. El back invalida la sesión. */
 export const changePassword = (currentPassword: string, newPassword: string) =>
   request<unknown>(() =>
