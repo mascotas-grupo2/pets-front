@@ -49,6 +49,30 @@ function statusColor(status: Pet["status"]): string {
   }
 }
 
+/** Agrupa cada estado en una de las categorías de la leyenda/filtro. */
+type Bucket = "perdido" | "refugio" | "transito" | "adopcion" | "otro";
+function bucketOf(status: Pet["status"]): Bucket {
+  switch (status) {
+    case "perdido":
+      return "perdido";
+    case "encontrado":
+      return "refugio";
+    case "en tránsito":
+      return "transito";
+    case "adoptado":
+      return "otro";
+    default:
+      return "adopcion";
+  }
+}
+
+const LEGEND: { key: Bucket; label: string; color: string }[] = [
+  { key: "perdido", label: "Perdido", color: "#e53935" },
+  { key: "refugio", label: "En refugio", color: "#1ba07a" },
+  { key: "transito", label: "En tránsito", color: "#f5a623" },
+  { key: "adopcion", label: "En adopción", color: "#6c5ce7" },
+];
+
 /** "850 m" / "2,4 km" a partir de kilómetros. */
 function fmtDist(km: number): string {
   return km < 1
@@ -100,7 +124,26 @@ export function PetsMap({ pets }: { pets: Pet[] }) {
     "idle",
   );
 
-  // Mascotas con posición conocida.
+  // Filtro por categoría (leyenda clickeable). Arranca con todas activas.
+  const [active, setActive] = useState<Set<Bucket>>(
+    () => new Set(LEGEND.map((l) => l.key)),
+  );
+  const toggle = (key: Bucket) =>
+    setActive((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  const isVisible = useCallback(
+    (status: Pet["status"]) => {
+      const b = bucketOf(status);
+      return b === "otro" || active.has(b);
+    },
+    [active],
+  );
+
+  // Mascotas con posición conocida (todas, para contar por categoría).
   const located = useMemo(
     () =>
       pets
@@ -108,7 +151,29 @@ export function PetsMap({ pets }: { pets: Pet[] }) {
         .filter((x): x is { pet: Pet; pos: [number, number] } => x.pos !== null),
     [pets],
   );
-  const unlocated = pets.length - located.length;
+
+  // Cantidad ubicada por categoría (para la chapita de cada filtro).
+  const counts = useMemo(() => {
+    const m: Partial<Record<Bucket, number>> = {};
+    for (const { pet } of located) {
+      const b = bucketOf(pet.status);
+      m[b] = (m[b] ?? 0) + 1;
+    }
+    return m;
+  }, [located]);
+
+  // Mascotas ubicadas que pasan el filtro activo (las que se dibujan).
+  const visibleLocated = useMemo(
+    () => located.filter(({ pet }) => isVisible(pet.status)),
+    [located, isVisible],
+  );
+
+  // Sin ubicación, contando solo las que pasan el filtro.
+  const unlocated = useMemo(
+    () =>
+      pets.filter((p) => petLatLng(p) === null && isVisible(p.status)).length,
+    [pets, isVisible],
+  );
 
   // Pedir la ubicación del usuario ("Vos").
   const locate = useCallback(() => {
@@ -169,7 +234,7 @@ export function PetsMap({ pets }: { pets: Pet[] }) {
           })
       : null;
 
-    located.forEach(({ pet, pos }) => {
+    visibleLocated.forEach(({ pet, pos }) => {
       bounds.push(pos);
       const marker = L.circleMarker(pos, {
         radius: 9,
@@ -214,13 +279,13 @@ export function PetsMap({ pets }: { pets: Pet[] }) {
     } else if (bounds.length > 1) {
       mapRef.current.fitBounds(bounds, { padding: [40, 40], maxZoom: 15 });
     }
-  }, [located, status, userLoc]);
+  }, [visibleLocated, status, userLoc]);
 
   // Mascota más cercana (para el resumen).
   const nearest = useMemo(() => {
-    if (!userLoc || located.length === 0) return null;
+    if (!userLoc || visibleLocated.length === 0) return null;
     let best: { pet: Pet; km: number } | null = null;
-    for (const { pet, pos } of located) {
+    for (const { pet, pos } of visibleLocated) {
       const km = distance(
         point([userLoc[1], userLoc[0]]),
         point([pos[1], pos[0]]),
@@ -229,7 +294,7 @@ export function PetsMap({ pets }: { pets: Pet[] }) {
       if (!best || km < best.km) best = { pet, km };
     }
     return best;
-  }, [userLoc, located]);
+  }, [userLoc, visibleLocated]);
 
   return (
     <div className="pets-map-wrap">
@@ -265,11 +330,33 @@ export function PetsMap({ pets }: { pets: Pet[] }) {
           No se pudo cargar el mapa. Probá la vista de grilla.
         </p>
       )}
-      <div className="pets-map-legend">
-        <span><i style={{ background: "#e53935" }} /> Perdido</span>
-        <span><i style={{ background: "#1ba07a" }} /> En refugio</span>
-        <span><i style={{ background: "#f5a623" }} /> En tránsito</span>
-        <span><i style={{ background: "#6c5ce7" }} /> En adopción</span>
+      <div className="pets-map-legend" role="group" aria-label="Filtrar por estado">
+        {LEGEND.map((l) => {
+          const on = active.has(l.key);
+          const count = counts[l.key] ?? 0;
+          return (
+            <button
+              key={l.key}
+              type="button"
+              className={`pets-map-legend-item${on ? "" : " is-off"}`}
+              aria-pressed={on}
+              onClick={() => toggle(l.key)}
+              title={on ? `Ocultar ${l.label}` : `Mostrar ${l.label}`}
+            >
+              <i style={{ background: l.color }} /> {l.label}
+              {count > 0 && <span className="pets-map-legend-count">{count}</span>}
+            </button>
+          );
+        })}
+        {active.size < LEGEND.length && (
+          <button
+            type="button"
+            className="pets-map-legend-reset"
+            onClick={() => setActive(new Set(LEGEND.map((l) => l.key)))}
+          >
+            Ver todos
+          </button>
+        )}
         {unlocated > 0 && (
           <span className="pets-map-legend-note">
             {unlocated} sin ubicación en el mapa
