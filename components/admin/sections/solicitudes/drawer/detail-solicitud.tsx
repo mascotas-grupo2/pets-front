@@ -41,6 +41,7 @@ type Props = {
   onUpdateStatus?: (
     id: string,
     status: Solicitud["estado"],
+    reason?: string,
   ) => Promise<boolean>;
 };
 
@@ -267,11 +268,12 @@ function ConfirmarEstadoModal({
   actual: Solicitud["estado"];
   destino: Solicitud["estado"];
   loading: boolean;
-  onConfirm: () => void;
+  onConfirm: (reason: string) => void;
   onCancel: () => void;
 }) {
   const efecto = efectoTransicion(destino);
   const esRechazo = destino === "DESCARTADA";
+  const [reason, setReason] = useState("");
 
   return createPortal(
     <div className="sdet-modal-overlay" onClick={onCancel} role="presentation">
@@ -315,6 +317,20 @@ function ConfirmarEstadoModal({
             </div>
           )}
 
+          {esRechazo && (
+            <label className="sdet-confirm-reason">
+              <span>Motivo del rechazo (se lo mostramos al solicitante)</span>
+              <textarea
+                className="input"
+                rows={3}
+                placeholder="Ej: el hogar no cumple con los requisitos para esta mascota…"
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                style={{ resize: "none", marginTop: "0.4rem" }}
+              />
+            </label>
+          )}
+
           <p className="sdet-confirm-question">¿Confirmás el cambio?</p>
         </div>
 
@@ -330,7 +346,7 @@ function ConfirmarEstadoModal({
           <button
             type="button"
             className={`btn ${esRechazo ? "btn-danger" : "btn-primary"}`}
-            onClick={onConfirm}
+            onClick={() => onConfirm(reason)}
             disabled={loading}
           >
             {loading ? "Cambiando..." : "Sí, cambiar estado"}
@@ -377,10 +393,10 @@ export function SolicitudDetail({
   const faltantesSeleccion = checksFaltantes(selectedEstado);
 
   const [isUpdating, setIsUpdating] = useState(false);
-  const handleConfirmarCambio = async () => {
+  const handleConfirmarCambio = async (reason?: string) => {
     if (!onUpdateStatus) return;
     setIsUpdating(true);
-    const ok = await onUpdateStatus(solicitud.id, selectedEstado);
+    const ok = await onUpdateStatus(solicitud.id, selectedEstado, reason);
     setIsUpdating(false);
     if (ok) {
       setConfirmOpen(false);
