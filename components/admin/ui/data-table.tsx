@@ -156,7 +156,12 @@ export function DataTable<T>({
                     .filter(Boolean)
                     .join(" ");
                   return (
-                    <td key={col.key} className={cls || undefined}>
+                    <td
+                      key={col.key}
+                      className={cls || undefined}
+                      // Etiqueta para el layout de tarjetas en mobile (::before).
+                      data-label={typeof col.label === "string" ? col.label : ""}
+                    >
                       {col.render(row)}
                     </td>
                   );
