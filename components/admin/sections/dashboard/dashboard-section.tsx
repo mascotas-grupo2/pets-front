@@ -199,25 +199,20 @@ function PublicacionesPanel({
       key: "vistas",
       label: "Vistas",
       tdClassName: "dash-muted",
-      render: () => "—",
+      render: (p) => p.viewsCount ?? 0,
     },
     {
       key: "actions",
       ariaLabel: "Acción",
       tdClassName: "dash-cell-action",
-      render: () => (
+      render: (p) => (
         <div className="dash-row-actions">
           <ActionButton
             icon={Eye}
-            href={href ?? "/admin/publicacion"}
-            ariaLabel="Ver"
+            href={`/mascotas-perdidas/${p.id}`}
+            ariaLabel="Ver publicación"
+            title="Ver publicación"
           />
-          <ActionButton
-            icon={Pencil}
-            href={href ?? "/admin/publicacion"}
-            ariaLabel="Editar"
-          />
-          <ActionButton icon={MoreVertical} ariaLabel="Más" />
         </div>
       ),
     },
