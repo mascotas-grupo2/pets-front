@@ -3,11 +3,12 @@
 import { useUserContext } from "@/context/UserContext";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import { getIdPets, getAllPets } from "@/services/mascotas.pets";
-import { getMyAdoptions } from "@/services/adoptions";
+import { getMyAdoptions, getPetCompatibility, type PetCompatibility } from "@/services/adoptions";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { CatLoader } from "@/components/cat-loader";
+import { PetComments } from "@/components/pet-comments";
 
 function formatAge(months?: number): string {
   if (!months) return "—";
@@ -27,6 +28,8 @@ export default function PetDetailPage() {
   const [loading, setLoading] = useState(true);
   // Si el usuario ya envió una solicitud para esta mascota, deshabilitamos el CTA.
   const [alreadyApplied, setAlreadyApplied] = useState(false);
+  // Compatibilidad usuario↔mascota (solo logueado).
+  const [compat, setCompat] = useState<PetCompatibility | null>(null);
 
   const pet = useAppSelector((state) => state.pet);
   const pets = useAppSelector((state) => state.allPets);
@@ -70,6 +73,19 @@ export default function PetDetailPage() {
         if (res && res.ok && Array.isArray(res.data)) {
           setAlreadyApplied(res.data.some((a) => a.petId === id));
         }
+      })
+      .catch(() => {});
+  }, [id, user.isLoggedIn]);
+
+  // Compatibilidad: solo si el usuario está logueado y la mascota está en adopción.
+  useEffect(() => {
+    if (!id || !user.isLoggedIn) {
+      setCompat(null);
+      return;
+    }
+    getPetCompatibility(id)
+      .then((res) => {
+        if (res.ok && res.data) setCompat(res.data);
       })
       .catch(() => {});
   }, [id, user.isLoggedIn]);
@@ -299,12 +315,43 @@ export default function PetDetailPage() {
               </ul>
             </section>
 
+            {compat && compat.score != null && pet.status === "en adopción" && (
+              <section className="pet-detail-cta pet-compat">
+                <h3 style={{ margin: "0 0 0.75rem" }}>Compatibilidad</h3>
+                <div className="pet-compat-head">
+                  <span className="pet-compat-score">{Math.round(compat.score)}%</span>
+                  <span className="pet-compat-label">
+                    {compat.score >= 75
+                      ? "Alta"
+                      : compat.score >= 50
+                        ? "Moderada"
+                        : "Baja"}
+                  </span>
+                </div>
+                {compat.factors.length > 0 && (
+                  <ul className="pet-compat-factors">
+                    {compat.factors.slice(0, 6).map((f, i) => (
+                      <li key={i} className={f.isPositive ? "ok" : "no"}>
+                        <span aria-hidden>{f.isPositive ? "✓" : "✗"}</span>
+                        {f.label}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </section>
+            )}
+
             {!isOwner &&
+              (pet.status === "perdido" || pet.status === "encontrado") &&
               (pet.contactPhone ||
                 pet.contactEmail ||
                 (user.isLoggedIn && pet.userId)) && (
                 <section className="pet-detail-contact">
-                  <h3>Contactar al dueño</h3>
+                  <h3>
+                    {pet.status === "perdido"
+                      ? "Contactar al dueño"
+                      : "¿Es tu mascota? Contactá a quien la encontró"}
+                  </h3>
                   <div className="pet-detail-contact-actions">
                     {pet.contactPhone && (
                       <a
@@ -366,6 +413,16 @@ export default function PetDetailPage() {
             {pet.status === "en tránsito" && !isOwner && (
               <section className="pet-detail-cta">
                 <p>¿Podés darle un hogar temporal?</p>
+                <p
+                  style={{
+                    fontSize: "0.85rem",
+                    color: "var(--text-muted, #6b7280)",
+                    margin: "0 0 0.75rem",
+                  }}
+                >
+                  El tránsito es un hogar <strong>temporal</strong> mientras la
+                  mascota espera una familia definitiva (no es adopción).
+                </p>
                 <Link
                   href={{
                     pathname: "/adoptar/solicitar",
@@ -379,6 +436,17 @@ export default function PetDetailPage() {
                 >
                   Ofrecerme de tránsito
                 </Link>
+              </section>
+            )}
+
+            {(pet.status === "adoptado" ||
+              pet.status === "en tratamiento médico") && (
+              <section className="pet-detail-cta">
+                <p>
+                  {pet.status === "adoptado"
+                    ? "🎉 Esta mascota ya encontró familia."
+                    : "🏥 Esta mascota está en tratamiento médico."}
+                </p>
               </section>
             )}
           </aside>
@@ -429,6 +497,8 @@ export default function PetDetailPage() {
             </ul>
           )}
         </section>
+
+        <PetComments petId={pet.id} />
       </div>
     </main>
   ) : (
