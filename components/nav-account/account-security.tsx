@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { AlertTriangle, Trash2 } from "lucide-react";
 import { changeEmail, changePassword, deleteAccount } from "@/services/auth.login";
 import { useUserContext } from "@/context/UserContext";
 import { ConfirmDialog } from "@/components/admin/ui/confirm-dialog";
@@ -158,31 +159,50 @@ export default function AccountSecurity() {
         </div>
       </form>
 
-      <div className="danger-zone">
-        <h3>Eliminar cuenta</h3>
-        <p>
-          Esta acción es permanente: se borran tu perfil, publicaciones,
-          solicitudes, mensajes y notificaciones. No se puede deshacer.
-        </p>
-        <div className="field" style={{ maxWidth: 320 }}>
-          <label>Confirmá tu contraseña</label>
-          <input
-            className="input"
-            type="password"
-            value={deletePass}
-            onChange={(e) => setDeletePass(e.target.value)}
-            autoComplete="current-password"
-            placeholder="Tu contraseña"
-          />
+      <section className="danger-zone" aria-labelledby="danger-zone-title">
+        <div className="danger-zone__head">
+          <span className="danger-zone__icon" aria-hidden>
+            <AlertTriangle size={20} />
+          </span>
+          <div>
+            <h3 id="danger-zone-title">Eliminar cuenta</h3>
+            <p className="danger-zone__lead">
+              Esta acción es <strong>permanente</strong> y no se puede deshacer.
+            </p>
+          </div>
         </div>
-        <button
-          type="button"
-          className="btn btn-danger"
-          onClick={() => setConfirmDelete(true)}
-        >
-          Eliminar mi cuenta
-        </button>
-      </div>
+
+        <p className="danger-zone__hint">Se borrarán para siempre:</p>
+        <ul className="danger-zone__list">
+          <li>Tu perfil y datos personales</li>
+          <li>Tus publicaciones de mascotas</li>
+          <li>Tus solicitudes de adopción</li>
+          <li>Tus mensajes y notificaciones</li>
+        </ul>
+
+        <div className="danger-zone__action">
+          <div className="field">
+            <label htmlFor="delete-pass">Confirmá tu contraseña para continuar</label>
+            <input
+              id="delete-pass"
+              className="input"
+              type="password"
+              value={deletePass}
+              onChange={(e) => setDeletePass(e.target.value)}
+              autoComplete="current-password"
+              placeholder="Tu contraseña"
+            />
+          </div>
+          <button
+            type="button"
+            className="btn btn-danger--solid"
+            onClick={() => setConfirmDelete(true)}
+            disabled={!deletePass.trim()}
+          >
+            <Trash2 size={16} aria-hidden /> Eliminar mi cuenta
+          </button>
+        </div>
+      </section>
 
       <ConfirmDialog
         open={confirmDelete}
