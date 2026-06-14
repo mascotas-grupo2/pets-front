@@ -84,13 +84,19 @@ export function NuevoMensaje({ currentUserId, mode = "all", onSelect, onClose }:
             <X size={18} />
           </button>
         </div>
+        {adminsMode && (
+          <p className="nm-hint" style={{ margin: "0 1rem", color: "var(--text-muted, #6b7280)", fontSize: "0.85rem" }}>
+            Escribile al equipo del refugio. Para hablar con el dueño de una
+            mascota, usá “Contactar” desde su publicación.
+          </p>
+        )}
 
         <div className="confirm-dialog-body">
           <div className="admin-search">
             <Search size={16} aria-hidden />
             <input
               type="search"
-              placeholder="Buscar persona por nombre o email…"
+              placeholder={adminsMode ? "Buscar administrador del refugio…" : "Buscar persona por nombre o email…"}
               aria-label="Buscar destinatario"
               value={q}
               onChange={(e) => setQ(e.target.value)}
@@ -104,7 +110,9 @@ export function NuevoMensaje({ currentUserId, mode = "all", onSelect, onClose }:
                 <Loader2 className="animate-spin" size={18} />
               </li>
             ) : visibles.length === 0 ? (
-              <li className="nm-empty">No se encontraron personas.</li>
+              <li className="nm-empty">
+                {adminsMode ? "No hay administradores disponibles." : "No se encontraron personas."}
+              </li>
             ) : (
               visibles.map((u) => (
                 <li key={u.id}>

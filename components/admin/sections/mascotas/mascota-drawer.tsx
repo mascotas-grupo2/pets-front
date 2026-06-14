@@ -80,11 +80,11 @@ export function MascotaDrawer({ pet, onClose, onChanged }: Props) {
   const [showCerrar, setShowCerrar] = useState(false);
   const [busy, setBusy] = useState(false);
   const yaAdoptada = esEstadoMascotaTerminal(pet.status);
-  // Una publicación de adopción se cierra por su flujo (entrega/adopción); el
-  // cierre "apareció/resuelta" aplica a perdidas/encontradas/tránsito/médico.
+  // "Registrar adopción directa" solo aplica a mascotas que están en adopción.
+  const puedeEntregar = pet.status === "en adopción";
+  // El cierre "apareció/resuelta" aplica a casos de pérdida (perdido/encontrado).
   const puedeCerrar =
-    !yaAdoptada &&
-    pet.status !== "en adopción" &&
+    (pet.status === "perdido" || pet.status === "encontrado") &&
     pet.reportStatus !== "finalizado";
   // Estados ofrecidos: el actual + solo los siguientes válidos (incremental).
   const opcionesEstado: PetStatus[] = [
@@ -362,7 +362,7 @@ export function MascotaDrawer({ pet, onClose, onChanged }: Props) {
             gap: "0.5rem",
           }}
         >
-          {!yaAdoptada &&
+          {puedeEntregar &&
             (showEntrega ? (
               <div className="mdrawer-estado-row">
                 <input

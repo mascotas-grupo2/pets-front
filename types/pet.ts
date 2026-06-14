@@ -46,6 +46,7 @@ export type AdminPetSummary = Pet & {
   medicalNoteCount: number;
   generalNoteCount: number;
   lastNoteAt: string | null;
+  viewsCount: number;
 };
 
 export type Pet = {
@@ -92,4 +93,5 @@ export type Pet = {
   friendlyWithKids?: boolean;
   friendlyWithPets?: boolean;
   trained?: boolean;
+  viewsCount?: number;
 };

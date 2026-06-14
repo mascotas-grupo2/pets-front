@@ -15,6 +15,7 @@ import { compatTone, initials } from "./dashboard.data";
 import { useDashboardPreviews } from "../hook/useDashboardPreviews";
 import { DashboardStatCards } from "./DashboardStatCards";
 import { DashboardTablePanel } from "./DashboardTablePanel";
+import { DashboardActivity } from "./DashboardActivity";
 import { solicitudEstadoTone } from "../../lib/solicitud-status";
 
 /** Enlace "Ver todas/os" del encabezado de un panel. */
@@ -284,6 +285,7 @@ export function DashboardSection() {
         />
         <SeguimientosPanel seguimientos={seguimientosPreview} loading={seguimientosLoading} />
       </div>
+      <DashboardActivity />
       <PublicacionesPanel
         pets={publicacionesPreview}
         loading={pubsLoading}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useAppSelector } from "@/redux/hooks";
 import { usePersonas } from "../hook/usePersonas";
 import { PersonasStats } from "./PersonasStats";
 import { PersonasFilters } from "./PersonasFilters";
@@ -61,6 +62,7 @@ export function PersonasSection() {
     handleDelete,
   } = usePersonas();
 
+  const currentUserId = useAppSelector((s) => s.user.id);
   const [pending, setPending] = useState<PendingAction | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -101,6 +103,8 @@ export function PersonasSection() {
         total={total}
         desde={desde}
         hasta={hasta}
+        adminCount={counts.admin}
+        currentUserId={currentUserId ?? undefined}
         onPage={setPage}
         onPromote={(u) => setPending({ type: "promote", user: u })}
         onDemote={(u) => setPending({ type: "demote", user: u })}
