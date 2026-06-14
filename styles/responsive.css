@@ -56,14 +56,19 @@
 
 /* ───────────────────── Mobile (≤768px) ───────────────────── */
 @media (max-width: 768px) {
-  /* Header público: que la nav no desborde */
+  /* Header público: la nav inline se reemplaza por el drawer + hamburguesa */
   .site-header .container {
-    flex-wrap: wrap;
     gap: 0.5rem;
   }
   .nav {
-    flex-wrap: wrap;
-    justify-content: center;
+    display: none;
+  }
+  .nav-toggle {
+    display: inline-flex;
+  }
+  /* Reportar / Mi Cuenta / Admin pasan al drawer en mobile */
+  .header-actions-desktop {
+    display: none;
   }
 
   /* Layouts de 2+ columnas → una sola */
