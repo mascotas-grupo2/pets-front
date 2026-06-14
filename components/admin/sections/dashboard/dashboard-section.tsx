@@ -9,7 +9,10 @@ import { DataTable, type Column } from "../../ui/data-table";
 import { ActionButton } from "../../ui/button";
 import { EstadoPill } from "../../lib/pet-status";
 import type { AdminPetSummary } from "@/types/pet";
-import { type Seguimiento, seguimientoEstadoTone } from "../seguimientos/seguimientos.data";
+import {
+  type Seguimiento,
+  seguimientoEstadoTone,
+} from "../seguimientos/seguimientos.data";
 
 import { compatTone, initials } from "./dashboard.data";
 import { useDashboardPreviews } from "../hook/useDashboardPreviews";
@@ -119,7 +122,9 @@ const SEGUIMIENTOS_COLS: Column<Seguimiento>[] = [
   {
     key: "estado",
     label: "Estado",
-    render: (r) => <Pill tone={seguimientoEstadoTone(r.estadoId)}>{r.estado}</Pill>,
+    render: (r) => (
+      <Pill tone={seguimientoEstadoTone(r.estadoId)}>{r.estado}</Pill>
+    ),
   },
 ];
 
@@ -278,14 +283,19 @@ export function DashboardSection() {
           rowKey={(r) => r.id}
           loading={solicitudesLoading}
         />
-        <SeguimientosPanel seguimientos={seguimientosPreview} loading={seguimientosLoading} />
+        <SeguimientosPanel
+          seguimientos={seguimientosPreview}
+          loading={seguimientosLoading}
+        />
       </div>
-      <DashboardActivity />
-      <PublicacionesPanel
-        pets={publicacionesPreview}
-        loading={pubsLoading}
-        href="/admin/publicacion"
-      />
+      <div className="dash-grid">
+        <PublicacionesPanel
+          pets={publicacionesPreview}
+          loading={pubsLoading}
+          href="/admin/publicacion"
+        />
+        <DashboardActivity />
+      </div>
     </div>
   );
 }

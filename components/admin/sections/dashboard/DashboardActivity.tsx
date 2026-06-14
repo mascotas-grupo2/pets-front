@@ -47,7 +47,7 @@ export function DashboardActivity() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    getDashboardActivity(8)
+    getDashboardActivity(5)
       .then((res) => {
         if (res.ok && res.data) setItems(res.data);
       })
