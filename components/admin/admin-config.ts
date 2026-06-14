@@ -6,6 +6,7 @@ import {
   ClipboardList,
   // BarChart3, // Reportes (oculto)
   MessageSquare,
+  MessageCircle,
   Users,
   // BookOpen, // Historias (oculto)
   // DollarSign, // Costos (oculto)
@@ -21,6 +22,7 @@ export type Section =
   | "seguimientos"
   | "reportes"
   | "mensajes"
+  | "comentarios"
   | "personas"
   | "historias"
   | "costos"
@@ -98,6 +100,13 @@ export const SECTIONS: SectionDef[] = [
     icon: MessageSquare,
     title: "Mensajes",
     subtitle: "Conversaciones con usuarios e internos",
+  },
+  {
+    id: "comentarios",
+    label: "Comentarios",
+    icon: MessageCircle,
+    title: "Comentarios",
+    subtitle: "Moderá los comentarios de las publicaciones",
   },
   {
     id: "personas",
