@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { changePassword, deleteAccount } from "@/services/auth.login";
+import { changeEmail, changePassword, deleteAccount } from "@/services/auth.login";
 import { useUserContext } from "@/context/UserContext";
 import { ConfirmDialog } from "@/components/admin/ui/confirm-dialog";
 import handleToast from "@/components/utils/toast";
@@ -19,6 +19,25 @@ export default function AccountSecurity() {
   const [deletePass, setDeletePass] = useState("");
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
+
+  const [newEmail, setNewEmail] = useState("");
+  const [emailPass, setEmailPass] = useState("");
+  const [savingEmail, setSavingEmail] = useState(false);
+
+  async function onChangeEmail(e: React.FormEvent) {
+    e.preventDefault();
+    if (!newEmail.trim()) return;
+    setSavingEmail(true);
+    const res = await changeEmail(newEmail.trim(), emailPass);
+    setSavingEmail(false);
+    if (res.ok) {
+      handleToast("success", "Email actualizado. Revisá tu casilla para verificar la nueva dirección.");
+      setNewEmail("");
+      setEmailPass("");
+    } else {
+      handleToast("error", res.error ?? "No se pudo cambiar el email.");
+    }
+  }
 
   async function onChangePassword(e: React.FormEvent) {
     e.preventDefault();
@@ -63,8 +82,42 @@ export default function AccountSecurity() {
         <p style={{ marginLeft: 0 }}>Cambiá tu contraseña o dá de baja tu cuenta.</p>
       </div>
 
+      <form onSubmit={onChangeEmail} className="account-settings-form">
+        <h3 style={{ margin: "0 0 1rem" }}>Cambiar email</h3>
+        <div className="form-grid">
+          <div className="field">
+            <label>Nuevo email</label>
+            <input
+              className="input"
+              type="email"
+              value={newEmail}
+              onChange={(e) => setNewEmail(e.target.value)}
+              placeholder="nuevo@email.com"
+            />
+          </div>
+          <div className="field">
+            <label>Contraseña actual</label>
+            <input
+              className="input"
+              type="password"
+              value={emailPass}
+              onChange={(e) => setEmailPass(e.target.value)}
+              autoComplete="current-password"
+            />
+          </div>
+        </div>
+        <p style={{ fontSize: "0.8rem", color: "var(--text-muted, #6b7280)", margin: "0 0 0.75rem" }}>
+          Vas a tener que verificar la nueva dirección por correo.
+        </p>
+        <div className="wizard-nav" style={{ display: "flex", justifyContent: "flex-end" }}>
+          <button type="submit" className="btn btn-outline" disabled={savingEmail}>
+            {savingEmail ? "Guardando…" : "Cambiar email"}
+          </button>
+        </div>
+      </form>
+
       <form onSubmit={onChangePassword} className="account-settings-form">
-        <h3 style={{ margin: "0 0 1rem" }}>Cambiar contraseña</h3>
+        <h3 style={{ margin: "1.5rem 0 1rem" }}>Cambiar contraseña</h3>
         <div className="field">
           <label>Contraseña actual</label>
           <input
