@@ -595,3 +595,19 @@
 .pet-compat-factors li.no { color: var(--text-muted, #9ca3af); }
 .pet-compat-factors li.ok span { color: #1ba07a; font-weight: 700; }
 .pet-compat-factors li.no span { color: var(--danger); font-weight: 700; }
+
+/* ===== Motivo de rechazo (solicitud) ===== */
+.req-reject-reason {
+  margin: 0.5rem 0 0;
+  padding: 0.6rem 0.8rem;
+  font-size: 0.85rem;
+  border-radius: 8px;
+  background: rgba(239, 68, 68, 0.06);
+  color: var(--danger);
+}
+.sdet-confirm-reason {
+  display: block;
+  margin-top: 0.75rem;
+  font-size: 0.82rem;
+  color: var(--text-muted, #6b7280);
+}
