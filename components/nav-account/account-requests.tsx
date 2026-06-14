@@ -133,6 +133,12 @@ export default function MyRequestsView() {
                   </span>
                 </div>
 
+                {cancelled && r.rejectionReason && (
+                  <p className="req-reject-reason">
+                    <strong>Motivo del rechazo:</strong> {r.rejectionReason}
+                  </p>
+                )}
+
                 {!cancelled && (
                   <ol className="req-steps">
                     {CHAIN.map((code, i) => {
