@@ -18,6 +18,7 @@ export default function ResetPasswordPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [linkInvalido, setLinkInvalido] = useState(false);
 
   const passwordChecks = (pass: string) => ({
     length: pass.length >= 8,
@@ -61,6 +62,7 @@ export default function ResetPasswordPage() {
         setIsSuccess(true);
       } else {
         handleToast("error", "El enlace ha expirado o es inválido.");
+        setLinkInvalido(true);
       }
     },
   });
@@ -101,6 +103,26 @@ export default function ResetPasswordPage() {
               <p style={{ color: "var(--gray-600)", marginBottom: "2rem" }}>
                 Elegí una contraseña segura que no hayas usado anteriormente.
               </p>
+
+              {linkInvalido && (
+                <div
+                  role="alert"
+                  style={{
+                    marginBottom: "1.5rem",
+                    padding: "0.85rem 1rem",
+                    border: "1px solid var(--danger)",
+                    borderRadius: "10px",
+                    background: "rgba(239,68,68,0.05)",
+                  }}
+                >
+                  <p style={{ margin: "0 0 0.6rem", fontSize: "0.9rem" }}>
+                    Este enlace expiró o ya se usó.
+                  </p>
+                  <Link href="/forgot-password" className="btn btn-outline btn-sm">
+                    Pedir otro enlace
+                  </Link>
+                </div>
+              )}
 
               <form className="auth-form" onSubmit={formik.handleSubmit}>
                 <div className="field">
