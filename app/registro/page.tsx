@@ -59,6 +59,9 @@ export default function RegisterPage() {
             "¡Cuenta creada! Verifique su casilla de correo electrónico para ingresar.",
           );
           setIsRegistered(true);
+        } else if (res?.status === 409) {
+          formik.setFieldError("email", "Este email ya está registrado.");
+          handleToast("error", "Ese email ya está registrado. ¿Querés iniciar sesión?");
         } else {
           handleToast("error", "¡Error al registrarse!");
         }
