@@ -38,6 +38,12 @@ export const finalizePet = (id: string) =>
 export const resolvePet = (id: string) =>
   request<Pet>(() => axios.post(`mascotas/${id}/resolve`));
 
+/** Reporta un avistamiento ("La vi") — queda registrado y notifica al dueño. */
+export const createSighting = (
+  id: string,
+  data: { place?: string; sightedOn?: string; note?: string; contact?: string },
+) => request<unknown>(() => axios.post(`mascotas/${id}/sightings`, data));
+
 /** Elimina una publicación (solo admin). El motivo es opcional. */
 export const deletePet = (id: string, reason?: string) =>
   request<null>(() =>
