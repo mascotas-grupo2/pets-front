@@ -9,8 +9,17 @@ import {
   rejectComment,
 } from "@/services/pet-comments";
 import { PetComment } from "@/types/pet-comment";
-import { Check, X, SendHorizonal, MessageSquare, Clock, AlertCircle } from "lucide-react";
+import {
+  Check,
+  X,
+  SendHorizonal,
+  MessageSquare,
+  Clock,
+  MessagesSquare,
+} from "lucide-react";
 import { useEffect, useState } from "react";
+
+const MAX_LEN = 500;
 
 function relativeTime(iso: string): string {
   const then = new Date(iso).getTime();
@@ -20,6 +29,32 @@ function relativeTime(iso: string): string {
   if (diffDays === 1) return "Ayer";
   if (diffDays < 7) return `Hace ${diffDays} días`;
   return `Hace ${Math.floor(diffDays / 7)} sem.`;
+}
+
+/** Color determinístico a partir del nombre, para que cada autor tenga su tono. */
+function avatarHue(name: string): number {
+  let h = 0;
+  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) % 360;
+  return h;
+}
+
+function Avatar({ name, size = 38 }: { name: string; size?: number }) {
+  const hue = avatarHue(name || "?");
+  return (
+    <div
+      className="comment-avatar"
+      style={{
+        width: size,
+        height: size,
+        background: `hsl(${hue} 70% 92%)`,
+        color: `hsl(${hue} 55% 38%)`,
+        fontSize: size * 0.4,
+      }}
+      aria-hidden
+    >
+      {(name || "?").charAt(0).toUpperCase()}
+    </div>
+  );
 }
 
 export function PetComments({ petId }: { petId: string }) {
@@ -34,17 +69,15 @@ export function PetComments({ petId }: { petId: string }) {
   const [text, setText] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
+  const [focused, setFocused] = useState(false);
 
   const loadComments = async () => {
     setLoading(true);
     try {
-      if (isOwner) {
-        const res = await getOwnerComments(petId);
-        if (res?.ok && res.data) setComments(res.data);
-      } else {
-        const res = await getApprovedComments(petId);
-        if (res?.ok && res.data) setComments(res.data);
-      }
+      const res = isOwner
+        ? await getOwnerComments(petId)
+        : await getApprovedComments(petId);
+      if (res?.ok && res.data) setComments(res.data);
     } catch {
       /* silencio */
     } finally {
@@ -94,57 +127,94 @@ export function PetComments({ petId }: { petId: string }) {
 
   const approved = comments.filter((c) => c.status === "approved");
   const pending = comments.filter((c) => c.status === "pending");
+  const remaining = MAX_LEN - text.length;
+  const canSubmit = !submitting && text.trim().length > 0 && authorName.trim().length > 0;
 
   return (
     <section className="pet-comments">
-      <div className="section-title">
+      <header className="comment-header">
         <h2>
-          <MessageSquare size={20} aria-hidden /> Comentarios
+          <span className="comment-header-icon" aria-hidden>
+            <MessageSquare size={18} />
+          </span>
+          Comentarios
+          {approved.length > 0 && (
+            <span className="comment-count" aria-label={`${approved.length} comentarios`}>
+              {approved.length}
+            </span>
+          )}
         </h2>
         <p>
           Dejá tu comentario o experiencia. El creador del reporte lo revisará
           antes de publicarlo.
         </p>
-      </div>
+      </header>
 
-      <form className="comment-form" onSubmit={handleSubmit}>
-        <div className="comment-form-row">
-          <input
-            className="input"
-            type="text"
-            placeholder="Tu nombre *"
-            value={authorName}
-            onChange={(e) => setAuthorName(e.target.value)}
+      <form
+        className={`comment-form${focused ? " is-focused" : ""}`}
+        onSubmit={handleSubmit}
+      >
+        <div className="comment-form-identity">
+          {user.isLoggedIn ? (
+            <div className="comment-identity-chip">
+              <Avatar name={authorName} size={30} />
+              <span>
+                Comentás como <strong>{authorName || "vos"}</strong>
+              </span>
+            </div>
+          ) : (
+            <div className="comment-form-row">
+              <input
+                className="input"
+                type="text"
+                placeholder="Tu nombre *"
+                value={authorName}
+                onChange={(e) => setAuthorName(e.target.value)}
+                required
+              />
+              <input
+                className="input"
+                type="email"
+                placeholder="Tu email (opcional)"
+                value={authorEmail}
+                onChange={(e) => setAuthorEmail(e.target.value)}
+              />
+            </div>
+          )}
+        </div>
+
+        <div className="comment-textarea-wrap">
+          <textarea
+            className="input comment-textarea"
+            rows={focused || text ? 4 : 3}
+            maxLength={MAX_LEN}
+            placeholder="Escribí tu comentario… ¿viste a esta mascota? ¿Tenés alguna información? *"
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            onFocus={() => setFocused(true)}
+            onBlur={() => setFocused(false)}
             required
           />
-          <input
-            className="input"
-            type="email"
-            placeholder="Tu email (opcional)"
-            value={authorEmail}
-            onChange={(e) => setAuthorEmail(e.target.value)}
-          />
+          <span
+            className={`comment-counter${remaining < 50 ? " is-low" : ""}`}
+            aria-hidden
+          >
+            {text.length}/{MAX_LEN}
+          </span>
         </div>
-        <textarea
-          className="input comment-textarea"
-          rows={3}
-          placeholder="Escribí tu comentario… ¿viste a esta mascota? ¿Tenés alguna información? *"
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          required
-        />
+
         <div className="comment-form-foot">
           {successMsg && (
-            <span className="comment-success">
+            <span className="comment-success" role="status">
               <Check size={14} aria-hidden /> {successMsg}
             </span>
           )}
           <button
             type="submit"
-            className="btn btn-primary"
-            disabled={submitting || !text.trim() || !authorName.trim()}
+            className="btn btn-primary comment-submit"
+            disabled={!canSubmit}
           >
-            <SendHorizonal size={16} aria-hidden />
+            <SendHorizonal size={16} aria-hidden className="comment-submit-icon" />
             {submitting ? "Enviando…" : "Enviar comentario"}
           </button>
         </div>
@@ -153,17 +223,25 @@ export function PetComments({ petId }: { petId: string }) {
       {isOwner && pending.length > 0 && (
         <div className="comment-pending-section">
           <h3>
-            <Clock size={16} aria-hidden /> Comentarios pendientes de aprobación
+            <Clock size={16} aria-hidden /> Pendientes de aprobación
+            <span className="comment-pending-badge">{pending.length}</span>
           </h3>
           <ul className="comment-list">
-            {pending.map((c) => (
-              <li key={c.id} className="comment-item comment-item--pending">
+            {pending.map((c, i) => (
+              <li
+                key={c.id}
+                className="comment-item comment-item--pending comment-enter"
+                style={{ animationDelay: `${i * 60}ms` }}
+              >
                 <div className="comment-head">
-                  <strong>{c.authorName}</strong>
-                  {c.authorEmail && (
-                    <span className="comment-email">{c.authorEmail}</span>
-                  )}
-                  <span className="comment-time">{relativeTime(c.createdAt)}</span>
+                  <Avatar name={c.authorName} size={34} />
+                  <div className="comment-head-meta">
+                    <strong>{c.authorName}</strong>
+                    {c.authorEmail && (
+                      <span className="comment-email">{c.authorEmail}</span>
+                    )}
+                    <span className="comment-time">{relativeTime(c.createdAt)}</span>
+                  </div>
                 </div>
                 <p className="comment-text">{c.text}</p>
                 <div className="comment-actions">
@@ -191,10 +269,26 @@ export function PetComments({ petId }: { petId: string }) {
       )}
 
       {loading ? (
-        <p className="comment-loading">Cargando comentarios…</p>
+        <ul className="comment-list" aria-hidden>
+          {[0, 1].map((i) => (
+            <li key={i} className="comment-item comment-skeleton">
+              <div className="comment-head">
+                <span className="skeleton skeleton-avatar" />
+                <div className="comment-head-meta" style={{ flex: 1 }}>
+                  <span className="skeleton skeleton-line" style={{ width: "30%" }} />
+                  <span className="skeleton skeleton-line" style={{ width: "18%" }} />
+                </div>
+              </div>
+              <span className="skeleton skeleton-line" style={{ width: "90%" }} />
+              <span className="skeleton skeleton-line" style={{ width: "70%" }} />
+            </li>
+          ))}
+        </ul>
       ) : approved.length === 0 ? (
         <div className="comment-empty">
-          <AlertCircle size={24} aria-hidden />
+          <span className="comment-empty-icon" aria-hidden>
+            <MessagesSquare size={28} />
+          </span>
           <p>
             {isOwner && pending.length === 0
               ? "Todavía no hay comentarios. Cuando alguien comente, aparecerán aquí para que los apruebes."
@@ -203,20 +297,31 @@ export function PetComments({ petId }: { petId: string }) {
         </div>
       ) : (
         <ul className="comment-list">
-          {approved.map((c) => (
-            <li key={c.id} className="comment-item">
-              <div className="comment-head">
-                <div className="comment-avatar">
-                  {c.authorName.charAt(0).toUpperCase()}
+          {approved.map((c, i) => {
+            const fromOwner =
+              pet?.userId != null && (c as { userId?: number }).userId === pet.userId;
+            return (
+              <li
+                key={c.id}
+                className="comment-item comment-enter"
+                style={{ animationDelay: `${i * 70}ms` }}
+              >
+                <div className="comment-head">
+                  <Avatar name={c.authorName} />
+                  <div className="comment-head-meta">
+                    <strong>
+                      {c.authorName}
+                      {fromOwner && (
+                        <span className="comment-owner-badge">Publicó el reporte</span>
+                      )}
+                    </strong>
+                    <span className="comment-time">{relativeTime(c.createdAt)}</span>
+                  </div>
                 </div>
-                <div>
-                  <strong>{c.authorName}</strong>
-                  <span className="comment-time">{relativeTime(c.createdAt)}</span>
-                </div>
-              </div>
-              <p className="comment-text">{c.text}</p>
-            </li>
-          ))}
+                <p className="comment-text">{c.text}</p>
+              </li>
+            );
+          })}
         </ul>
       )}
     </section>
