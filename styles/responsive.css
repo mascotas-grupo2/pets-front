@@ -94,11 +94,65 @@
     font-size: 2.2rem;
   }
 
-  /* Tablas: scroll horizontal en vez de desbordar */
-  .pub-table-wrap,
+  /* Tablas → tarjetas apiladas en mobile (mejor UX que el scroll horizontal).
+     Cada fila se vuelve una card y cada celda muestra su etiqueta (data-label). */
   .dash-table-wrap,
   .pub-table-wrap {
-    overflow-x: auto;
+    overflow-x: visible;
+  }
+  .dash-table {
+    min-width: 0;
+  }
+  .dash-table thead {
+    display: none;
+  }
+  .dash-table tbody,
+  .dash-table tr,
+  .dash-table td {
+    display: block;
+    width: 100%;
+  }
+  .dash-table tr,
+  .dash-table tbody tr:nth-child(even) {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: 0.75rem;
+    padding: 0.45rem 0.85rem;
+    background: var(--surface, #fff);
+  }
+  /* Apilado: etiqueta arriba, valor abajo, alineado a la izquierda. Queda
+     prolijo incluso en celdas con avatar+nombre o badges. */
+  .dash-table td {
+    display: block;
+    width: 100%;
+    border: none !important;
+    padding: 0.3rem 0;
+    text-align: left;
+    white-space: normal;
+  }
+  .dash-table td::before {
+    content: attr(data-label);
+    display: block;
+    font-weight: 600;
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--gray-400);
+    margin-bottom: 0.15rem;
+  }
+  /* La celda de avatar+nombre no debe estirarse ni separar el avatar del nombre. */
+  .dash-table td .dash-user {
+    justify-content: flex-start;
+  }
+  /* Celdas sin etiqueta (acciones): sin label, botones a la derecha. */
+  .dash-table td[data-label=""] {
+    text-align: right;
+  }
+  .dash-table td[data-label=""]::before {
+    display: none;
+  }
+  .dash-table td[data-label=""] .dash-row-actions {
+    justify-content: flex-end;
   }
 
   /* Topbar admin: que envuelva */
