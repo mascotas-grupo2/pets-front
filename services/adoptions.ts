@@ -72,6 +72,7 @@ export type MyAdoption = {
   petName: string | null;
   petPhoto: string | null;
   petAnimalTypeId: number | null;
+  rejectionReason: string | null;
 };
 export const getMyAdoptions = () =>
   request<MyAdoption[]>(() => axios.get("adoptions"));
@@ -84,9 +85,15 @@ export const cancelMyAdoption = (id: number | string) =>
 export const deleteAdoption = (id: number | string) =>
   request<void>(() => axios.delete(`adoptions/${id}`));
 
-/** Actualiza el estado de una solicitud (solo admin). */
-export const updateAdoptionStatus = (id: number | string, status: string) =>
-  request<AdoptionDetail>(() => axios.patch(`adoptions/${id}/status`, { status }));
+/** Actualiza el estado de una solicitud (solo admin). `reason` se usa al DESCARTAR. */
+export const updateAdoptionStatus = (
+  id: number | string,
+  status: string,
+  reason?: string,
+) =>
+  request<AdoptionDetail>(() =>
+    axios.patch(`adoptions/${id}/status`, { status, reason }),
+  );
 
 // ── Evaluación del adoptante (checklist + impresiones) ──────────────────────
 
