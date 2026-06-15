@@ -128,9 +128,20 @@ export function MetricasSection() {
             </span>
             <div className="metricas-stat-body">
               <span className="metricas-stat-value">
-                {chartData[
-                  `total${i === 0 ? "Mascotas" : i === 3 ? "Solicitudes" : "Seguimientos"}`
-                ] ?? "—"}
+                {(() => {
+                  const kpis = chartData.kpis;
+                  const values = [
+                    kpis.mascotasPublicadas,
+                    kpis.mascotasAdoptadas,
+                    kpis.mascotasPerdidas,
+                    kpis.tasaAdopcion,
+                    kpis.seguimientosPendientes,
+                    kpis.usuariosRegistrados,
+                  ];
+                  const val = values[i];
+                  if (i === 3) return `${val}%`; // Formato para la tasa de adopción
+                  return val?.toLocaleString("es-AR") ?? "0";
+                })()}
               </span>
               <span className="metricas-stat-label">{config.label}</span>
             </div>
