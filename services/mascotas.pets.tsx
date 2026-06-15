@@ -44,6 +44,27 @@ export const createSighting = (
   data: { place?: string; sightedOn?: string; note?: string; contact?: string },
 ) => request<unknown>(() => axios.post(`mascotas/${id}/sightings`, data));
 
+/**
+ * Reclamo de mascota: un usuario reporta que una mascota podría ser suya.
+ */
+export const claimPet = (id: string, data: {
+  claimantName: string;
+  claimantPhone: string;
+  claimantEmail?: string;
+  description?: string;
+}) =>
+  request<{ ok: boolean; message: string }>(() =>
+    axios.post(`mascotas/${id}/claim`, data),
+  );
+
+/**
+ * Confirmar devolución: el admin confirma que la mascota fue devuelta a su dueño.
+ */
+export const confirmReturnPet = (id: string, returnedTo: string) =>
+  request<Pet>(() =>
+    axios.post(`mascotas/${id}/confirm-return`, { returnedTo }),
+  );
+
 /** Elimina una publicación (solo admin). El motivo es opcional. */
 export const deletePet = (id: string, reason?: string) =>
   request<null>(() =>

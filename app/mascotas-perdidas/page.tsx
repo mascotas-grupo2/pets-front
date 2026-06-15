@@ -156,6 +156,8 @@ export default function LostPetsPage() {
 
     const basePets = pets ?? [];
     const result = basePets.filter((p) => {
+      // Excluir mascotas devueltas al dueño del listado público
+      if (p.status === "devuelta al dueño") return false;
       if (filters.type !== "todos" && p.animalType !== filters.type)
         return false;
       if (filters.sex !== "cualquiera" && p.sex !== filters.sex) return false;

@@ -6,7 +6,8 @@ export type PetStatus =
   | "en tránsito"
   | "en tratamiento médico"
   | "en adopción"
-  | "adoptado";
+  | "adoptado"
+  | "devuelta al dueño";
 
 export type PetMedicalStatus =
   | "sano"
