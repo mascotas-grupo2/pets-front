@@ -4,7 +4,7 @@ import {
   PawPrint,
   FileText,
   ClipboardList,
-  // BarChart3, // Reportes (oculto)
+  BarChart3, // Reportes / Métricas
   MessageSquare,
   MessageCircle,
   Users,
@@ -21,6 +21,7 @@ export type Section =
   | "solicitudes"
   | "seguimientos"
   | "reportes"
+  | "metricas"
   | "mensajes"
   | "comentarios"
   | "personas"
@@ -86,14 +87,13 @@ export const SECTIONS: SectionDef[] = [
     title: "Seguimientos",
     subtitle: "Controles y visitas programadas",
   },
-  // Oculto temporalmente del menú (sin contenido real todavía):
-  // {
-  //   id: "reportes",
-  //   label: "Reportes",
-  //   icon: BarChart3,
-  //   title: "Reportes",
-  //   subtitle: "Métricas y estadísticas",
-  // },
+  {
+    id: "metricas",
+    label: "Métricas",
+    icon: BarChart3,
+    title: "Métricas y estadísticas",
+    subtitle: "Indicadores clave del refugio",
+  },
   {
     id: "mensajes",
     label: "Mensajes",
