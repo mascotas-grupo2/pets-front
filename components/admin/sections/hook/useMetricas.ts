@@ -31,12 +31,12 @@ const COLORS = {
 };
 
 /** Helper para agrupar y sumar cantidades (maneja strings del back y evita duplicados) */
-function processChartItems(items: any[] | undefined, labelKey: string) {
+function processChartItems(items: Record<string, unknown>[] | undefined, labelKey: string) {
   if (!items) return { labels: [], data: [], total: 0 };
   const map = new Map<string, number>();
   items.forEach((item) => {
-    const label = item[labelKey] || "Otros";
-    const value = Number(item.cantidad) || 0;
+    const label = (item[labelKey] as string) || "Otros";
+    const value = Number(item["cantidad"]) || 0;
     map.set(label, (map.get(label) || 0) + value);
   });
   return {
@@ -160,7 +160,7 @@ export function useMetricas() {
     // El back no envía 'comentarios' en topPublicaciones según el JSON, aseguramos valor por defecto
     const topPublicaciones = (data.topPublicaciones || []).map((p) => ({
       ...p,
-      comentarios: (p as any).comentarios || 0,
+      comentarios: (p as { comentarios?: number }).comentarios || 0,
     }));
 
     return {
