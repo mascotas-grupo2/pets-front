@@ -11,14 +11,19 @@ export type ApiResult<T> = {
 export type ApiOk<T> = { ok: true; data: T; status: number };
 
 export async function request<T>(
-  call: () => Promise<AxiosResponse<T>>,
+  call: (signal?: AbortSignal) => Promise<AxiosResponse<T>>,
+  signal?: AbortSignal,
 ): Promise<ApiResult<T>> {
   try {
-    const response = await call();
+    const response = await call(signal);
     return { ok: true, data: response.data, status: response.status };
   } catch (error) {
     console.error(error);
     const err = error as AxiosError;
+    // If the request was aborted, return a specific error.
+    if (err.name === 'CanceledError' || (err.code === 'ERR_CANCELED')) {
+      return { ok: false, data: null, status: 0, error: 'Request aborted' };
+    }
     return {
       ok: false,
       data: null,
@@ -42,7 +47,7 @@ export function extractBackendError(err: AxiosError): string | undefined {
 }
 
 export async function requestSafe<T>(
-  call: () => Promise<AxiosResponse<T>>,
+  call: (signal?: AbortSignal) => Promise<AxiosResponse<T>>,
 ): Promise<ApiOk<T> | undefined> {
   try {
     const response = await call();

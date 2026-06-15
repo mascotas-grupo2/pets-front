@@ -15,7 +15,7 @@ export type DonutWithDetailsProps = {
 export function DonutWithDetails({ title, data, total, totalLabel = "Total", height = 200 }: DonutWithDetailsProps) {
   const labels = data.labels ?? [];
   const dataset = data.datasets?.[0];
-
+  {console.log(data)}
   return (
     <div className="donut-detail-card">
       <h3 className="donut-detail-title">{title}</h3>

@@ -1,24 +1,26 @@
 "use client";
 
 import React from "react";
-import type { MetricasFilter } from "./metricas.data";
+export type MetricasFilter = "7d" | "30d" | "90d" | "1y";
 
 export type MetricasFiltersProps = {
   activeFilter: MetricasFilter;
   onFilterChange: (filter: MetricasFilter) => void;
+  filters?: { key: MetricasFilter; label: string }[];
 };
 
-const FILTERS: { key: MetricasFilter; label: string }[] = [
+const DEFAULT_FILTERS: { key: MetricasFilter; label: string }[] = [
   { key: "7d", label: "7 días" },
   { key: "30d", label: "30 días" },
   { key: "90d", label: "90 días" },
   { key: "1y", label: "1 año" },
 ];
 
-export function MetricasFilters({ activeFilter, onFilterChange }: MetricasFiltersProps) {
+export function MetricasFilters({ activeFilter, onFilterChange, filters }: MetricasFiltersProps) {
+  const filtersToShow = filters ?? DEFAULT_FILTERS;
   return (
     <div className="metricas-filters" role="group" aria-label="Filtros rápidos de métricas">
-      {FILTERS.map((f) => (
+      {filtersToShow.map((f) => (
         <button
           key={f.key}
           type="button"

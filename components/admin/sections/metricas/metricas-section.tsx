@@ -8,12 +8,18 @@ import {
   TrendingUp,
   ClipboardList,
   Users,
+  Loader2,
 } from "lucide-react";
-import { getMetricasData, type MetricasFilter } from "./metricas.data";
+import { useMetricas } from "../hook/useMetricas";
 import { MetricasFilters } from "./MetricasFilters";
 import { BarChart, LineChart } from "./charts";
 import { DonutWithDetails } from "./DonutWithDetails";
 import MetricasMap from "./MetricasMap";
+import { PublicacionDrawer } from "../publicacion/publicacion-drawer";
+import { usePublicaciones } from "../hook/usePublicaciones";
+import { MascotaEstadoPill } from "../../lib/pet-status";
+import { VerTodas } from "../dashboard/dashboard-section";
+import type { PetStatus } from "@/types/pet";
 
 const STAT_ICONS = [
   <PawPrint size={20} key="paw" />,
@@ -24,32 +30,109 @@ const STAT_ICONS = [
   <Users size={20} key="users" />,
 ];
 
+const STAT_CONFIG = [
+  { label: "Mascotas publicadas", color: "#7c3aed" },
+  { label: "Mascotas adoptadas", color: "#22c55e" },
+  { label: "Mascotas perdidas", color: "#f59e0b" },
+  { label: "Tasa de adopción", color: "#3b82f6" },
+  { label: "Seguimientos pendientes", color: "#ec4899" },
+  { label: "Usuarios registrados", color: "#06b6d4" },
+];
+
 export function MetricasSection() {
-  const [filter, setFilter] = useState<MetricasFilter>("30d");
-  const data = useMemo(() => getMetricasData(filter), [filter]);
+  const { chartData, loading, error, filter, setFilter, filters, refresh } =
+    useMetricas();
+
+  // Estado para el manejo del Drawer
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+
+  // Obtenemos las publicaciones y acciones para el Drawer
+  const {
+    visible,
+    handleApprove,
+    handleReject,
+    handleFinalize,
+    handleDelete,
+    handleSave,
+  } = usePublicaciones();
+
+  // Buscamos el objeto completo de la mascota en la lista de publicaciones cargada
+  const selectedPet = useMemo(
+    () => visible.find((p) => p.id === selectedId) ?? null,
+    [visible, selectedId]
+  );
+
+  const drawerActions = {
+    handleApprove,
+    handleReject,
+    handleFinalize,
+    handleDelete,
+    handleSave,
+  };
+
+  if (loading) {
+    return (
+      <div className="metricas">
+        <div className="metricas-header">
+        </div>
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="metricas">
+        <div className="metricas-header">
+        </div>
+        <div className="text-center py-12 text-gray-500">
+          <p>Error al cargar las métricas.</p>
+          <button
+            onClick={refresh}
+            className="mt-2 text-primary-600 hover:text-primary-700 font-medium"
+          >
+            Reintentar
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!chartData) return null;
 
   return (
     <div className="metricas">
       {/* Header */}
       <div className="metricas-header">
-        <div className="metricas-header-info">
-          <h2 className="metricas-title">Métricas</h2>
-          <p className="metricas-subtitle">Indicadores clave del refugio</p>
-        </div>
-        <MetricasFilters activeFilter={filter} onFilterChange={setFilter} />
+        <MetricasFilters
+          activeFilter={filter}
+          onFilterChange={setFilter}
+          filters={filters}
+        />
       </div>
 
       {/* Stat Cards */}
       <div className="metricas-stat-grid">
-        {data.statCards.map((s, i) => (
-          <div key={s.label} className="metricas-stat-card">
-            <span className="metricas-stat-icon" style={{ backgroundColor: s.color + "18", color: s.color }}>
+        {STAT_CONFIG.map((config, i) => (
+          <div key={config.label} className="metricas-stat-card">
+            <span
+              className="metricas-stat-icon"
+              style={{
+                backgroundColor: config.color + "18",
+                color: config.color,
+              }}
+            >
               {STAT_ICONS[i]}
             </span>
             <div className="metricas-stat-body">
-              <span className="metricas-stat-value">{s.value}</span>
-              <span className="metricas-stat-label">{s.label}</span>
-              <span className="metricas-stat-hint">↑ {s.change}% vs mes anterior</span>
+              <span className="metricas-stat-value">
+                {chartData[
+                  `total${i === 0 ? "Mascotas" : i === 3 ? "Solicitudes" : "Seguimientos"}`
+                ] ?? "—"}
+              </span>
+              <span className="metricas-stat-label">{config.label}</span>
             </div>
           </div>
         ))}
@@ -59,22 +142,22 @@ export function MetricasSection() {
       <div className="metricas-dona-grid">
         <DonutWithDetails
           title="Mascotas por estado"
-          data={data.mascotasPorEstado}
-          total="1,248"
+          data={chartData.mascotasPorEstado}
+          total={chartData.totalMascotas}
           totalLabel="Total"
           height={200}
         />
         <DonutWithDetails
           title="Solicitudes de adopción por estado"
-          data={data.solicitudesPorEstado}
-          total="425"
+          data={chartData.solicitudesPorEstado}
+          total={chartData.totalSolicitudes}
           totalLabel="Solicitudes"
           height={200}
         />
         <DonutWithDetails
           title="Seguimientos por estado"
-          data={data.seguimientosPorEstado}
-          total="211"
+          data={chartData.seguimientosPorEstado}
+          total={chartData.totalSeguimientos}
           totalLabel="Seguimientos"
           height={200}
         />
@@ -89,7 +172,7 @@ export function MetricasSection() {
             <span className="chart-card-subtitle">Evolución mensual</span>
           </div>
           <div className="chart-card-body chart-card-body--full">
-            <LineChart data={data.usuariosRegistrados} height={300} />
+            <LineChart data={chartData.usuariosPorMes} height={300} />
           </div>
         </div>
 
@@ -100,7 +183,7 @@ export function MetricasSection() {
             <span className="chart-card-subtitle">Publicaciones</span>
           </div>
           <div className="chart-card-body chart-card-body--full">
-            <BarChart data={data.mascotasPorTipo} height={300} />
+            <BarChart data={chartData.mascotasPorTipo} height={300} />
           </div>
         </div>
 
@@ -108,12 +191,20 @@ export function MetricasSection() {
         <div className="chart-card">
           <div className="chart-card-header">
             <h3 className="chart-card-title">Top publicaciones más vistas</h3>
+            <VerTodas label="Ver todos" href="/admin/publicacion" />
           </div>
           <div className="chart-card-table">
-            {data.topPublicaciones.map((p, i) => (
-              <div key={i} className="metricas-top-row">
+            {chartData.topPublicaciones.map((p, i) => (
+              <div
+                key={i}
+                className="metricas-top-row"
+                style={{ cursor: "pointer" }}
+                onClick={() => setSelectedId(p.id)}
+              >
                 <div className="metricas-top-rank-wrap">
-                  <span className="metricas-top-rank">{String(i + 1).padStart(2, "0")}</span>
+                  <span className="metricas-top-rank">
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
                 </div>
                 {p.avatar && (
                   <img
@@ -125,13 +216,18 @@ export function MetricasSection() {
                 <div className="metricas-top-info">
                   <div className="metricas-top-line1">
                     <span className="metricas-top-titulo">{p.titulo}</span>
-                    <span className="metricas-top-vistas">{p.vistas.toLocaleString()} vistas</span>
+                    <span className="metricas-top-vistas">
+                      {p.vistas.toLocaleString()} vistas
+                    </span>
                   </div>
                   <div className="metricas-top-line2">
-                    <span className="metricas-top-comentarios">{p.comentarios} coment.</span>
-                    <span className={`pill pill--sm pill--${p.estado === "Activa" ? "green" : p.estado === "Adoptado" ? "violet" : "amber"}`}>
-                      {p.estado}
+                    <span className="metricas-top-comentarios">
+                      {p.comentarios} comentarios{" "}
                     </span>
+                    <MascotaEstadoPill
+                      status={p.estado.toLowerCase() as PetStatus}
+                      label={p.estado.charAt(0).toUpperCase() + p.estado.slice(1)}
+                    />
                   </div>
                 </div>
               </div>
@@ -142,8 +238,17 @@ export function MetricasSection() {
 
       {/* Fila 3: Mapa */}
       <div className="metricas-map-wrap">
-        <MetricasMap ubicaciones={data.ubicaciones} />
+        <MetricasMap ubicaciones={chartData.ubicaciones} />
       </div>
+
+      {/* Drawer reutilizado */}
+      {selectedPet && (
+        <PublicacionDrawer
+          pet={selectedPet}
+          onClose={() => setSelectedId(null)}
+          actions={drawerActions}
+        />
+      )}
     </div>
   );
 }
