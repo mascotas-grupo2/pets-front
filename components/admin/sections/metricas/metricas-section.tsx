@@ -53,6 +53,7 @@ export function MetricasSection() {
     handleReject,
     handleFinalize,
     handleDelete,
+    handleConfirmReturn,
     handleSave,
   } = usePublicaciones();
 
@@ -67,6 +68,7 @@ export function MetricasSection() {
     handleReject,
     handleFinalize,
     handleDelete,
+    handleConfirmReturn,
     handleSave,
   };
 
