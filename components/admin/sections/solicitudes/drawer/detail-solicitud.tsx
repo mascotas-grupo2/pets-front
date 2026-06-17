@@ -54,9 +54,11 @@ type TabId = (typeof TABS)[number]["id"];
 
 // Compatibility helpers (same logic used elsewhere)
 function compatTone(pct: number) {
-  if (pct >= 75) return { stroke: "#22c55e", label: "tone-green" };
-  if (pct >= 50) return { stroke: "#f59e0b", label: "tone-amber" };
-  return { stroke: "#ef4444", label: "tone-red" };
+  if (pct >= 90) return { stroke: "#0ea5e9", label: "tone-sky" }; // Excelente
+  if (pct >= 80) return { stroke: "#16a34a", label: "tone-green" }; // Alta
+  if (pct >= 65) return { stroke: "#84cc16", label: "tone-lime" }; // Buena
+  if (pct >= 50) return { stroke: "#eab308", label: "tone-yellow" }; // Moderada
+  return { stroke: "#ef4444", label: "tone-red" }; // Baja
 }
 function compatLabel(score: number | null): string {
   if (score == null) return "Sin datos";
@@ -92,13 +94,13 @@ function CompatCircle({ pct, label }: { pct: number; label: string }) {
           strokeWidth="10"
           strokeLinecap="round"
           strokeDasharray={`${dash} ${circ}`}
-          strokeDashoffset={circ / 4}
-          style={{ transition: "stroke-dasharray 0.6s ease" }}
+          transform="rotate(-90 68 68)"
+          style={{ transition: "stroke-dasharray 0.6s ease, stroke 0.6s ease" }}
         />
       </svg>
       <div className="sdet-compat-inner">
         <span className="sdet-compat-value">{pct}%</span>
-        <span className={`sdet-compat-sublabel ${tone.label}`}>{label}</span>
+        <span className={`sdet-compat-sublabel`} style={{ color: tone.stroke }}>{label}</span>
       </div>
     </div>
   );

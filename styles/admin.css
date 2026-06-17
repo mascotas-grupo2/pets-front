@@ -716,17 +716,25 @@
   font-size: 11px;
   font-weight: 500;
 }
+.dash-compat.tone-sky,
+.dash-compat.tone-sky + .dash-compat-label {
+  color: #0ea5e9;
+}
 .dash-compat.tone-green,
 .dash-compat.tone-green + .dash-compat-label {
-  color: var(--secondary-500);
+  color: #16a34a;
 }
-.dash-compat.tone-amber,
-.dash-compat.tone-amber + .dash-compat-label {
-  color: var(--warning);
+.dash-compat.tone-lime,
+.dash-compat.tone-lime + .dash-compat-label {
+  color: #84cc16;
+}
+.dash-compat.tone-yellow,
+.dash-compat.tone-yellow + .dash-compat-label {
+  color: #eab308;
 }
 .dash-compat.tone-red,
 .dash-compat.tone-red + .dash-compat-label {
-  color: var(--danger);
+  color: #ef4444;
 }
 
 /* ---------- Pills de estado ---------- */
