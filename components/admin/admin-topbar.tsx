@@ -1,6 +1,6 @@
 "use client";
 
-import { Search, Mail, ChevronDown, LogOut } from "lucide-react";
+import { Mail, ChevronDown, LogOut } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useAppSelector } from "@/redux/hooks";
@@ -47,11 +47,6 @@ export function AdminTopbar({ title, subtitle }: AdminTopbarProps) {
       </div>
 
       <div className="admin-topbar-actions">
-        <div className="admin-search">
-          <Search size={16} aria-hidden />
-          <input type="search" placeholder="Buscar..." aria-label="Buscar" />
-        </div>
-
         <ThemeToggle />
 
         <NotificationsBell />

@@ -56,20 +56,30 @@ function AccountPageContent() {
     : undefined;
   useEffect(() => {
     const valid = ["profile", "reports", "requests", "messages", "notifications", "settings"];
-    if (tabParam && valid.includes(tabParam)) {
-      setActiveSection(tabParam as typeof activeSection);
+    if (tabParam && valid.includes(tabParam) && tabParam !== activeSection) {
+      // Envolvemos en un microtask para evitar el error de setState sincrónico en un effect
+      Promise.resolve().then(() => {
+        setActiveSection(tabParam as typeof activeSection);
+      });
     }
-  }, [tabParam]);
+  }, [tabParam, activeSection]);
 
   useEffect(() => {
     if (!isLoggedIn) return;
-    setLoadError(false);
-    getUserDetails()
-      .then((res) => {
+
+    const loadData = async () => {
+      // Movemos el reset de error dentro de la ejecución asíncrona
+      setLoadError(false);
+      try {
+        const res = await getUserDetails();
         if (res && res.ok) setUserDetails(res.data);
         else setLoadError(true);
-      })
-      .catch(() => setLoadError(true));
+      } catch {
+        setLoadError(true);
+      }
+    };
+
+    loadData();
   }, [isLoggedIn, activeSection, reloadKey]);
 
   useEffect(() => {

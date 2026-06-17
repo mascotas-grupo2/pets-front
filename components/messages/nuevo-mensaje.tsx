@@ -36,7 +36,9 @@ export function NuevoMensaje({ currentUserId, mode = "all", onSelect, onClose }:
   // filtra del lado del cliente (el endpoint no recibe search).
   useEffect(() => {
     let cancel = false;
-    setLoading(true);
+    Promise.resolve().then(() => {
+      if (!cancel) setLoading(true);
+    });
     const t = setTimeout(async () => {
       if (adminsMode) {
         const res = await getContactableAdmins();

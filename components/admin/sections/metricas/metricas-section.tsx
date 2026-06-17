@@ -220,6 +220,7 @@ export function MetricasSection() {
                   </span>
                 </div>
                 {p.avatar && (
+                  // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={p.avatar}
                     alt={p.titulo}
