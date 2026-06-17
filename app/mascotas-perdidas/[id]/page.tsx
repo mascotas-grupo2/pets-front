@@ -10,7 +10,7 @@ import { useEffect, useMemo, useState } from "react";
 import { CatLoader } from "@/components/cat-loader";
 import { PetComments } from "@/components/pet-comments";
 import handleToast from "@/components/utils/toast";
-import { Check, SendHorizonal } from "lucide-react";
+import { Check, Pencil, SendHorizonal } from "lucide-react";
 
 function formatAge(months?: number): string {
   if (!months) return "—";
@@ -178,7 +178,7 @@ export default function PetDetailPage() {
               href={`/mascotas-perdidas/${pet.id}/editar`}
               className="btn btn-outline btn-sm pet-edit-btn"
             >
-              ✏️ Editar publicación
+              <Pencil size={16} aria-hidden /> Editar publicación
             </Link>
           )}
           <h1>¡Hola humano!</h1>
