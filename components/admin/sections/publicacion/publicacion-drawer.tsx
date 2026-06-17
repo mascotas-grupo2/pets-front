@@ -7,8 +7,8 @@ import type { AdminPetSummary, Pet } from "@/types/pet";
 import { EditForm, PublicacionEditForm, toInitial } from "./drawer/PublicacionEditForm";
 import { useDrawerActions } from "./drawer/useDrawerActions";
 import { Pill } from "../../ui/pill";
-import { EditableField } from "./drawer/EditableField";
 import { ConfirmDialog } from "../../ui/confirm-dialog";
+import { EditableField } from "./drawer/EditableField";
 
 const yesNo = (v?: boolean | null) =>
   v === true ? "Sí" : v === false ? "No" : null;
@@ -18,11 +18,12 @@ type Actions = {
   handleReject: (id: string, reason?: string) => Promise<boolean>;
   handleFinalize: (id: string) => Promise<boolean>;
   handleDelete: (id: string, reason?: string) => Promise<boolean>;
+  handleConfirmReturn: (id: string, returnedTo: string) => Promise<boolean>;
   handleSave: (id: string, patch: Partial<Pet>) => Promise<boolean>;
 };
 
 /** Acción pendiente de confirmación en el modal. */
-type PendingAction = "delete" | "reject" | "approve";
+type PendingAction = "delete" | "reject" | "approve" | "confirmReturn";
 
 type Props = {
   pet: AdminPetSummary;
@@ -61,6 +62,13 @@ const CONFIRM_CONFIG: Record<
     title: "Aceptar publicación",
     message: () => "¿Seguro de que querés aceptar la publicación y aceptarlo?",
     requireReason: false,
+  },
+  confirmReturn: {
+    title: "Confirmar devolución",
+    message: (name) =>
+      `¿Confirmás que "${name}" fue devuelta a su dueño? Se cerrará la publicación y se cancelarán adopciones activas.`,
+    requireReason: true,
+    reasonLabel: "¿A quién se devolvió?",
   },
 };
 
@@ -110,6 +118,7 @@ export function PublicacionDrawer({ pet, onClose, actions, initialEditing = fals
     if (pending === "delete") await drawerActions.remove(reason);
     else if (pending === "reject") await drawerActions.reject(reason);
     else if (pending === "approve") await drawerActions.approve();
+    else if (pending === "confirmReturn") await drawerActions.confirmReturn(reason);
     setPending(null);
   }
 
@@ -264,6 +273,19 @@ export function PublicacionDrawer({ pet, onClose, actions, initialEditing = fals
                 <Check size={16} aria-hidden />
                 {drawerActions.busy ? "Procesando…" : "Aprobar"}
               </button>
+              {/* Botón "Confirmar devolución": visible para mascotas perdidas o encontradas activas */}
+              {(pet.status === "perdido" || pet.status === "encontrado") &&
+                pet.reportStatus === "activo" && (
+                  <button
+                    type="button"
+                    className="btn btn-success btn-sm"
+                    onClick={() => setPending("confirmReturn")}
+                    disabled={drawerActions.busy}
+                    title="Marcar como devuelta al dueño"
+                  >
+                    🐾 Devuelta al dueño
+                  </button>
+                )}
             </>
           )}
         </footer>

@@ -22,6 +22,7 @@ const STATUS_TONE: Record<PetStatus, string> = {
   "en tratamiento médico": "medico",
   "en adopción": "adopcion",
   adoptado: "adoptado",
+  "devuelta al dueño": "done",
 };
 
 /** Imagen por defecto según el tipo de animal (assets reales del proyecto). */

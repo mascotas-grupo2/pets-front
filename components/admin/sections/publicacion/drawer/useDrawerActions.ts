@@ -8,6 +8,7 @@ type Actions = {
   handleReject: (id: string, reason?: string) => Promise<boolean>;
   handleFinalize: (id: string) => Promise<boolean>;
   handleDelete: (id: string, reason?: string) => Promise<boolean>;
+  handleConfirmReturn: (id: string, returnedTo: string) => Promise<boolean>;
   handleSave: (id: string, patch: Partial<Pet>) => Promise<boolean>;
 };
 
@@ -45,10 +46,14 @@ export function useDrawerActions(pet: AdminPetSummary, actions: Actions, onClose
     return run(() => actions.handleDelete(pet.id, reason));
   }
 
+  function confirmReturn(returnedTo: string) {
+    return run(() => actions.handleConfirmReturn(pet.id, returnedTo));
+  }
+
   function save(patch: Partial<Pet>) {
     // No cierra el drawer al guardar, solo actualiza
     return run(() => actions.handleSave(pet.id, patch), false);
   }
 
-  return { busy, approve, reject, finalize, remove, save };
+  return { busy, approve, reject, finalize, remove, confirmReturn, save };
 }

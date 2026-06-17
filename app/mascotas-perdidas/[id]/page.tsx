@@ -2,13 +2,15 @@
 
 import { useUserContext } from "@/context/UserContext";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
-import { getIdPets, getAllPets } from "@/services/mascotas.pets";
+import { getIdPets, getAllPets, claimPet } from "@/services/mascotas.pets";
 import { getMyAdoptions, getPetCompatibility, type PetCompatibility } from "@/services/adoptions";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { CatLoader } from "@/components/cat-loader";
 import { PetComments } from "@/components/pet-comments";
+import handleToast from "@/components/utils/toast";
+import { Check, SendHorizonal } from "lucide-react";
 
 function formatAge(months?: number): string {
   if (!months) return "—";
@@ -341,44 +343,36 @@ export default function PetDetailPage() {
               </section>
             )}
 
+            {/* Contacto del refugio (visible para todos) */}
+            {(pet.status === "perdido" || pet.status === "encontrado") && (
+              <section className="pet-detail-contact">
+                <h3>📞 Contactá al refugio</h3>
+                <p>Si tenés información, comunicate con el refugio:</p>
+                <div className="pet-detail-contact-actions">
+                  {pet.contactPhone && (
+                    <a className="btn btn-outline btn-sm" href={`tel:${pet.contactPhone}`}>
+                      📞 Llamar al refugio
+                    </a>
+                  )}
+                  {pet.contactEmail && (
+                    <a className="btn btn-outline btn-sm" href={`mailto:${pet.contactEmail}`}>
+                      ✉️ Email al refugio
+                    </a>
+                  )}
+                  {user.isLoggedIn && (
+                    <Link className="btn btn-primary btn-sm" href="/account?tab=messages">
+                      💬 Enviar mensaje al refugio
+                    </Link>
+                  )}
+                </div>
+              </section>
+            )}
+
+            {/* Formulario de reclamo (visible para estados activos, solo si no es el dueño) */}
             {!isOwner &&
-              (pet.status === "perdido" || pet.status === "encontrado") &&
-              (pet.contactPhone ||
-                pet.contactEmail ||
-                (user.isLoggedIn && pet.userId)) && (
-                <section className="pet-detail-contact">
-                  <h3>
-                    {pet.status === "perdido"
-                      ? "Contactar al dueño"
-                      : "¿Es tu mascota? Contactá a quien la encontró"}
-                  </h3>
-                  <div className="pet-detail-contact-actions">
-                    {pet.contactPhone && (
-                      <a
-                        className="btn btn-outline btn-sm"
-                        href={`tel:${pet.contactPhone}`}
-                      >
-                        📞 Llamar
-                      </a>
-                    )}
-                    {pet.contactEmail && (
-                      <a
-                        className="btn btn-outline btn-sm"
-                        href={`mailto:${pet.contactEmail}`}
-                      >
-                        ✉️ Email
-                      </a>
-                    )}
-                    {user.isLoggedIn && pet.userId && (
-                      <Link
-                        className="btn btn-primary btn-sm"
-                        href={`/account?tab=messages&user=${pet.userId}`}
-                      >
-                        💬 Enviar mensaje
-                      </Link>
-                    )}
-                  </div>
-                </section>
+              pet.status !== "adoptado" &&
+              pet.status !== "devuelta al dueño" && (
+                <ClaimForm petId={pet.id} />
               )}
 
             {pet.status === "en adopción" && (
@@ -440,12 +434,15 @@ export default function PetDetailPage() {
             )}
 
             {(pet.status === "adoptado" ||
-              pet.status === "en tratamiento médico") && (
+              pet.status === "en tratamiento médico" ||
+              pet.status === "devuelta al dueño") && (
               <section className="pet-detail-cta">
                 <p>
                   {pet.status === "adoptado"
                     ? "🎉 Esta mascota ya encontró familia."
-                    : "🏥 Esta mascota está en tratamiento médico."}
+                    : pet.status === "devuelta al dueño"
+                      ? "🐾 Esta mascota fue devuelta a su familia."
+                      : "🏥 Esta mascota está en tratamiento médico."}
                 </p>
               </section>
             )}
@@ -516,5 +513,127 @@ export default function PetDetailPage() {
         </Link>
       </div>
     </main>
+  );
+}
+
+/** Formulario para reclamar una mascota como propia. */
+function ClaimForm({ petId }: { petId: string }) {
+  const [open, setOpen] = useState(false);
+  const [claimantName, setClaimantName] = useState("");
+  const [claimantPhone, setClaimantPhone] = useState("");
+  const [claimantEmail, setClaimantEmail] = useState("");
+  const [description, setDescription] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const user = useAppSelector((state) => state.user);
+
+  // Si el usuario está logueado, precargamos su nombre
+  useEffect(() => {
+    if (user.isLoggedIn && user.name) {
+      setClaimantName(user.name);
+    }
+  }, [user.isLoggedIn, user.name]);
+
+  if (submitted) {
+    return (
+      <section className="pet-detail-claim pet-detail-claim--done">
+        <h3>✅ Reclamo enviado</h3>
+        <p>
+          El refugio recibió tu información y se comunicará con vos para
+          coordinar el reencuentro. No compartimos tus datos de forma pública.
+        </p>
+      </section>
+    );
+  }
+
+  if (!open) {
+    return (
+      <section className="pet-detail-claim">
+        <button
+          type="button"
+          className="btn btn-primary btn-sm"
+          onClick={() => setOpen(true)}
+        >
+          🔔 ¿Creés que es tu mascota?
+        </button>
+      </section>
+    );
+  }
+
+  const canSubmit =
+    !submitting && claimantName.trim().length > 0 && claimantPhone.trim().length > 0;
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!canSubmit) return;
+    setSubmitting(true);
+    try {
+      const res = await claimPet(petId, {
+        claimantName: claimantName.trim(),
+        claimantPhone: claimantPhone.trim(),
+        claimantEmail: claimantEmail.trim() || undefined,
+        description: description.trim() || undefined,
+      });
+      if (res.ok) {
+        setSubmitted(true);
+        handleToast("success", "Reclamo registrado. El refugio se comunicará con vos.");
+      } else {
+        handleToast("error", res.error ?? "No se pudo enviar el reclamo.");
+      }
+    } catch {
+      handleToast("error", "Error al enviar el reclamo.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <section className="pet-detail-claim">
+      <h3>🔔 ¿Creés que es tu mascota?</h3>
+      <p>
+        Completá tus datos y el refugio se comunicará con vos para coordinar
+        el reencuentro. Tu información no se publica.
+      </p>
+      <form onSubmit={handleSubmit} className="claim-form">
+        <input
+          className="input"
+          type="text"
+          placeholder="Tu nombre *"
+          value={claimantName}
+          onChange={(e) => setClaimantName(e.target.value)}
+          required
+        />
+        <input
+          className="input"
+          type="tel"
+          placeholder="Tu teléfono *"
+          value={claimantPhone}
+          onChange={(e) => setClaimantPhone(e.target.value)}
+          required
+        />
+        <input
+          className="input"
+          type="email"
+          placeholder="Tu email (opcional)"
+          value={claimantEmail}
+          onChange={(e) => setClaimantEmail(e.target.value)}
+        />
+        <textarea
+          className="input"
+          rows={3}
+          placeholder="Contanos por qué creés que es tu mascota (opcional)"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+        />
+        <button
+          type="submit"
+          className="btn btn-primary"
+          disabled={!canSubmit}
+        >
+          <SendHorizonal size={16} aria-hidden />{" "}
+          {submitting ? "Enviando…" : "Enviar reclamo"}
+        </button>
+      </form>
+    </section>
   );
 }

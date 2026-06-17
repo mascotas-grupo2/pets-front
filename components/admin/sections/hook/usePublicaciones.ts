@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import handleToast from "@/components/utils/toast";
 import {
   approvePet,
+  confirmReturnPet,
   deletePet,
   finalizePet,
   getAdminPetsPaged,
@@ -169,6 +170,17 @@ export function usePublicaciones() {
     return false;
   }
 
+  async function handleConfirmReturn(id: string, returnedTo: string) {
+    const res = await confirmReturnPet(id, returnedTo);
+    if (res.ok) {
+      handleToast("success", "Mascota marcada como devuelta al dueño.");
+      await reload();
+      return true;
+    }
+    handleToast("error", res.error || "No se pudo confirmar la devolución.");
+    return false;
+  }
+
   async function handleSave(id: string, patch: Partial<Pet>) {
     const res = await updatePet(id, patch);
     if (res.ok) {
@@ -181,6 +193,7 @@ export function usePublicaciones() {
   }
 
   return {
+    handleConfirmReturn,
     visible: pets,
     loading,
     counts,
