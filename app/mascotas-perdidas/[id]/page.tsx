@@ -3,14 +3,27 @@
 import { useUserContext } from "@/context/UserContext";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import { getIdPets, getAllPets, claimPet } from "@/services/mascotas.pets";
-import { getMyAdoptions, getPetCompatibility, type PetCompatibility } from "@/services/adoptions";
+import {
+  getMyAdoptions,
+  getPetCompatibility,
+  type PetCompatibility,
+} from "@/services/adoptions";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { CatLoader } from "@/components/cat-loader";
 import { PetComments } from "@/components/pet-comments";
 import handleToast from "@/components/utils/toast";
-import { Pencil, SendHorizonal } from "lucide-react";
+import {
+  AlertTriangle,
+  Bell,
+  CheckCircle2,
+  Mail,
+  MessageCircle,
+  Pencil,
+  Phone,
+  SendHorizonal,
+} from "lucide-react";
 
 function formatAge(months?: number): string {
   if (!months) return "—";
@@ -111,7 +124,8 @@ export default function PetDetailPage() {
     const animalLabel =
       pet.animalType.charAt(0).toUpperCase() + pet.animalType.slice(1);
     const photoUrls = (pet.photos as unknown as string[]) || [];
-    const mainPhoto = activePhoto ?? (photoUrls.length > 0 ? photoUrls[0] : null);
+    const mainPhoto =
+      activePhoto ?? (photoUrls.length > 0 ? photoUrls[0] : null);
 
     const specs = [
       {
@@ -186,7 +200,10 @@ export default function PetDetailPage() {
             <div className="pet-detail-avatar">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={(pet.photos?.[0] as unknown as string) || "/images/avatar-placeholder.svg"}
+                src={
+                  (pet.photos?.[0] as unknown as string) ||
+                  "/images/avatar-placeholder.svg"
+                }
                 alt={pet.name ?? detail.animalLabel}
               />
             </div>
@@ -254,42 +271,42 @@ export default function PetDetailPage() {
             </div>
 
             <div className="pet-vacc-wrap">
-            <table className="pet-vacc-table">
-              <thead>
-                <tr>
-                  <th>Edad</th>
-                  <th>8va semana</th>
-                  <th>14va semana</th>
-                  <th>22va semana</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <th>Vacunado</th>
-                  <td>
-                    Séxtuple
-                    <br />
-                    Moquillo
-                    <br />
-                    Leptospirosis
-                  </td>
-                  <td>
-                    Séxtuple
-                    <br />
-                    Parvovirus
-                    <br />
-                    Leptospirosis
-                  </td>
-                  <td>
-                    Séxtuple
-                    <br />
-                    Antirrábica
-                    <br />
-                    Leptospirosis
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+              <table className="pet-vacc-table">
+                <thead>
+                  <tr>
+                    <th>Edad</th>
+                    <th>8va semana</th>
+                    <th>14va semana</th>
+                    <th>22va semana</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <th>Vacunado</th>
+                    <td>
+                      Séxtuple
+                      <br />
+                      Moquillo
+                      <br />
+                      Leptospirosis
+                    </td>
+                    <td>
+                      Séxtuple
+                      <br />
+                      Parvovirus
+                      <br />
+                      Leptospirosis
+                    </td>
+                    <td>
+                      Séxtuple
+                      <br />
+                      Antirrábica
+                      <br />
+                      Leptospirosis
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
           </div>
 
@@ -321,7 +338,9 @@ export default function PetDetailPage() {
               <section className="pet-detail-cta pet-compat">
                 <h3 style={{ margin: "0 0 0.75rem" }}>Compatibilidad</h3>
                 <div className="pet-compat-head">
-                  <span className="pet-compat-score">{Math.round(compat.score)}%</span>
+                  <span className="pet-compat-score">
+                    {Math.round(compat.score)}%
+                  </span>
                   <span className="pet-compat-label">
                     {compat.score >= 75
                       ? "Alta"
@@ -346,22 +365,40 @@ export default function PetDetailPage() {
             {/* Contacto del refugio (visible para todos) */}
             {(pet.status === "perdido" || pet.status === "encontrado") && (
               <section className="pet-detail-contact">
-                <h3>📞 Contactá al refugio</h3>
+                <h3
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.5rem",
+                  }}
+                >
+                  <Phone size={18} aria-hidden /> Contactá al refugio
+                </h3>
                 <p>Si tenés información, comunicate con el refugio:</p>
                 <div className="pet-detail-contact-actions">
                   {pet.contactPhone && (
-                    <a className="btn btn-outline btn-sm" href={`tel:${pet.contactPhone}`}>
-                      📞 Llamar al refugio
+                    <a
+                      className="btn btn-outline btn-sm"
+                      href={`tel:${pet.contactPhone}`}
+                    >
+                      <Phone size={16} aria-hidden /> Llamar al refugio
                     </a>
                   )}
                   {pet.contactEmail && (
-                    <a className="btn btn-outline btn-sm" href={`mailto:${pet.contactEmail}`}>
-                      ✉️ Email al refugio
+                    <a
+                      className="btn btn-outline btn-sm"
+                      href={`mailto:${pet.contactEmail}`}
+                    >
+                      <Mail size={16} aria-hidden /> Email al refugio
                     </a>
                   )}
                   {user.isLoggedIn && (
-                    <Link className="btn btn-primary btn-sm" href="/account?tab=messages">
-                      💬 Enviar mensaje al refugio
+                    <Link
+                      className="btn btn-primary btn-sm"
+                      href="/account?tab=messages"
+                    >
+                      <MessageCircle size={16} aria-hidden /> Enviar mensaje al
+                      refugio
                     </Link>
                   )}
                 </div>
@@ -377,7 +414,9 @@ export default function PetDetailPage() {
 
             {pet.status === "en adopción" && (
               <section className="pet-detail-cta">
-                <p>{adopter ? "¿Me querés adoptar?" : "¿Te interesa adoptar?"}</p>
+                <p>
+                  {adopter ? "¿Me querés adoptar?" : "¿Te interesa adoptar?"}
+                </p>
                 {alreadyApplied ? (
                   <button
                     type="button"
@@ -527,7 +566,6 @@ function ClaimForm({ petId }: { petId: string }) {
   const [submitted, setSubmitted] = useState(false);
   const user = useAppSelector((state) => state.user);
 
-  // Si el usuario está logueado, precargamos su nombre
   useEffect(() => {
     if (user.isLoggedIn && user.name) {
       setClaimantName(user.name);
@@ -537,7 +575,9 @@ function ClaimForm({ petId }: { petId: string }) {
   if (submitted) {
     return (
       <section className="pet-detail-claim pet-detail-claim--done">
-        <h3>✅ Reclamo enviado</h3>
+        <h3>
+          <CheckCircle2 size={18} aria-hidden /> Reclamo enviado
+        </h3>
         <p>
           El refugio recibió tu información y se comunicará con vos para
           coordinar el reencuentro. No compartimos tus datos de forma pública.
@@ -554,14 +594,16 @@ function ClaimForm({ petId }: { petId: string }) {
           className="btn btn-primary btn-sm"
           onClick={() => setOpen(true)}
         >
-          🔔 ¿Creés que es tu mascota?
+          <Bell size={16} aria-hidden /> ¿Creés que es tu mascota?
         </button>
       </section>
     );
   }
 
   const canSubmit =
-    !submitting && claimantName.trim().length > 0 && claimantPhone.trim().length > 0;
+    !submitting &&
+    claimantName.trim().length > 0 &&
+    claimantPhone.trim().length > 0;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -576,7 +618,10 @@ function ClaimForm({ petId }: { petId: string }) {
       });
       if (res.ok) {
         setSubmitted(true);
-        handleToast("success", "Reclamo registrado. El refugio se comunicará con vos.");
+        handleToast(
+          "success",
+          "Reclamo registrado. El refugio se comunicará con vos.",
+        );
       } else {
         handleToast("error", res.error ?? "No se pudo enviar el reclamo.");
       }
@@ -588,13 +633,22 @@ function ClaimForm({ petId }: { petId: string }) {
   };
 
   return (
-    <section className="pet-detail-claim">
-      <h3>🔔 ¿Creés que es tu mascota?</h3>
+    <section
+      className="pet-detail-claim"
+      style={{ display: "flex", flexDirection: "column", gap: "1rem" }}
+    >
+      <h3>
+        <Bell size={18} aria-hidden /> ¿Creés que es tu mascota?
+      </h3>
       <p>
-        Completá tus datos y el refugio se comunicará con vos para coordinar
-        el reencuentro. Tu información no se publica.
+        Completá tus datos y el refugio se comunicará con vos para coordinar el
+        reencuentro. Tu información no se publica.
       </p>
-      <form onSubmit={handleSubmit} className="claim-form">
+      <form
+        onSubmit={handleSubmit}
+        className="claim-form"
+        style={{ display: "flex", flexDirection: "column", gap: "1rem" }}
+      >
         <input
           className="input"
           type="text"
@@ -625,11 +679,7 @@ function ClaimForm({ petId }: { petId: string }) {
           value={description}
           onChange={(e) => setDescription(e.target.value)}
         />
-        <button
-          type="submit"
-          className="btn btn-primary"
-          disabled={!canSubmit}
-        >
+        <button type="submit" className="btn btn-primary" disabled={!canSubmit}>
           <SendHorizonal size={16} aria-hidden />{" "}
           {submitting ? "Enviando…" : "Enviar reclamo"}
         </button>
