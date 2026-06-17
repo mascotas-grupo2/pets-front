@@ -100,7 +100,7 @@ export function useMetricas() {
       labels: adoptionsStatus.labels,
       datasets: [{
         data: adoptionsStatus.data,
-        backgroundColor: [COLORS.amber, COLORS.blue, COLORS.green, COLORS.rose, COLORS.cyan],
+        backgroundColor: [COLORS.amber, COLORS.blue, COLORS.green, COLORS.rose, COLORS.cyan, COLORS.violet],
         borderWidth: 0,
         hoverOffset: 8,
       }],

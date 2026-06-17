@@ -152,7 +152,7 @@ function AccountPageContent() {
             </Link>
           </aside>
 
-          <div className="account-body">
+          <div className={!["notifications", "messages"].includes(activeSection) ? "account-body" : ""}>
             {activeSection === "profile" && (
               <>
                 <ProfileView

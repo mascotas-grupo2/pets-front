@@ -256,10 +256,10 @@ export function MessagesPanel({ initialUserId }: { initialUserId?: number }) {
               {photoFile && (
                 <div className="msg-preview-container">
                   <div className="msg-preview-box">
-                    <img 
-                      src={URL.createObjectURL(photoFile)} 
-                      alt="Preview" 
-                      className="msg-preview-img" 
+                    <img
+                      src={URL.createObjectURL(photoFile)}
+                      alt="Preview"
+                      className="msg-preview-img"
                     />
                     <button
                       type="button"

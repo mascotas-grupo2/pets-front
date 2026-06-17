@@ -38,10 +38,28 @@ const DEFAULT_OPTIONS: ChartOptions<"doughnut"> = {
   },
 };
 
-export function DoughnutChart({ data, options, height = 220 }: DoughnutChartProps) {
+export function DoughnutChart({
+  data,
+  options,
+  height = 220,
+}: DoughnutChartProps) {
+  // Normalizamos los datasets para agregar bordes redondeados y un ligero espaciado
+  const normalizedData: ChartData<"doughnut"> = {
+    ...data,
+    datasets: data.datasets.map((ds) => ({
+      ...ds,
+      borderRadius: 10, // Controla qué tan redondeadas son las puntas
+      spacing: 0, // Espacio entre segmentos para que el redondeo sea visible
+      borderWidth: 2, // Quitamos el borde por defecto para un look más limpio
+    })),
+  };
+
   return (
     <div style={{ height }} className="chart-wrapper chart-wrapper--center">
-      <Doughnut data={data} options={{ ...DEFAULT_OPTIONS, ...options }} />
+      <Doughnut
+        data={normalizedData}
+        options={{ ...DEFAULT_OPTIONS, ...options }}
+      />
     </div>
   );
 }
