@@ -1,4 +1,4 @@
-import { MessageSquare, FileText, Megaphone, Bell } from "lucide-react";
+import { MessageSquare, FileText, Megaphone, Bell, AlertTriangle } from "lucide-react";
 import type { Notification } from "@/services/notifications";
 
 /** Formato relativo simple ("recién", "hace 5 min", "hace 2 h", "hace 3 d"). */
@@ -12,11 +12,18 @@ export function timeAgo(iso: string) {
   return `hace ${Math.floor(h / 24)} d`;
 }
 
+function esReclamo(n: Notification) {
+  return n.title?.includes("Reclamo") || n.body?.includes("reclama");
+}
+
 const TYPE_META: Record<string, { Icon: typeof Bell; tone: string }> = {
   message: { Icon: MessageSquare, tone: "violet" },
   adoption_status: { Icon: FileText, tone: "green" },
   publication: { Icon: Megaphone, tone: "amber" },
 };
+
+/** Meta para reclamos de mascota (urgencia). */
+const RECLAMO_META = { Icon: AlertTriangle, tone: "red" };
 
 /** Una notificación (ícono por tipo + contenido). Usada por la campana y la vista. */
 export function NotificationItem({
@@ -26,7 +33,7 @@ export function NotificationItem({
   n: Notification;
   onClick: (n: Notification) => void;
 }) {
-  const { Icon, tone } = TYPE_META[n.type] ?? { Icon: Bell, tone: "violet" };
+  const { Icon, tone } = esReclamo(n) ? RECLAMO_META : (TYPE_META[n.type] ?? { Icon: Bell, tone: "violet" });
   return (
     <button
       type="button"

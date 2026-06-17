@@ -15,6 +15,7 @@ import { userMessage } from "@/services/messages.services";
 import { useConversation } from "../hook/messages/useConversation";
 import { useEvaluacion } from "../hook/useEvaluacion";
 import { initials } from "../dashboard/dashboard.data";
+import { Avatar, Burbuja, Spinner } from "@/components/messages/chat-ui";
 
 type Props = {
   conversationData: ReturnType<typeof useConversation>;
@@ -265,15 +266,7 @@ export default function ConversationView({
   return (
     <section className="msg-chat-panel">
       <header className="msg-chat-head">
-        {headPhoto ? (
-          <img
-            src={headPhoto}
-            alt={headName}
-            className="msg-avatar object-cover"
-          />
-        ) : (
-          <span className="msg-avatar">{initials(headName)}</span>
-        )}
+        <Avatar user={{ name: headName, photo: headPhoto } as any} />
         <div className="msg-chat-head-info">
           <h3>{headName}</h3>
           {(profile?.context || activeUserMessage?.context) && (
@@ -305,55 +298,20 @@ export default function ConversationView({
                 </div>
               )}
               {conversationData.loading ? (
-                <div className="flex justify-center p-8">
-                  <Loader2 className="animate-spin w-8 h-8 text-blue-500" />
-                </div>
+                <Spinner />
               ) : messages.length === 0 ? (
                 <div className="text-center p-8 text-gray-500">No hay mensajes.</div>
               ) : (
                 messages.map((m) => {
-                  const isMine = m.senderId === currentUser.id;
                   return (
-                    <div
+                    <Burbuja
                       key={m.id}
-                      className={`msg-bubble-row ${isMine ? "is-mine" : "is-theirs"}`}
-                    >
-                      {!isMine &&
-                        (activeUserMessage?.photo ? (
-                          <img
-                            src={activeUserMessage.photo}
-                            alt={activeUserMessage.name}
-                            className="msg-avatar msg-avatar-sm object-cover"
-                          />
-                        ) : (
-                          <span className="msg-avatar msg-avatar-sm">
-                            {initials(activeUserMessage?.name || "U")}
-                          </span>
-                        ))}
-                      <div className="msg-bubble">
-                        {m.photo && (
-                          <div className="msg-bubble-photo">
-                            <img src={m.photo} alt="Foto adjunta" />
-                          </div>
-                        )}
-                        {m.content && <p>{m.content}</p>}
-                        <time>
-                          {new Date(m.createdAt).toLocaleTimeString([], {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
-                        </time>
-                      </div>
-                      <button
-                        type="button"
-                        className="msg-delete"
-                        aria-label="Eliminar mensaje"
-                        title="Eliminar mensaje"
-                        onClick={() => conversationData.remove(m.id)}
-                      >
-                        <Trash2 size={14} />
-                      </button>
-                    </div>
+                      m={m}
+                      isMine={m.senderId === currentUser.id}
+                      user={activeUserMessage}
+                      isAdmin={currentUser.role === "admin"}
+                      onDelete={conversationData.remove}
+                    />
                   );
                 })
               )}
@@ -375,10 +333,10 @@ export default function ConversationView({
             {photoFile && (
               <div className="msg-preview-container">
                 <div className="msg-preview-box">
-                  <img 
-                    src={URL.createObjectURL(photoFile)} 
-                    alt="Preview" 
-                    className="msg-preview-img" 
+                  <img
+                    src={URL.createObjectURL(photoFile)}
+                    alt="Preview"
+                    className="msg-preview-img"
                   />
                   <button
                     type="button"

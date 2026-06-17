@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import {
   Loader2,
   MessageSquare,
@@ -10,6 +10,7 @@ import {
   Trash2,
   X,
   Image as ImageIcon,
+  AlertTriangle,
 } from "lucide-react";
 import type {
   InboxConversation,
@@ -19,68 +20,7 @@ import type {
 import { useMessages } from "./useMessages";
 import { initials } from "./messages.data";
 import { NuevoMensaje } from "./nuevo-mensaje";
-
-function Avatar({ user, small = false }: { user: InboxConversation["user"] | null; small?: boolean }) {
-  const name = user?.name || "Usuario";
-  const className = `msg-avatar${small ? " msg-avatar-sm" : ""}`;
-  return user?.photo ? (
-    <img src={user.photo} alt={name} className={`${className} object-cover`} />
-  ) : (
-    <span className={className} aria-hidden>
-      {initials(name)}
-    </span>
-  );
-}
-
-function Spinner() {
-  return (
-    <div className="flex justify-center p-8">
-      <Loader2 className="animate-spin text-blue-500 w-8 h-8" />
-    </div>
-  );
-}
-
-function Burbuja({
-  m,
-  isMine,
-  user,
-  isAdmin,
-  onDelete,
-}: {
-  m: Message;
-  isMine: boolean;
-  user: userMessage | null;
-  isAdmin: boolean;
-  onDelete: (id: number) => void;
-}) {
-  return (
-    <div className={`msg-bubble-row ${isMine ? "is-mine" : "is-theirs"}`}>
-      {!isMine && <Avatar user={user} small />}
-      <div className="msg-bubble">
-        {m.photo && (
-          <div className="msg-bubble-photo">
-            <img src={m.photo} alt="Foto adjunta" />
-          </div>
-        )}
-        {m.content && <p>{m.content}</p>}
-        <time>
-          {new Date(m.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-        </time>
-      </div>
-      {(isMine || isAdmin) && (
-        <button
-          type="button"
-          className="msg-delete"
-          aria-label="Eliminar mensaje"
-          title="Eliminar mensaje"
-          onClick={() => onDelete(m.id)}
-        >
-          <Trash2 size={14} />
-        </button>
-      )}
-    </div>
-  );
-}
+import { Avatar, Burbuja, Spinner } from "./chat-ui";
 
 /**
  * Bandeja de conversaciones + chat activo contra la API real de mensajes.
@@ -196,7 +136,7 @@ export function MessagesPanel({ initialUserId }: { initialUserId?: number }) {
                       <span className="msg-item-name">{name}</span>
                       <span className="msg-item-sub truncate w-32">
                         {c.latestMessage?.senderId === currentUserId ? "Tú: " : ""}
-                        {c.latestMessage?.content}
+                        {c.latestMessage?.content.replace(/<[^>]*>/g, "").slice(0, 60)}
                       </span>
                     </span>
                     <span className="msg-item-meta">
