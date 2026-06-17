@@ -30,6 +30,7 @@ const STATUS_LABEL: Record<PetStatus, string> = {
   "en tratamiento médico": "En tratamiento médico",
   "en adopción": "En adopción",
   adoptado: "Adoptado",
+  "devuelta al dueño": "Devuelta al dueño",
 };
 
 type Tab =

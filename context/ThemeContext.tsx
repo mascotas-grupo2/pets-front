@@ -23,6 +23,9 @@ const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
 function getInitialTheme(): Theme {
   if (typeof window === "undefined") return "light";
 
+  const applied = document.documentElement.getAttribute("data-theme");
+  if (applied === "light" || applied === "dark") return applied;
+
   const stored = window.localStorage.getItem(STORAGE_KEY);
   if (stored === "light" || stored === "dark") return stored;
 
@@ -31,31 +34,39 @@ function getInitialTheme(): Theme {
     : "light";
 }
 
-function applyTheme(theme: Theme) {
+function applyThemeToDom(theme: Theme) {
   document.documentElement.setAttribute("data-theme", theme);
+}
+
+function persistTheme(theme: Theme) {
+  try {
+    window.localStorage.setItem(STORAGE_KEY, theme);
+  } catch {}
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<Theme>("light");
 
-  // Sincroniza con lo que el script inline ya aplicó en <html>.
   useEffect(() => {
-    setThemeState(getInitialTheme());
+    const initial = getInitialTheme();
+    setThemeState(initial);
+    applyThemeToDom(initial);
   }, []);
 
   const setTheme = useCallback((next: Theme) => {
     setThemeState(next);
-    applyTheme(next);
-    try {
-      window.localStorage.setItem(STORAGE_KEY, next);
-    } catch {
-      /* almacenamiento no disponible: se ignora */
-    }
+    applyThemeToDom(next);
+    persistTheme(next);
   }, []);
 
   const toggleTheme = useCallback(() => {
-    setTheme(theme === "dark" ? "light" : "dark");
-  }, [theme, setTheme]);
+    setThemeState((prev) => {
+      const next: Theme = prev === "dark" ? "light" : "dark";
+      applyThemeToDom(next);
+      persistTheme(next);
+      return next;
+    });
+  }, []);
 
   return (
     <ThemeContext.Provider value={{ theme, toggleTheme, setTheme }}>

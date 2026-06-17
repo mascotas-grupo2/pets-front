@@ -16,6 +16,7 @@ export const PET_STATUS_CHIP_CLASS: Record<PetStatus, string> = {
   "en tratamiento médico": "admin-chip admin-chip-medico",
   "en adopción": "admin-chip admin-chip-adopcion",
   adoptado: "admin-chip admin-chip-adoptado",
+  "devuelta al dueño": "admin-chip admin-chip-adoptado",
 };
 
 export const PET_MEDICAL_STATUS_OPTIONS: {

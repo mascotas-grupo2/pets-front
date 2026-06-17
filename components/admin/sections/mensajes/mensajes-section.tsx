@@ -26,7 +26,7 @@ export default function MensajesSection() {
   // (ej. desde "Ir a la conversación" en el drawer de una solicitud).
   const searchParams = useSearchParams();
   useEffect(() => {
-    const u = Number(searchParams.get("user"));
+    const u = Number(searchParams?.get("user"));
     if (Number.isInteger(u) && u > 0) openConversation(u);
   }, [searchParams, openConversation]);
 

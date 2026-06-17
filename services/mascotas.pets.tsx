@@ -15,6 +15,21 @@ export const getIdsPets = (ids: string[]) =>
 export const updatePet = (id: string, patch: Partial<Pet>) =>
   request<Pet>(() => axios.put(`mascotas/${id}`, patch));
 
+/**
+ * Actualiza las fotos de una publicación.
+ * `keep` son las URLs existentes que se conservan; `files` las imágenes nuevas.
+ */
+export const updatePetPhotos = (
+  id: string,
+  keep: string[],
+  files: File[],
+) => {
+  const formData = new FormData();
+  formData.append("keep", JSON.stringify(keep));
+  files.forEach((f) => formData.append("photo", f, f.name));
+  return request<Pet>(() => axios.put(`mascotas/${id}/photos`, formData));
+};
+
 export const listPetNotes = (id: string) =>
   request<PetNote[]>(() => axios.get(`mascotas/${id}/notes`));
 
