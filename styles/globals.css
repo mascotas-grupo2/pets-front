@@ -3226,7 +3226,8 @@
 /* Tooltip Estilo MUI */
 .tooltip-container {
   position: relative;
-  display: inline-flex;
+  display: inline-block;
+  align-self: flex-start; /* evita que el padre flex lo estire al 100% */
 }
 
 .tooltip-content {
@@ -3248,7 +3249,6 @@
   pointer-events: none;
   box-shadow: var(--shadow-md);
 }
-
 /* Flecha superior */
 .tooltip-content::after {
   content: "";

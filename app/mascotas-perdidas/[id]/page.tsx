@@ -38,7 +38,7 @@ export default function PetDetailPage() {
   const params = useParams();
   const id = params?.id as string;
   const dispatch = useAppDispatch();
-  const { adopter } = useUserContext();
+  const { adopter, isLoggedIn } = useUserContext();
   const [activePhoto, setActivePhoto] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   // Si el usuario ya envió una solicitud para esta mascota, deshabilitamos el CTA.
@@ -406,11 +406,28 @@ export default function PetDetailPage() {
             )}
 
             {/* Formulario de reclamo (visible para estados activos, solo si no es el dueño) */}
-            {!isOwner &&
+            {/* {!isOwner &&
               pet.status !== "adoptado" &&
               pet.status !== "devuelta al dueño" && (
                 <ClaimForm petId={pet.id} />
-              )}
+              )} */}
+            {isLoggedIn ? (
+              !isOwner &&
+              pet.status !== "adoptado" &&
+              pet.status !== "devuelta al dueño" && <ClaimForm petId={pet.id} />
+            ) : (
+              <div className="tooltip-container">
+                <button disabled className="btn btn-primary btn-sm">
+                  <Bell size={16} aria-hidden />
+                  ¿Creés que es tu mascota?
+                </button>
+                <span
+                  className="tooltip-content"
+                >
+                  Necesitás iniciar sesión
+                </span>
+              </div>
+            )}
 
             {pet.status === "en adopción" && (
               <section className="pet-detail-cta">
