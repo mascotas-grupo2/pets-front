@@ -11,7 +11,7 @@ export function MatchingModal({ detail, onClose }: Props) {
   
   // Calculate total modifiers
   const sumModifiers = factors.reduce((acc, factor) => acc + factor.scoreImpact, 0);
-  const rawScore = 50 + sumModifiers;
+  const rawScore = sumModifiers;
   const finalScore = Math.max(0, Math.min(100, rawScore));
 
   return createPortal(
@@ -74,7 +74,7 @@ export function MatchingModal({ detail, onClose }: Props) {
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "1rem" }}>
                   <div>Puntaje base inicial:</div>
-                  <strong>50</strong>
+                  <strong>0</strong>
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "1rem", margin: "0.5rem 0", paddingBottom: "0.5rem", borderBottom: "1px solid var(--gray-200)" }}>
                   <div>Suma de modificadores:</div>
@@ -90,7 +90,9 @@ export function MatchingModal({ detail, onClose }: Props) {
                 <div style={{ display: "flex", alignItems: "flex-start", marginTop: "1rem", color: "var(--gray-600)", fontSize: "0.875rem", gap: "0.5rem" }}>
                   <Info size={16} style={{ flexShrink: 0, marginTop: "2px" }} />
                   <p style={{ margin: 0 }}>
-                    El sistema ajusta el total matemático para que siempre se encuentre en el rango de 0 a 100. Por lo tanto, el puntaje final asignado es de <strong>{finalScore} puntos</strong>.
+                    El puntaje ideal es de <strong>100 puntos</strong> en caso de ser 100% compatible. 
+                    El puntaje arranca en 0 y solo suma puntos positivos por cada criterio cumplido (a excepción de reglas eliminatorias como las alergias). 
+                    Por lo tanto, el puntaje final asignado es de <strong>{finalScore} puntos</strong>.
                   </p>
                 </div>
               </section>
