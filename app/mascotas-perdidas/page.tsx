@@ -104,21 +104,17 @@ export default function LostPetsPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (pets.length) {
-      setLoading(false);
-      return;
-    }
     getAllPets()
       .then((res) => {
         if (res && res.ok && res.data) {
-          const pets = res.data;
-          setPets(pets);
-          dispatch({ type: "pets/all_pets", payload: pets });
+          const petsData = res.data;
+          setPets(petsData);
+          dispatch({ type: "pets/all_pets", payload: petsData });
         }
       })
       .catch((error: unknown) => console.error(error))
       .finally(() => setLoading(false));
-  }, [pets, dispatch]);
+  }, [dispatch]);
 
   const updateFilter = (changes: Partial<FilterCriteria>) => {
     setFilters((prev) => ({ ...prev, ...changes }));

@@ -10,7 +10,7 @@ import { useEffect, useMemo, useState } from "react";
 import { CatLoader } from "@/components/cat-loader";
 import { PetComments } from "@/components/pet-comments";
 import handleToast from "@/components/utils/toast";
-import { Check, Pencil, SendHorizonal } from "lucide-react";
+import { Pencil, SendHorizonal } from "lucide-react";
 
 function formatAge(months?: number): string {
   if (!months) return "—";

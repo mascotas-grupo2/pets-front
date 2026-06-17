@@ -3282,3 +3282,603 @@
   color: var(--text-muted, #9ca3af);
   flex-shrink: 0;
 }
+
+/* ===========================================================
+   Métricas
+   =========================================================== */
+
+.metricas {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.metricas-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.metricas-header-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.metricas-title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--gray-900);
+}
+
+.metricas-subtitle {
+  margin: 0;
+  font-size: 13px;
+  color: var(--gray-500);
+}
+
+/* ---------- Filtros rápidos ---------- */
+.metricas-filters {
+  display: flex;
+  gap: 6px;
+  background: var(--gray-100);
+  padding: 4px;
+  border-radius: var(--radius-md);
+}
+
+.metricas-filter-btn {
+  padding: 7px 16px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--gray-500);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.metricas-filter-btn:hover {
+  color: var(--gray-700);
+  background: var(--gray-200);
+}
+
+.metricas-filter-btn--active {
+  background: var(--surface);
+  color: var(--gray-900);
+  font-weight: 600;
+  box-shadow: var(--shadow-sm);
+}
+
+/* ---------- Stat Cards (6 columnas) ---------- */
+.metricas-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 14px;
+}
+
+.metricas-stat-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.metricas-stat-icon {
+  flex-shrink: 0;
+  width: 42px;
+  height: 42px;
+  border-radius: var(--radius-md);
+  display: grid;
+  place-items: center;
+  font-size: 20px;
+}
+
+.metricas-stat-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.metricas-stat-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--gray-900);
+  line-height: 1.15;
+}
+
+.metricas-stat-label {
+  font-size: 12px;
+  color: var(--gray-500);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.metricas-stat-hint {
+  font-size: 11px;
+  color: var(--gray-400);
+}
+
+/* ---------- Chart Card ---------- */
+.chart-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.chart-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--gray-100);
+}
+
+.chart-card-title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--gray-900);
+}
+
+.chart-card-subtitle {
+  font-size: 12px;
+  color: var(--gray-400);
+  flex-shrink: 0;
+}
+
+.chart-card-body {
+  padding: 16px 20px 20px;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chart-card-body--full {
+  padding: 16px 12px 12px;
+  width: 100%;
+}
+
+.chart-card-body--full canvas,
+.chart-card-body--full .chart-wrapper {
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+.chart-card-table {
+  padding: 4px 0;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+/* ---------- Dona grid (3 columnas) ---------- */
+.metricas-dona-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+.metricas-dona-col {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.metricas-dona-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--gray-900);
+}
+
+.metricas-dona-chart {
+  position: relative;
+  width: 100%;
+  max-width: 220px;
+}
+
+.metricas-dona-center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.metricas-dona-total {
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--gray-800);
+  line-height: 1;
+}
+
+.metricas-dona-label {
+  font-size: 12px;
+  color: var(--gray-400);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 2px;
+}
+
+/* ---------- Grid 3 columnas ---------- */
+.metricas-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+/* ---------- Top publicaciones (dentro de chart-card) ---------- */
+.metricas-top-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--gray-50);
+  transition: background 0.12s ease;
+}
+
+.metricas-top-row:last-child {
+  border-bottom: none;
+}
+
+.metricas-top-row:hover {
+  background: var(--gray-50);
+}
+
+.metricas-top-rank-wrap {
+  flex-shrink: 0;
+  width: 24px;
+}
+
+.metricas-top-rank {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--gray-400);
+}
+
+.metricas-top-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.metricas-top-line1 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.metricas-top-titulo {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--gray-900);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.metricas-top-vistas {
+  font-size: 12px;
+  color: var(--gray-500);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.metricas-top-line2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.metricas-top-comentarios {
+  font-size: 12px;
+  color: var(--gray-400);
+  white-space: nowrap;
+}
+
+/* Pills pequeños */
+.pill--sm {
+  padding: 2px 8px;
+  font-size: 11px;
+  border-radius: var(--radius-full);
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.pill--green {
+  background: var(--secondary-50);
+  color: var(--secondary-700);
+}
+.pill--violet {
+  background: var(--primary-50);
+  color: var(--primary-600);
+}
+.pill--amber {
+  background: #fdf0db;
+  color: #b9770e;
+}
+
+/* ---------- Mapa ---------- */
+.metricas-map-wrap {
+  width: 100%;
+}
+
+.metricas-map-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.metricas-map-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--gray-100);
+}
+
+.metricas-map-title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--gray-900);
+}
+
+.metricas-map-subtitle {
+  font-size: 12px;
+  color: var(--gray-400);
+}
+
+.metricas-map-body {
+  height: 340px;
+  position: relative;
+}
+
+.metricas-map-body .leaflet-container {
+  width: 100%;
+  height: 100%;
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+}
+
+.leaflet-metricas-pin {
+  background: none !important;
+  border: none !important;
+}
+
+/* ---------- Wrapper para canvas ---------- */
+.chart-wrapper {
+  width: 100%;
+  position: relative;
+}
+
+.chart-wrapper--center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ===========================================================
+   Responsive: Métricas
+   =========================================================== */
+
+@media (max-width: 1280px) {
+  .metricas-stat-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 1024px) {
+  .metricas-dona-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .metricas-grid-3 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .metricas-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .metricas-stat-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .metricas-dona-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .metricas-grid-3 {
+    grid-template-columns: 1fr;
+  }
+
+  .metricas-map-body {
+    height: 260px;
+  }
+
+  .chart-card-body {
+    padding: 12px 14px 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .metricas-stat-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .metricas-filters {
+    width: 100%;
+    justify-content: stretch;
+  }
+  .metricas-filter-btn {
+    flex: 1;
+    text-align: center;
+  }
+}
+
+/* ---------- Donut con leyenda (DonutWithDetails) ---------- */
+.donut-detail-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: 20px;
+}
+
+.donut-detail-title {
+  margin: 0 0 16px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--gray-900);
+}
+
+.donut-detail-body {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.donut-detail-chart {
+  position: relative;
+  flex-shrink: 0;
+  width: 200px;
+}
+
+.donut-detail-center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.donut-detail-total {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--gray-800);
+  line-height: 1;
+}
+
+.donut-detail-label {
+  font-size: 11px;
+  color: var(--gray-400);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 2px;
+}
+
+.donut-detail-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+
+.donut-detail-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.donut-detail-legend-dot {
+  flex-shrink: 0;
+  width: 10px;
+  height: 10px;
+  border-radius: var(--radius-full);
+}
+
+.donut-detail-legend-label {
+  flex: 1;
+  color: var(--gray-700);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.donut-detail-legend-value {
+  font-weight: 600;
+  color: var(--gray-800);
+  white-space: nowrap;
+}
+
+.donut-detail-legend-pct {
+  color: var(--gray-400);
+  font-size: 12px;
+  white-space: nowrap;
+  min-width: 44px;
+  text-align: right;
+}
+
+/* ---------- Avatar en top publicaciones ---------- */
+.metricas-top-avatar {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  object-fit: cover;
+  background: var(--gray-100);
+}
+
+/* ---------- Divider entre secciones ---------- */
+.metricas-divider {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 4px 0;
+}
+
+/* ---------- Grid 3 columnas con altura uniforme ---------- */
+.metricas-grid-3 .chart-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+/* ---------- Responsive: Donut con leyenda ---------- */
+@media (max-width: 640px) {
+  .donut-detail-body {
+    flex-direction: column;
+    align-items: center;
+  }
+  .donut-detail-legend {
+    width: 100%;
+  }
+}

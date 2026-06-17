@@ -22,7 +22,7 @@ import { DashboardActivity } from "./DashboardActivity";
 import { solicitudEstadoTone } from "../../lib/solicitud-status";
 
 /** Enlace "Ver todas/os" del encabezado de un panel. */
-function VerTodas({
+export function VerTodas({
   label = "Ver todas",
   href,
 }: {
