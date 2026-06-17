@@ -45,6 +45,7 @@ export const PET_STATUS_LABELS: Record<PetStatus, string> = {
   "en tratamiento médico": "En tratamiento médico",
   "en adopción": "En adopción",
   adoptado: "Adoptado",
+  "devuelta al dueño": "Devuelta al dueño",
 };
 
 export const PET_STATUS_TRANSITIONS: Record<PetStatus, PetStatus[]> = {
@@ -54,6 +55,7 @@ export const PET_STATUS_TRANSITIONS: Record<PetStatus, PetStatus[]> = {
   "en tratamiento médico": ["en tránsito", "en adopción"],
   "en adopción": ["adoptado"],
   adoptado: [],
+  "devuelta al dueño": [],
 };
 
 export function esEstadoMascotaTerminal(status: PetStatus): boolean {
