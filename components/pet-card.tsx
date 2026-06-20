@@ -104,6 +104,14 @@ export function PetCard({
         <span className={`pet-badge pet-badge--${tone}`}>
           {(pet.status && pet.status.toLocaleUpperCase()) || "PERDIDO"}
         </span>
+        {pet.status === "perdido" && pet.isOwner && !reportMeta && (
+          <span
+            className="pet-report-badge"
+            style={{ background: "var(--primary-500)", right: "12px" }}
+          >
+            Con dueño
+          </span>
+        )}
         {when && <span className="pet-when">{when}</span>}
         {reportMeta && (
           <span
@@ -162,7 +170,8 @@ export function PetCard({
             {onResolve &&
               pet.reportStatus !== "finalizado" &&
               pet.status !== "en adopción" &&
-              pet.status !== "adoptado" && (
+              pet.status !== "adoptado" &&
+              !pet.isOwner && (
                 <button
                   type="button"
                   className="btn btn-success btn-sm"

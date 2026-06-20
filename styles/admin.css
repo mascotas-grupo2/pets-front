@@ -2612,6 +2612,54 @@
   font-size: 0.8rem;
 }
 
+/* ---------- Tarjeta de reclamo en el chat (arriba del thread) ---------- */
+.claim-in-chat {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 18px;
+  margin: 8px 14px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: var(--radius-lg);
+}
+
+.claim-in-chat-icon {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-full);
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.claim-in-chat-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.claim-in-chat-body strong {
+  display: block;
+  font-size: 14px;
+  color: #991b1b;
+  margin-bottom: 2px;
+}
+
+.claim-in-chat-body p {
+  margin: 0;
+  font-size: 13px;
+  color: #b91c1c;
+}
+
+.claim-in-chat-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
 .msg-bubble time {
   display: block;
   margin-top: 4px;

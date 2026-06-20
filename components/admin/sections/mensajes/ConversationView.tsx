@@ -8,6 +8,9 @@ import {
   ArrowDown,
   Image as ImageIcon,
   X,
+  ExternalLink,
+  Undo2,
+  AlertTriangle,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useAppSelector } from "@/redux/hooks";
@@ -15,6 +18,9 @@ import { userMessage } from "@/services/messages.services";
 import { useConversation } from "../hook/messages/useConversation";
 import { useEvaluacion } from "../hook/useEvaluacion";
 import { initials } from "../dashboard/dashboard.data";
+import Link from "next/link";
+import { toast } from "sonner";
+import { confirmReturnPet } from "@/services/mascotas.pets";
 import { Avatar, Burbuja, Spinner } from "@/components/messages/chat-ui";
 
 type Props = {
@@ -194,10 +200,8 @@ export default function ConversationView({
     [esInterno],
   );
 
-  // Si cambiamos de conversación y la pestaña activa ya no existe, volvemos a Mensajes.
-  useEffect(() => {
-    if (!tabs.some((t) => t.id === tab)) setTab("mensajes");
-  }, [tabs, tab]);
+  const visibleTabs = tabs.some((t) => t.id === tab) ? tabs : tabs.filter((t) => t.id === "mensajes");
+  if (visibleTabs.length !== tabs.length) setTab("mensajes");
 
   const threadRef = useRef<HTMLDivElement>(null);
   const prevLastIdRef = useRef<number | null>(null);
@@ -226,7 +230,7 @@ export default function ConversationView({
       el.scrollTop = el.scrollHeight; // carga inicial → abajo
     } else if (lastId !== prev) {
       if (atBottomRef.current) el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
-      else setNewCount((c) => c + 1);
+      else requestAnimationFrame(() => setNewCount((c) => c + 1));
     }
     prevLastIdRef.current = lastId;
   }, [messages, tab]);
@@ -263,10 +267,36 @@ export default function ConversationView({
     setSending(false);
   }
 
+  // Confirmar devolución desde el chat: confirmación directa (no pide nombre).
+  const [returning, setReturning] = useState(false);
+  const [showReturnModal, setShowReturnModal] = useState(false);
+  async function handleConfirmReturn() {
+    const petId = profile?.claimPetId;
+    if (!petId) return;
+    setShowReturnModal(true);
+  }
+  async function submitReturn() {
+    const petId = profile?.claimPetId;
+    if (!petId) return;
+    setShowReturnModal(false);
+    setReturning(true);
+    // No enviamos nombre; el backend registra la devolución por el refugio/admin.
+    const res = await confirmReturnPet(petId, "");
+    setReturning(false);
+    if (res.ok) {
+      toast.success("Devolución confirmada.");
+      conversationData.reload();
+    } else {
+      toast.error(res.error ?? "Error al confirmar devolución.");
+    }
+  }
+
+  const claimPetId = profile?.claimPetId;
+
   return (
     <section className="msg-chat-panel">
       <header className="msg-chat-head">
-        <Avatar user={{ name: headName, photo: headPhoto } as any} />
+        <Avatar user={{ id: 0, name: headName, photo: headPhoto } as { id: number; name: string; photo?: string | null } } />
         <div className="msg-chat-head-info">
           <h3>{headName}</h3>
           {(profile?.context || activeUserMessage?.context) && (
@@ -290,6 +320,59 @@ export default function ConversationView({
 
       {tab === "mensajes" && (
         <>
+          {/* Tarjeta de reclamo: visible si la conversación inició con un reclamo */}
+          {currentUser.role === "admin" && claimPetId && (
+            <div className="claim-in-chat">
+              <div className="claim-in-chat-icon">
+                <AlertTriangle size={18} />
+              </div>
+              <div className="claim-in-chat-body">
+                <strong>Reclamo de mascota</strong>
+                <p>
+                  Esta conversación inició porque alguien reclama ser el dueño.
+                </p>
+              </div>
+              <div className="claim-in-chat-actions">
+                <Link
+                  href={`/mascotas-perdidas/${claimPetId}`}
+                  className="btn btn-outline btn-sm"
+                  target="_blank"
+                >
+                  <ExternalLink size={14} /> Ver mascota
+                </Link>
+                <button
+                  type="button"
+                  className="btn btn-primary btn-sm"
+                  onClick={handleConfirmReturn}
+                  disabled={returning}
+                >
+                  {returning ? (
+                    <Loader2 className="animate-spin" size={14} />
+                  ) : (
+                    <Undo2 size={14} />
+                  )}{" "}
+                  Confirmar devolución
+                </button>
+                {showReturnModal && (
+                  <div className="vdrawer-overlay" onClick={() => setShowReturnModal(false)}>
+                    <div className="vdrawer" style={{ maxWidth: 400 }} onClick={(e) => e.stopPropagation()}>
+                      <h3>Confirmar devolución</h3>
+                      <p>
+                        ¿Confirmás que <strong>{headName}</strong> es el dueño y que la mascota fue devuelta?
+                      </p>
+                      <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", marginTop: 12 }}>
+                        <button type="button" className="btn btn-outline btn-sm" onClick={() => setShowReturnModal(false)} disabled={returning}>Cancelar</button>
+                        <button type="button" className="btn btn-primary btn-sm" onClick={submitReturn} disabled={returning}>
+                          {returning ? <Loader2 className="animate-spin" size={14} /> : "Confirmar"}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           <div className="msg-thread-wrap">
             <div className="msg-thread" ref={threadRef} onScroll={onThreadScroll}>
               {loadingOlder && (

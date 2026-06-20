@@ -54,6 +54,8 @@ export type Pet = {
   id: string;
   ownerId?: number;
   userId?: number;
+  ownerUserId?: number | null;
+  isOwner?: boolean;
   name?: string;
   status: PetStatus;
   medicalStatus?: PetMedicalStatus;

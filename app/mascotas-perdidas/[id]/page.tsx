@@ -50,14 +50,26 @@ export default function PetDetailPage() {
   const pets = useAppSelector((state) => state.allPets);
   const user = useAppSelector((state) => state.user);
 
-  const isOwner =
-    !!user.isLoggedIn && user.id != null && pet?.userId === user.id;
+  // El dueño verificado puede editar; el creador original solo ve.
+  const isVerifiedOwner =
+    !!user.isLoggedIn &&
+    user.id != null &&
+    pet?.ownerUserId === user.id;
+  const isOriginalCreator =
+    !!user.isLoggedIn &&
+    user.id != null &&
+    pet?.userId === user.id &&
+    pet?.ownerUserId != null &&
+    pet?.ownerUserId !== user.id;
+  // Para mostrar botones de reclamo y otros: "es dueño" = creador original O dueño verificado.
+  const isOwner = isVerifiedOwner || isOriginalCreator;
+  const canEdit = isVerifiedOwner;
 
   useEffect(() => {
     if (!id) return;
     getIdPets(id)
       .then((res) => {
-        if (res && res.ok && res.data) {
+        if (res && res.ok && res.data != null) {
           dispatch({ type: "pets/pet", payload: res.data });
         }
       })
@@ -80,13 +92,13 @@ export default function PetDetailPage() {
   // ¿El usuario ya envió una solicitud para esta mascota?
   useEffect(() => {
     if (!id || !user.isLoggedIn) {
-      setAlreadyApplied(false);
+      requestAnimationFrame(() => setAlreadyApplied(false));
       return;
     }
     getMyAdoptions()
       .then((res) => {
         if (res && res.ok && Array.isArray(res.data)) {
-          setAlreadyApplied(res.data.some((a) => a.petId === id));
+          requestAnimationFrame(() => setAlreadyApplied(res.data.some((a) => a.petId === id)));
         }
       })
       .catch(() => {});
@@ -95,12 +107,12 @@ export default function PetDetailPage() {
   // Compatibilidad: solo si el usuario está logueado y la mascota está en adopción.
   useEffect(() => {
     if (!id || !user.isLoggedIn) {
-      setCompat(null);
+      requestAnimationFrame(() => setCompat(null));
       return;
     }
     getPetCompatibility(id)
       .then((res) => {
-        if (res.ok && res.data) setCompat(res.data);
+        if (res.ok && res.data) requestAnimationFrame(() => setCompat(res.data));
       })
       .catch(() => {});
   }, [id, user.isLoggedIn]);
@@ -169,6 +181,17 @@ export default function PetDetailPage() {
     );
   }
 
+  // Estilo local para la nota de rol (no está en globals.css)
+  const roleNoteStyle: React.CSSProperties = {
+    fontSize: "0.85rem",
+    color: "var(--text-muted, #6b7280)",
+    marginTop: "0.5rem",
+    padding: "0.5rem 0.75rem",
+    background: "rgba(59,130,246,0.08)",
+    borderRadius: "6px",
+    border: "1px solid rgba(59,130,246,0.2)",
+  };
+
   return pet && detail ? (
     <main>
       <div className="container pet-detail-wrap">
@@ -187,7 +210,7 @@ export default function PetDetailPage() {
 
         {/* Header */}
         <header className="pet-detail-header">
-          {isOwner && (
+          {canEdit && (
             <Link
               href={`/mascotas-perdidas/${pet.id}/editar`}
               className="btn btn-outline btn-sm pet-edit-btn"
@@ -224,6 +247,13 @@ export default function PetDetailPage() {
                 <span aria-hidden>📍</span>
                 {pet.location}
               </p>
+              {(isOriginalCreator || isVerifiedOwner) && pet.ownerUserId != null && pet.ownerUserId !== pet.userId && (
+                <p style={roleNoteStyle}>
+                  {isOriginalCreator
+                    ? "📌 Sos el creador original de esta publicación. El dueño verificado puede editar el contenido."
+                    : "📌 Sos el dueño verificado de esta mascota. El creador original solo puede visualizarla."}
+                </p>
+              )}
             </div>
           </div>
         </header>
@@ -235,6 +265,14 @@ export default function PetDetailPage() {
               <span className="pet-badge">
                 {pet.status.toLocaleUpperCase()}
               </span>
+              {pet.isOwner && (
+                <span
+                  className="pet-badge"
+                  style={{ left: "auto", right: "12px", background: "var(--primary-600)" }}
+                >
+                  CON DUEÑO
+                </span>
+              )}
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={detail.mainPhoto || "/images/avatar-placeholder.svg"}
@@ -413,9 +451,13 @@ export default function PetDetailPage() {
               )} */}
             {isLoggedIn ? (
               !isOwner &&
+              !pet.isOwner &&
               pet.status !== "adoptado" &&
               pet.status !== "devuelta al dueño" && <ClaimForm petId={pet.id} />
             ) : (
+              !pet.isOwner &&
+              pet.status !== "adoptado" &&
+              pet.status !== "devuelta al dueño" && (
               <div className="tooltip-container">
                 <button disabled className="btn btn-primary btn-sm">
                   <Bell size={16} aria-hidden />
@@ -427,6 +469,7 @@ export default function PetDetailPage() {
                   Necesitás iniciar sesión
                 </span>
               </div>
+              )
             )}
 
             {pet.status === "en adopción" && (
@@ -572,22 +615,11 @@ export default function PetDetailPage() {
   );
 }
 
-/** Formulario para reclamar una mascota como propia. */
+/** Reclamo automático de mascota para usuarios logueados. */
 function ClaimForm({ petId }: { petId: string }) {
-  const [open, setOpen] = useState(false);
-  const [claimantName, setClaimantName] = useState("");
-  const [claimantPhone, setClaimantPhone] = useState("");
-  const [claimantEmail, setClaimantEmail] = useState("");
-  const [description, setDescription] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const user = useAppSelector((state) => state.user);
-
-  useEffect(() => {
-    if (user.isLoggedIn && user.name) {
-      setClaimantName(user.name);
-    }
-  }, [user.isLoggedIn, user.name]);
 
   if (submitted) {
     return (
@@ -603,35 +635,14 @@ function ClaimForm({ petId }: { petId: string }) {
     );
   }
 
-  if (!open) {
-    return (
-      <section className="pet-detail-claim">
-        <button
-          type="button"
-          className="btn btn-primary btn-sm"
-          onClick={() => setOpen(true)}
-        >
-          <Bell size={16} aria-hidden /> ¿Creés que es tu mascota?
-        </button>
-      </section>
-    );
-  }
-
-  const canSubmit =
-    !submitting &&
-    claimantName.trim().length > 0 &&
-    claimantPhone.trim().length > 0;
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!canSubmit) return;
     setSubmitting(true);
     try {
       const res = await claimPet(petId, {
-        claimantName: claimantName.trim(),
-        claimantPhone: claimantPhone.trim(),
-        claimantEmail: claimantEmail.trim() || undefined,
-        description: description.trim() || undefined,
+        claimantName: user.name || user.email || "Usuario",
+        claimantPhone: "", // backend detecta usuario autenticado por el token
+        description: "Reclamo automático desde mi cuenta.",
       });
       if (res.ok) {
         setSubmitted(true);
@@ -650,55 +661,23 @@ function ClaimForm({ petId }: { petId: string }) {
   };
 
   return (
-    <section
-      className="pet-detail-claim"
-      style={{ display: "flex", flexDirection: "column", gap: "1rem" }}
-    >
-      <h3>
-        <Bell size={18} aria-hidden /> ¿Creés que es tu mascota?
-      </h3>
-      <p>
-        Completá tus datos y el refugio se comunicará con vos para coordinar el
-        reencuentro. Tu información no se publica.
-      </p>
+    <section className="pet-detail-claim">
       <form
         onSubmit={handleSubmit}
         className="claim-form"
-        style={{ display: "flex", flexDirection: "column", gap: "1rem" }}
+        style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}
       >
-        <input
-          className="input"
-          type="text"
-          placeholder="Tu nombre *"
-          value={claimantName}
-          onChange={(e) => setClaimantName(e.target.value)}
-          required
-        />
-        <input
-          className="input"
-          type="tel"
-          placeholder="Tu teléfono *"
-          value={claimantPhone}
-          onChange={(e) => setClaimantPhone(e.target.value)}
-          required
-        />
-        <input
-          className="input"
-          type="email"
-          placeholder="Tu email (opcional)"
-          value={claimantEmail}
-          onChange={(e) => setClaimantEmail(e.target.value)}
-        />
-        <textarea
-          className="input"
-          rows={3}
-          placeholder="Contanos por qué creés que es tu mascota (opcional)"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-        />
-        <button type="submit" className="btn btn-primary" disabled={!canSubmit}>
-          <SendHorizonal size={16} aria-hidden />{" "}
-          {submitting ? "Enviando…" : "Enviar reclamo"}
+        <p style={{ margin: 0 }}>
+          ¿Creés que esta mascota es tuya? El refugio verificará tu reclamo y
+          se comunicará con vos.
+        </p>
+        <button
+          type="submit"
+          className="btn btn-primary btn-sm"
+          disabled={submitting}
+        >
+          <Bell size={16} aria-hidden />{" "}
+          {submitting ? "Enviando…" : "Sí, es mi mascota"}
         </button>
       </form>
     </section>

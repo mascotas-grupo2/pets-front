@@ -80,6 +80,20 @@ export const confirmReturnPet = (id: string, returnedTo: string) =>
     axios.post(`mascotas/${id}/confirm-return`, { returnedTo }),
   );
 
+/**
+ * Aprobar reclamo: el admin confirma que el reclamante es el dueño legítimo.
+ * Activa el badge "CON DUEÑO" (isOwner = true). No cierra la publicación.
+ * ownerUserId se auto-detecta en el backend desde las notas de reclamo.
+ */
+export const approveClaimPet = (
+  id: string,
+  adminNote?: string,
+) =>
+  request<{ ok: boolean; message: string }>(() =>
+    axios.post(`mascotas/${id}/approve-claim`, { adminNote }),
+  );
+
+
 /** Elimina una publicación (solo admin). El motivo es opcional. */
 export const deletePet = (id: string, reason?: string) =>
   request<null>(() =>
