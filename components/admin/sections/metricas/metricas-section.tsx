@@ -11,6 +11,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { useMetricas } from "../hook/useMetricas";
+import { useMapaReportes } from "../hook/useMapaReportes";
 import { MetricasFilters } from "./MetricasFilters";
 import { BarChart, LineChart } from "./charts";
 import { DonutWithDetails } from "./DonutWithDetails";
@@ -42,6 +43,9 @@ const STAT_CONFIG = [
 export function MetricasSection() {
   const { chartData, loading, error, filter, setFilter, filters, refresh } =
     useMetricas();
+
+  // El mapa se carga aparte (endpoint propio), independiente del período.
+  const { ubicaciones: mapaUbicaciones } = useMapaReportes();
 
   // Estado para el manejo del Drawer
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -254,7 +258,7 @@ export function MetricasSection() {
 
       {/* Fila 3: Mapa */}
       <div className="metricas-map-wrap">
-        <MetricasMap ubicaciones={chartData.ubicaciones} />
+        <MetricasMap ubicaciones={mapaUbicaciones} />
       </div>
 
       {/* Drawer reutilizado */}
