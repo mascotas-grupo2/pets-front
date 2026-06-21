@@ -55,6 +55,8 @@ export interface ConversationProfile {
   town?: string | null;
   /** ID de la mascota reclamada (si la conversación inició con un reclamo). */
   claimPetId?: string | null;
+  /** true si la mascota reclamada ya fue devuelta al dueño. */
+  claimPetReturned?: boolean;
   notes?: ConversationNote[];
 }
 
