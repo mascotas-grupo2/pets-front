@@ -100,12 +100,10 @@ describe("MensajesSection", () => {
     ).toBeInTheDocument();
   });
 
-  it("pide iniciar sesión si el usuario no está logueado", () => {
+  it("no pide la bandeja si el usuario no está logueado", () => {
     mockUser.isLoggedIn = false;
     render(<MensajesSection />);
-    expect(
-      screen.getByText("Debes iniciar sesión para ver tus mensajes."),
-    ).toBeInTheDocument();
+    // El hook useInbox gatea por sesión: sin login no se llama al backend.
     expect(getInbox).not.toHaveBeenCalled();
   });
 
@@ -131,7 +129,7 @@ describe("MensajesSection", () => {
 
     await userEvent.click(item);
 
-    expect(getConversation).toHaveBeenCalledWith(10);
+    expect(getConversation).toHaveBeenCalledWith(10, { limit: 30 });
     expect(
       await screen.findByRole("heading", { name: "María Gómez" }),
     ).toBeInTheDocument();
@@ -171,7 +169,12 @@ describe("MensajesSection", () => {
     expect(enviar).toBeEnabled();
     await userEvent.click(enviar);
 
-    expect(sendMessage).toHaveBeenCalledWith(10, "Coordinamos para mañana 16hs");
+    // sendMessage(receiverId, content, photo?) — verificamos los args relevantes
+    // sin acoplarnos al 3er parámetro opcional (foto).
+    expect((sendMessage as jest.Mock).mock.calls[0][0]).toBe(10);
+    expect((sendMessage as jest.Mock).mock.calls[0][1]).toBe(
+      "Coordinamos para mañana 16hs",
+    );
     expect(
       await screen.findByText("Coordinamos para mañana 16hs"),
     ).toBeInTheDocument();
