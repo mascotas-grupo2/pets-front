@@ -15,15 +15,16 @@ import { CatLoader } from "@/components/cat-loader";
 import { PetComments } from "@/components/pet-comments";
 import handleToast from "@/components/utils/toast";
 import {
-  AlertTriangle,
   Bell,
   CheckCircle2,
+  ImagePlus,
   Mail,
   MessageCircle,
   Pencil,
   Phone,
-  SendHorizonal,
+  X,
 } from "lucide-react";
+import { createPortal } from "react-dom";
 
 function formatAge(months?: number): string {
   if (!months) return "—";
@@ -50,20 +51,18 @@ export default function PetDetailPage() {
   const pets = useAppSelector((state) => state.allPets);
   const user = useAppSelector((state) => state.user);
 
-  // El dueño verificado puede editar; el creador original solo ve.
+  // Opción A: una vez verificada (pet.isOwner), solo el refugio edita. El
+  // publicador edita su publicación SOLO mientras no haya dueño verificado.
+  const isPublisher =
+    !!user.isLoggedIn && user.id != null && pet?.userId === user.id;
   const isVerifiedOwner =
-    !!user.isLoggedIn &&
-    user.id != null &&
-    pet?.ownerUserId === user.id;
+    !!user.isLoggedIn && user.id != null && pet?.ownerUserId === user.id;
+  // Publicador que ya perdió la edición (hay dueño verificado distinto).
   const isOriginalCreator =
-    !!user.isLoggedIn &&
-    user.id != null &&
-    pet?.userId === user.id &&
-    pet?.ownerUserId != null &&
-    pet?.ownerUserId !== user.id;
-  // Para mostrar botones de reclamo y otros: "es dueño" = creador original O dueño verificado.
-  const isOwner = isVerifiedOwner || isOriginalCreator;
-  const canEdit = isVerifiedOwner;
+    isPublisher && pet?.ownerUserId != null && pet?.ownerUserId !== user.id;
+  // "Es dueño" (para ocultar el formulario de reclamo, etc.): publicador o dueño verificado.
+  const isOwner = isPublisher || isVerifiedOwner;
+  const canEdit = isPublisher && !pet?.isOwner;
 
   useEffect(() => {
     if (!id) return;
@@ -98,7 +97,8 @@ export default function PetDetailPage() {
     getMyAdoptions()
       .then((res) => {
         if (res && res.ok && Array.isArray(res.data)) {
-          requestAnimationFrame(() => setAlreadyApplied(res.data.some((a) => a.petId === id)));
+          const data = res.data;
+          requestAnimationFrame(() => setAlreadyApplied(data.some((a) => a.petId === id)));
         }
       })
       .catch(() => {});
@@ -453,7 +453,9 @@ export default function PetDetailPage() {
               !isOwner &&
               !pet.isOwner &&
               pet.status !== "adoptado" &&
-              pet.status !== "devuelta al dueño" && <ClaimForm petId={pet.id} />
+              pet.status !== "devuelta al dueño" && (
+                <ClaimForm petId={pet.id} alreadyClaimed={!!pet.claimedByMe} />
+              )
             ) : (
               !pet.isOwner &&
               pet.status !== "adoptado" &&
@@ -615,41 +617,73 @@ export default function PetDetailPage() {
   );
 }
 
-/** Reclamo automático de mascota para usuarios logueados. */
-function ClaimForm({ petId }: { petId: string }) {
+const MAX_CLAIM_PHOTOS = 5;
+
+/** Reclamo de mascota: abre un modal para adjuntar fotos de prueba + texto opcional. */
+function ClaimForm({
+  petId,
+  alreadyClaimed = false,
+}: {
+  petId: string;
+  alreadyClaimed?: boolean;
+}) {
+  const [open, setOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [files, setFiles] = useState<File[]>([]);
+  const [description, setDescription] = useState("");
   const user = useAppSelector((state) => state.user);
 
-  if (submitted) {
+  // Previews de las fotos, revocadas al cambiar/desmontar (evita leaks de blobs).
+  const previews = useMemo(() => files.map((f) => URL.createObjectURL(f)), [files]);
+  useEffect(() => {
+    return () => previews.forEach((u) => URL.revokeObjectURL(u));
+  }, [previews]);
+
+  // Si ya reclamó (recién o en una visita anterior), mostramos el estado en
+  // revisión en vez de habilitar el botón otra vez.
+  if (submitted || alreadyClaimed) {
     return (
       <section className="pet-detail-claim pet-detail-claim--done">
         <h3>
-          <CheckCircle2 size={18} aria-hidden /> Reclamo enviado
+          <CheckCircle2 size={18} aria-hidden />{" "}
+          {submitted ? "Reclamo enviado" : "Reclamo en revisión"}
         </h3>
         <p>
-          El refugio recibió tu información y se comunicará con vos para
-          coordinar el reencuentro. No compartimos tus datos de forma pública.
+          {submitted
+            ? "El refugio recibió tu información y se comunicará con vos para coordinar el reencuentro. No compartimos tus datos de forma pública."
+            : "Ya enviaste un reclamo para esta mascota. El refugio lo está revisando y se comunicará con vos."}
         </p>
       </section>
     );
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  function addFiles(list: FileList | null) {
+    if (!list) return;
+    const incoming = Array.from(list).filter((f) => f.type.startsWith("image/"));
+    setFiles((prev) => [...prev, ...incoming].slice(0, MAX_CLAIM_PHOTOS));
+  }
+
+  function close() {
+    if (submitting) return;
+    setOpen(false);
+    setFiles([]);
+    setDescription("");
+  }
+
+  async function handleSubmit() {
     setSubmitting(true);
     try {
       const res = await claimPet(petId, {
         claimantName: user.name || user.email || "Usuario",
-        claimantPhone: "", // backend detecta usuario autenticado por el token
-        description: "Reclamo automático desde mi cuenta.",
+        claimantPhone: "", // el backend detecta al usuario autenticado por el token
+        description: description.trim() || undefined,
+        photos: files,
       });
       if (res.ok) {
+        setOpen(false);
         setSubmitted(true);
-        handleToast(
-          "success",
-          "Reclamo registrado. El refugio se comunicará con vos.",
-        );
+        handleToast("success", "Reclamo enviado. El refugio se comunicará con vos.");
       } else {
         handleToast("error", res.error ?? "No se pudo enviar el reclamo.");
       }
@@ -658,28 +692,126 @@ function ClaimForm({ petId }: { petId: string }) {
     } finally {
       setSubmitting(false);
     }
-  };
+  }
 
   return (
     <section className="pet-detail-claim">
-      <form
-        onSubmit={handleSubmit}
-        className="claim-form"
-        style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}
+      <p style={{ margin: "0 0 0.5rem" }}>
+        ¿Creés que esta mascota es tuya? El refugio verificará tu reclamo y se
+        comunicará con vos.
+      </p>
+      <button
+        type="button"
+        className="btn btn-primary btn-sm"
+        onClick={() => setOpen(true)}
       >
-        <p style={{ margin: 0 }}>
-          ¿Creés que esta mascota es tuya? El refugio verificará tu reclamo y
-          se comunicará con vos.
-        </p>
-        <button
-          type="submit"
-          className="btn btn-primary btn-sm"
-          disabled={submitting}
-        >
-          <Bell size={16} aria-hidden />{" "}
-          {submitting ? "Enviando…" : "Sí, es mi mascota"}
-        </button>
-      </form>
+        <Bell size={16} aria-hidden /> Sí, es mi mascota
+      </button>
+
+      {open &&
+        createPortal(
+          <div className="modal-overlay" role="presentation" onClick={close}>
+            <div
+              className="confirm-dialog"
+              role="dialog"
+              aria-modal="true"
+              aria-label="Reclamar mascota"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="confirm-dialog-head">
+                <h2>Reclamar mascota</h2>
+                <button
+                  type="button"
+                  className="vdrawer-close"
+                  aria-label="Cerrar"
+                  onClick={close}
+                  disabled={submitting}
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              <div className="confirm-dialog-body">
+                <p className="confirm-dialog-message">
+                  Subí al menos una foto que pruebe que es tuya (fotos previas
+                  con la mascota, carnet veterinario, etc.). El texto es
+                  opcional.
+                </p>
+
+                {previews.length > 0 && (
+                  <div className="claim-photos-grid">
+                    {previews.map((src, i) => (
+                      <div key={src} className="claim-photo-thumb">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={src} alt={`Prueba ${i + 1}`} />
+                        <button
+                          type="button"
+                          aria-label="Quitar foto"
+                          onClick={() =>
+                            setFiles((prev) => prev.filter((_, j) => j !== i))
+                          }
+                          disabled={submitting}
+                        >
+                          <X size={13} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {files.length < MAX_CLAIM_PHOTOS && (
+                  <label className="btn btn-outline btn-sm claim-add-photo">
+                    <ImagePlus size={16} aria-hidden /> Agregar fotos
+                    <input
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      hidden
+                      onChange={(e) => {
+                        addFiles(e.target.files);
+                        e.target.value = "";
+                      }}
+                      disabled={submitting}
+                    />
+                  </label>
+                )}
+
+                <div className="confirm-dialog-field">
+                  <label className="field-label">Mensaje (opcional)</label>
+                  <textarea
+                    className="input confirm-dialog-textarea"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder="Contanos por qué creés que es tuya, señas particulares, etc."
+                    rows={3}
+                    disabled={submitting}
+                  />
+                </div>
+              </div>
+
+              <div className="confirm-dialog-foot">
+                <button
+                  type="button"
+                  className="btn btn-outline"
+                  onClick={close}
+                  disabled={submitting}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  onClick={handleSubmit}
+                  disabled={submitting || files.length === 0}
+                  title={files.length === 0 ? "Agregá al menos una foto de prueba" : undefined}
+                >
+                  {submitting ? "Enviando…" : "Enviar reclamo"}
+                </button>
+              </div>
+            </div>
+          </div>,
+          document.body,
+        )}
     </section>
   );
 }
