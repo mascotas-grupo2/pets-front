@@ -56,6 +56,8 @@ export type Pet = {
   userId?: number;
   ownerUserId?: number | null;
   isOwner?: boolean;
+  /** true si el usuario autenticado ya envió un reclamo sobre esta mascota. */
+  claimedByMe?: boolean;
   name?: string;
   status: PetStatus;
   medicalStatus?: PetMedicalStatus;
