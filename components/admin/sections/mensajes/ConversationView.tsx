@@ -18,6 +18,7 @@ import { userMessage } from "@/services/messages.services";
 import { useConversation } from "../hook/messages/useConversation";
 import { useEvaluacion } from "../hook/useEvaluacion";
 import { initials } from "../dashboard/dashboard.data";
+import { ConfirmDialog } from "@/components/admin/ui/confirm-dialog";
 import Link from "next/link";
 import { toast } from "sonner";
 import { confirmReturnPet } from "@/services/mascotas.pets";
@@ -270,6 +271,7 @@ export default function ConversationView({
   // Confirmar devolución desde el chat: confirmación directa (no pide nombre).
   const [returning, setReturning] = useState(false);
   const [showReturnModal, setShowReturnModal] = useState(false);
+  const [returnedDone, setReturnedDone] = useState(false);
   async function handleConfirmReturn() {
     const petId = profile?.claimPetId;
     if (!petId) return;
@@ -285,6 +287,7 @@ export default function ConversationView({
     setReturning(false);
     if (res.ok) {
       toast.success("Devolución confirmada.");
+      setReturnedDone(true);
       conversationData.reload();
     } else {
       toast.error(res.error ?? "Error al confirmar devolución.");
@@ -292,6 +295,7 @@ export default function ConversationView({
   }
 
   const claimPetId = profile?.claimPetId;
+  const claimReturned = !!profile?.claimPetReturned || returnedDone;
 
   return (
     <section className="msg-chat-panel">
@@ -322,14 +326,16 @@ export default function ConversationView({
         <>
           {/* Tarjeta de reclamo: visible si la conversación inició con un reclamo */}
           {currentUser.role === "admin" && claimPetId && (
-            <div className="claim-in-chat">
+            <div className={`claim-in-chat${claimReturned ? " claim-in-chat--returned" : ""}`}>
               <div className="claim-in-chat-icon">
-                <AlertTriangle size={18} />
+                {claimReturned ? <CheckCircle2 size={18} /> : <AlertTriangle size={18} />}
               </div>
               <div className="claim-in-chat-body">
-                <strong>Reclamo de mascota</strong>
+                <strong>{claimReturned ? "Devolución confirmada" : "Reclamo de mascota"}</strong>
                 <p>
-                  Esta conversación inició porque alguien reclama ser el dueño.
+                  {claimReturned
+                    ? "La mascota ya fue devuelta a su dueño. La publicación se cerró."
+                    : "Esta conversación inició porque alguien reclama ser el dueño."}
                 </p>
               </div>
               <div className="claim-in-chat-actions">
@@ -340,35 +346,35 @@ export default function ConversationView({
                 >
                   <ExternalLink size={14} /> Ver mascota
                 </Link>
-                <button
-                  type="button"
-                  className="btn btn-primary btn-sm"
-                  onClick={handleConfirmReturn}
-                  disabled={returning}
-                >
-                  {returning ? (
-                    <Loader2 className="animate-spin" size={14} />
-                  ) : (
-                    <Undo2 size={14} />
-                  )}{" "}
-                  Confirmar devolución
-                </button>
-                {showReturnModal && (
-                  <div className="vdrawer-overlay" onClick={() => setShowReturnModal(false)}>
-                    <div className="vdrawer" style={{ maxWidth: 400 }} onClick={(e) => e.stopPropagation()}>
-                      <h3>Confirmar devolución</h3>
-                      <p>
-                        ¿Confirmás que <strong>{headName}</strong> es el dueño y que la mascota fue devuelta?
-                      </p>
-                      <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", marginTop: 12 }}>
-                        <button type="button" className="btn btn-outline btn-sm" onClick={() => setShowReturnModal(false)} disabled={returning}>Cancelar</button>
-                        <button type="button" className="btn btn-primary btn-sm" onClick={submitReturn} disabled={returning}>
-                          {returning ? <Loader2 className="animate-spin" size={14} /> : "Confirmar"}
-                        </button>
-                      </div>
-                    </div>
-                  </div>
+                {claimReturned ? (
+                  <span className="claim-returned-badge">
+                    <CheckCircle2 size={14} /> Devuelta al dueño
+                  </span>
+                ) : (
+                  <button
+                    type="button"
+                    className="btn btn-primary btn-sm"
+                    onClick={handleConfirmReturn}
+                    disabled={returning}
+                  >
+                    {returning ? (
+                      <Loader2 className="animate-spin" size={14} />
+                    ) : (
+                      <Undo2 size={14} />
+                    )}{" "}
+                    Confirmar devolución
+                  </button>
                 )}
+                <ConfirmDialog
+                  open={showReturnModal}
+                  title="Confirmar devolución"
+                  message={`¿Confirmás que ${headName} es el dueño y que la mascota fue devuelta? Se cerrará la publicación.`}
+                  confirmLabel="Confirmar"
+                  cancelLabel="Cancelar"
+                  busy={returning}
+                  onConfirm={() => submitReturn()}
+                  onCancel={() => setShowReturnModal(false)}
+                />
               </div>
             </div>
           )}
@@ -456,12 +462,14 @@ export default function ConversationView({
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
               placeholder="Escribí un mensaje..."
+              aria-label="Escribí un mensaje"
               disabled={sending}
             />
             <button
               type="submit"
               disabled={(!draft.trim() && !photoFile) || sending}
               className="msg-send"
+              aria-label="Enviar mensaje"
             >
               {sending ? (
                 <Loader2 className="animate-spin w-4 h-4" />
