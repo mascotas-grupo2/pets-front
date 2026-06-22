@@ -143,19 +143,7 @@ export function useMetricas() {
       }],
     };
 
-    // Normalizar ubicaciones para el mapa y evitar errores de icono indefinido
-    const ubicaciones = (data.mapaReportes || []).map((u) => {
-      // El componente de mapa usa u.tipo para buscar en el objeto ICONS.
-      // Si el back devuelve "Sin clasificar", forzamos un tipo válido para evitar el crash.
-      let tipo: "adopcion" | "perdida" | "refugio" = "adopcion";
-      const t = String(u.tipo || "").toLowerCase();
-
-      if (t.includes("perdida") || t.includes("perdid")) tipo = "perdida";
-      else if (t.includes("refugio")) tipo = "refugio";
-      else if (t.includes("adopcion") || t.includes("adopción")) tipo = "adopcion";
-
-      return { ...u, tipo };
-    });
+    // (El mapa de ubicaciones se carga aparte con useMapaReportes.)
 
     // El back no envía 'comentarios' en topPublicaciones según el JSON, aseguramos valor por defecto
     const topPublicaciones = (data.topPublicaciones || []).map((p) => ({
@@ -171,7 +159,6 @@ export function useMetricas() {
       usuariosPorMes,
       mascotasPorTipo,
       topPublicaciones,
-      ubicaciones,
       // Totales calculados para el centro de las donas
       totalMascotas: petsStatus.total.toLocaleString("es-AR"),
       totalSolicitudes: adoptionsStatus.total.toLocaleString("es-AR"),

@@ -6,6 +6,7 @@ import {
   Bell,
   AlertTriangle,
   UserPlus,
+  MapPin,
 } from "lucide-react";
 import type { Notification } from "@/services/notifications";
 
@@ -29,6 +30,7 @@ const TYPE_META: Record<string, { Icon: typeof Bell; tone: string }> = {
   adoption_status: { Icon: FileText, tone: "green" },
   publication: { Icon: Megaphone, tone: "amber" },
   comment: { Icon: MessageCircle, tone: "violet" },
+  avistamiento: { Icon: MapPin, tone: "amber" },
   actividad: { Icon: UserPlus, tone: "violet" },
 };
 

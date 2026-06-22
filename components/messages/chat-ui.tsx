@@ -45,15 +45,21 @@ export function Burbuja({
     const lines = m.content.split("\n").map((l) => l.trim()).filter(Boolean);
     const fields: Record<string, string> = {};
     let currentSection = "claim";
+    // Toma el valor tras el prefijo; descarta vacíos o "undefined" (reclamos viejos).
+    const val = (line: string, prefix: string) => {
+      const v = line.replace(prefix, "").trim();
+      return v && v !== "undefined" ? v : null;
+    };
+    const set = (key: string, v: string | null) => { if (v) fields[key] = v; };
     for (const line of lines) {
       if (line === "— Datos de quien reclama —") { currentSection = "claimant"; continue; }
       if (line === "— Dueño de la publicación —") { currentSection = "owner"; continue; }
-      if (line.startsWith("Mascota:")) fields.pet = line.replace("Mascota:", "").trim();
-      else if (line.startsWith("Link:")) fields.link = line.replace("Link:", "").trim();
-      else if (line.startsWith("Nombre:")) fields[currentSection === "claimant" ? "claimantName" : "ownerName"] = line.replace("Nombre:", "").trim();
-      else if (line.startsWith("Teléfono:")) fields.claimantPhone = line.replace("Teléfono:", "").trim();
-      else if (line.startsWith("Email:")) fields.claimantEmail = line.replace("Email:", "").trim();
-      else if (line.startsWith("Motivo:")) fields.claimantReason = line.replace("Motivo:", "").trim();
+      if (line.startsWith("Mascota:")) set("pet", val(line, "Mascota:"));
+      else if (line.startsWith("Link:")) set("link", val(line, "Link:"));
+      else if (line.startsWith("Nombre:")) set(currentSection === "claimant" ? "claimantName" : "ownerName", val(line, "Nombre:"));
+      else if (line.startsWith("Teléfono:")) set("claimantPhone", val(line, "Teléfono:"));
+      else if (line.startsWith("Email:")) set("claimantEmail", val(line, "Email:"));
+      else if (line.startsWith("Motivo:")) set("claimantReason", val(line, "Motivo:"));
     }
     return fields;
   }, [m.content, isClaim]);

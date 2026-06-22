@@ -104,6 +104,14 @@ export function PetCard({
         <span className={`pet-badge pet-badge--${tone}`}>
           {(pet.status && pet.status.toLocaleUpperCase()) || "PERDIDO"}
         </span>
+        {pet.status === "perdido" && pet.isOwner && !reportMeta && (
+          <span
+            className="pet-report-badge"
+            style={{ background: "var(--primary-500)", right: "12px" }}
+          >
+            Con dueño
+          </span>
+        )}
         {when && <span className="pet-when">{when}</span>}
         {reportMeta && (
           <span
@@ -150,6 +158,13 @@ export function PetCard({
         <div className="pet-meta">
           <span>📍 {pet.location}</span>
           <span>📅 {pet.date}</span>
+          {typeof pet.daysLeft === "number" && (
+            <span className={`pet-expiry${pet.expired ? " pet-expiry--over" : ""}`}>
+              {pet.expired
+                ? "⏳ Publicación vencida"
+                : `⏳ Vence en ${pet.daysLeft} día${pet.daysLeft === 1 ? "" : "s"}`}
+            </span>
+          )}
         </div>
 
         <PetCardActions pet={pet} />
@@ -162,7 +177,8 @@ export function PetCard({
             {onResolve &&
               pet.reportStatus !== "finalizado" &&
               pet.status !== "en adopción" &&
-              pet.status !== "adoptado" && (
+              pet.status !== "adoptado" &&
+              !pet.isOwner && (
                 <button
                   type="button"
                   className="btn btn-success btn-sm"

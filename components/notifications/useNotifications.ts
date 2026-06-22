@@ -74,11 +74,24 @@ let pollTimer: ReturnType<typeof setInterval> | null = null;
 let refCount = 0;
 
 let socket: Socket | null = null;
+let socketRetry: ReturnType<typeof setTimeout> | null = null;
 
 async function connectSocket() {
   if (socket) return;
   const res = await getWsToken();
-  if (!res.ok || !res.data?.token) return; // sin token: seguimos solo con polling
+  // Si nos desmontamos mientras pedíamos el token, no creamos un socket huérfano.
+  if (refCount === 0) return;
+  if (!res.ok || !res.data?.token) {
+    // El backend pudo estar reiniciándose: reintentamos (el polling cubre mientras
+    // tanto). socket.io ya reconecta solo una vez establecida la conexión; esto
+    // cubre el caso en que falla el PRIMER pedido del token.
+    if (socketRetry) clearTimeout(socketRetry);
+    socketRetry = setTimeout(() => {
+      socketRetry = null;
+      if (refCount > 0 && !socket) void connectSocket();
+    }, 5000);
+    return;
+  }
   socket = io(WS_URL, {
     auth: { token: res.data.token },
     transports: ["websocket", "polling"],
@@ -89,6 +102,10 @@ async function connectSocket() {
 }
 
 function disconnectSocket() {
+  if (socketRetry) {
+    clearTimeout(socketRetry);
+    socketRetry = null;
+  }
   if (socket) {
     socket.disconnect();
     socket = null;

@@ -54,6 +54,16 @@ export type Pet = {
   id: string;
   ownerId?: number;
   userId?: number;
+  ownerUserId?: number | null;
+  isOwner?: boolean;
+  /** true si el usuario autenticado ya envió un reclamo sobre esta mascota. */
+  claimedByMe?: boolean;
+  /** Vencimiento de la publicación. */
+  expiresAt?: string | null;
+  /** Días restantes hasta el vencimiento (negativo si ya venció). */
+  daysLeft?: number | null;
+  /** true si la publicación ya venció. */
+  expired?: boolean;
   name?: string;
   status: PetStatus;
   medicalStatus?: PetMedicalStatus;
