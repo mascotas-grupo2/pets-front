@@ -2,7 +2,7 @@
 
 import { useUserContext } from "@/context/UserContext";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
-import { getIdPets, getAllPets, claimPet } from "@/services/mascotas.pets";
+import { getIdPets, getAllPets, claimPet, renewPet } from "@/services/mascotas.pets";
 import {
   getMyAdoptions,
   getPetCompatibility,
@@ -22,6 +22,7 @@ import {
   MessageCircle,
   Pencil,
   Phone,
+  RotateCw,
   X,
 } from "lucide-react";
 import { createPortal } from "react-dom";
@@ -63,6 +64,28 @@ export default function PetDetailPage() {
   // "Es dueño" (para ocultar el formulario de reclamo, etc.): publicador o dueño verificado.
   const isOwner = isPublisher || isVerifiedOwner;
   const canEdit = isPublisher && !pet?.isOwner;
+  const isAdmin = !!user.isLoggedIn && user.role === "admin";
+  // Renovar: admin, publicador o dueño verificado, y solo si la publicación vence.
+  const canRenew =
+    (isAdmin || isPublisher || isVerifiedOwner) && pet?.expiresAt != null;
+  const [renewing, setRenewing] = useState(false);
+  const handleRenew = async () => {
+    if (!pet?.id) return;
+    setRenewing(true);
+    try {
+      const res = await renewPet(pet.id);
+      if (res.ok && res.data) {
+        dispatch({ type: "pets/pet", payload: res.data });
+        handleToast("success", "Publicación renovada.");
+      } else {
+        handleToast("error", res.error ?? "No se pudo renovar.");
+      }
+    } catch {
+      handleToast("error", "Error al renovar.");
+    } finally {
+      setRenewing(false);
+    }
+  };
 
   useEffect(() => {
     if (!id) return;
@@ -217,6 +240,23 @@ export default function PetDetailPage() {
             >
               <Pencil size={16} aria-hidden /> Editar publicación
             </Link>
+          )}
+          {canRenew && (
+            <div className="pet-detail-expiry">
+              <span className={pet.expired ? "pet-expiry pet-expiry--over" : "pet-expiry"}>
+                {pet.expired
+                  ? "⏳ Publicación vencida"
+                  : `⏳ Vence en ${pet.daysLeft} día${pet.daysLeft === 1 ? "" : "s"}`}
+              </span>
+              <button
+                type="button"
+                className="btn btn-outline btn-sm"
+                onClick={handleRenew}
+                disabled={renewing}
+              >
+                <RotateCw size={15} aria-hidden /> {renewing ? "Renovando…" : "Renovar"}
+              </button>
+            </div>
           )}
           <h1>¡Hola humano!</h1>
           <div className="pet-detail-identity">
