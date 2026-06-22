@@ -81,6 +81,10 @@ export const claimPet = (id: string, data: {
   );
 };
 
+/** Renueva (extiende) el vencimiento de una publicación. */
+export const renewPet = (id: string) =>
+  request<Pet>(() => axios.post(`mascotas/${id}/renew`));
+
 /**
  * Confirmar devolución: el admin confirma que la mascota fue devuelta a su dueño.
  */
