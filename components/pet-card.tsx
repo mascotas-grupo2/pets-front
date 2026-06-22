@@ -158,6 +158,13 @@ export function PetCard({
         <div className="pet-meta">
           <span>📍 {pet.location}</span>
           <span>📅 {pet.date}</span>
+          {typeof pet.daysLeft === "number" && (
+            <span className={`pet-expiry${pet.expired ? " pet-expiry--over" : ""}`}>
+              {pet.expired
+                ? "⏳ Publicación vencida"
+                : `⏳ Vence en ${pet.daysLeft} día${pet.daysLeft === 1 ? "" : "s"}`}
+            </span>
+          )}
         </div>
 
         <PetCardActions pet={pet} />
