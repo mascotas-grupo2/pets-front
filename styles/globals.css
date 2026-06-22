@@ -217,6 +217,22 @@
   align-items: center;
 }
 
+.pet-expiry {
+  color: var(--gray-600);
+  font-weight: 600;
+}
+.pet-expiry--over {
+  color: #b91c1c;
+}
+
+.pet-detail-expiry {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin: 0.25rem 0 0.5rem;
+}
+
 .pet-card-footer {
   margin-top: auto;
   padding-top: 0.5rem;
