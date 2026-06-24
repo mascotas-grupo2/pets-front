@@ -3,7 +3,6 @@
 import { PetCard } from "@/components/pet-card";
 import { RootState } from "@/redux/store";
 import { getAllPets } from "@/services/mascotas.pets";
-import { getPublicRefugios } from "@/services/refugios";
 import { AnimalType, Pet } from "@/types/pet";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
@@ -39,7 +38,6 @@ interface FilterCriteria {
   type: Filter;
   search: string;
   location: string;
-  refugioId: number | null;
   sortBy: SortBy;
   sizes: Size[];
   ages: Age[];
@@ -86,13 +84,11 @@ const PAGE_SIZE = 9;
 export default function LostPetsPage() {
   const [page, setPage] = useState(1);
   const [pets, setPets] = useState<Pet[]>([]);
-  const [refugios, setRefugios] = useState<{ id: number; name: string }[]>([]);
   const [referenceDate] = useState(() => Date.now());
   const [filters, setFilters] = useState<FilterCriteria>({
     type: "todos",
     search: "",
     location: "",
-    refugioId: null,
     sortBy: "recientes",
     sizes: [],
     ages: [],
@@ -119,14 +115,6 @@ export default function LostPetsPage() {
       .catch((error: unknown) => console.error(error))
       .finally(() => setLoading(false));
   }, [dispatch]);
-
-  useEffect(() => {
-    getPublicRefugios()
-      .then((res) => {
-        if (res && res.ok && res.data) setRefugios(res.data);
-      })
-      .catch((error: unknown) => console.error(error));
-  }, []);
 
   const updateFilter = (changes: Partial<FilterCriteria>) => {
     setFilters((prev) => ({ ...prev, ...changes }));
@@ -177,9 +165,6 @@ export default function LostPetsPage() {
       if (filters.ages.length > 0) {
         const age = petAge(p);
         if (!age || !filters.ages.includes(age)) return false;
-      }
-      if (filters.refugioId != null && p.refugioId !== filters.refugioId) {
-        return false;
       }
       if (
         filters.location &&
@@ -250,7 +235,6 @@ export default function LostPetsPage() {
       type: "todos",
       search: "",
       location: "",
-      refugioId: null,
       sortBy: "recientes",
       sizes: [],
       ages: [],
@@ -423,31 +407,6 @@ export default function LostPetsPage() {
                 value={filters.location}
                 onChange={(e) => updateFilter({ location: e.target.value })}
               />
-            </div>
-          </div>
-
-          <div className="sidebar-block">
-            <label className="sidebar-label" htmlFor="listing-refugio">
-              Refugio
-            </label>
-            <div className="filter-input-wrap">
-              <select
-                id="listing-refugio"
-                className="input"
-                value={filters.refugioId ?? ""}
-                onChange={(e) =>
-                  updateFilter({
-                    refugioId: e.target.value ? Number(e.target.value) : null,
-                  })
-                }
-              >
-                <option value="">Todos los refugios</option>
-                {refugios.map((r) => (
-                  <option key={r.id} value={r.id}>
-                    {r.name}
-                  </option>
-                ))}
-              </select>
             </div>
           </div>
 
