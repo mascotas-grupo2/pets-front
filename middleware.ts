@@ -55,7 +55,7 @@ export async function middleware(req: NextRequest) {
             }
 
             // Verificamos rol con el nuevo token
-            if (roleFromToken(String(newAccess)) !== "admin") {
+            if (!["admin", "superadmin"].includes(roleFromToken(String(newAccess)) ?? "")) {
               const url = req.nextUrl.clone();
               url.pathname = "/";
               return NextResponse.redirect(url);
@@ -74,7 +74,7 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  if (roleFromToken(token) !== "admin") {
+  if (!["admin", "superadmin"].includes(roleFromToken(token) ?? "")) {
     const url = req.nextUrl.clone();
     url.pathname = "/";
     return NextResponse.redirect(url);
