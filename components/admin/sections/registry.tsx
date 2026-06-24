@@ -9,7 +9,6 @@ import { SeguimientosSection } from "./seguimientos/seguimientos-section";
 import MensajesSection from "./mensajes/mensajes-section";
 import { ComentariosSection } from "./comentarios/comentarios-section";
 import { MetricasSection } from "./metricas/metricas-section";
-import { RefugiosSection } from "./refugios/refugios-section";
 
 export const SECTION_CONTENT: Partial<
   Record<Section, ComponentType<SectionProps>>
@@ -23,5 +22,4 @@ export const SECTION_CONTENT: Partial<
   comentarios: ComentariosSection,
   metricas: MetricasSection,
   mensajes: MensajesSection,
-  refugios: RefugiosSection,
 };

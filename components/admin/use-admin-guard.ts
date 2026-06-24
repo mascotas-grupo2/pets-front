@@ -7,8 +7,7 @@ import { useEffect } from "react";
 export function useAdminGuard() {
   const router = useRouter();
   const user = useAppSelector((state) => state.user);
-  const isAdmin =
-    user.isLoggedIn && (user.role === "admin" || user.role === "superadmin");
+  const isAdmin = user.isLoggedIn && user.role === "admin";
 
   useEffect(() => {
     if (isAdmin) return;
