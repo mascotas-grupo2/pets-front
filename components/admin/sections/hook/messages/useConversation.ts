@@ -9,6 +9,7 @@ import {
   Message,
   ConversationProfile,
 } from "@/services/messages.services";
+import { refreshNotifications } from "@/components/notifications/useNotifications";
 
 const PAGE = 30;
 
@@ -37,6 +38,8 @@ export function useConversation(userId: number | null) {
         setMessages(res.data.messages);
         setProfile(res.data.profile ?? null);
         setHasMore(!!res.data.hasMore);
+
+        refreshNotifications();
       }
     } finally {
       if (userIdRef.current === userId) setLoading(false);

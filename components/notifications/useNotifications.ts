@@ -46,6 +46,10 @@ async function refresh() {
   }
 }
 
+export function refreshNotifications() {
+  void refresh();
+}
+
 async function load() {
   setState({ loading: true });
   await refresh();
