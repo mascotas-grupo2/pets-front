@@ -57,6 +57,10 @@ export interface ConversationProfile {
   claimPetId?: string | null;
   /** true si la mascota reclamada ya fue devuelta al dueño. */
   claimPetReturned?: boolean;
+  /** IDs de TODAS las mascotas reclamadas en esta conversación. */
+  claimPetIds?: string[];
+  /** Mapa petId → { returned, name } para cada mascota reclamada. */
+  claimPetMap?: Record<string, { returned: boolean; name: string }>;
   notes?: ConversationNote[];
 }
 
@@ -110,3 +114,22 @@ export const sendMessage = (receiverId: number, content: string, photo?: File | 
 /** Elimina un mensaje puntual (lo puede borrar un participante o un admin). */
 export const deleteMessage = (id: number) =>
   request<void>(() => axios.delete(`messages/${id}`));
+
+/**
+ * Rechazar un reclamo de mascota.
+ * @param petId ID de la mascota
+ * @param claimPetId ID del reclamo a rechazar
+ * @param reason Motivo del rechazo (opcional)
+ */
+export async function rejectClaimPet(
+  petId: string,
+  claimPetId: string,
+  reason?: string,
+) {
+  // El backend espera el ID de la mascota y el motivo en el cuerpo.
+  // El claimPetId se incluye para que el frontend pueda identificar la tarjeta.
+  return request(() => axios.post(`/api/mascotas/${petId}/reject-claim`, {
+    reason,
+    claimPetId,
+  }));
+}

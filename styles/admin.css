@@ -2613,6 +2613,49 @@
 }
 
 /* ---------- Tarjeta de reclamo en el chat (arriba del thread) ---------- */
+.claim-in-chat-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin: 8px 14px;
+  border: 1px solid #fecaca;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.claim-in-chat-container .claim-in-chat {
+  margin: 0;
+  border: none;
+  border-radius: 0;
+  border-bottom: 1px solid #fecaca;
+}
+
+.claim-in-chat-container .claim-in-chat:last-child {
+  border-bottom: none;
+}
+
+.claim-expand-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 10px;
+  border: none;
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--primary-600);
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.claim-expand-btn:hover {
+  background: var(--primary-50);
+}
+
 .claim-in-chat {
   display: flex;
   align-items: flex-start;
