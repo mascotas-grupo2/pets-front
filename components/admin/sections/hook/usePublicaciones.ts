@@ -193,8 +193,8 @@ export function usePublicaciones() {
     return false;
   }
 
-  async function handleApproveClaim(id: string, ownerUserId?: number, adminNote?: string) {
-    const res = await approveClaimPet(id, ownerUserId, adminNote);
+  async function handleApproveClaim(id: string, adminNote?: string) {
+    const res = await approveClaimPet(id, adminNote);
     if (res.ok) {
       handleToast("success", "Reclamo aprobado. Badge 'CON DUEÑO' activado.");
       await reload();

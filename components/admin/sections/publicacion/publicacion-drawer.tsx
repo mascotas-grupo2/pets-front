@@ -19,6 +19,7 @@ type Actions = {
   handleFinalize: (id: string) => Promise<boolean>;
   handleDelete: (id: string, reason?: string) => Promise<boolean>;
   handleConfirmReturn: (id: string, returnedTo: string) => Promise<boolean>;
+  handleApproveClaim: (id: string, adminNote?: string) => Promise<boolean>;
   handleSave: (id: string, patch: Partial<Pet>) => Promise<boolean>;
 };
 
