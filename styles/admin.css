@@ -3520,7 +3520,10 @@
 /* ---------- Stat Cards (6 columnas) ---------- */
 .metricas-stat-grid {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
+  /* auto-fit: las tarjetas se reacomodan solas según el ancho disponible
+     (sin depender de breakpoints fijos). auto-fit colapsa los tracks vacíos
+     para que las tarjetas estiren y llenen la fila. */
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
   gap: 14px;
 }
 
@@ -3634,7 +3637,9 @@
 /* ---------- Dona grid (3 columnas) ---------- */
 .metricas-dona-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  /* Cada dona necesita ~200px de gráfico + leyenda: con minmax(380px) se
+     reacomodan a 3/2/1 columnas según el ancho, sin quedar apretadas. */
+  grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
   gap: 24px;
 }
 
@@ -3686,7 +3691,7 @@
 /* ---------- Grid 3 columnas ---------- */
 .metricas-grid-3 {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 20px;
 }
 
@@ -3852,37 +3857,12 @@
    Responsive: Métricas
    =========================================================== */
 
-@media (max-width: 1280px) {
-  .metricas-stat-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-@media (max-width: 1024px) {
-  .metricas-dona-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  .metricas-grid-3 {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
+/* Las grillas se reacomodan solas con auto-fit/minmax (arriba); acá solo
+   ajustamos lo que no es número de columnas. */
 @media (max-width: 768px) {
   .metricas-header {
     flex-direction: column;
     align-items: flex-start;
-  }
-
-  .metricas-stat-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .metricas-dona-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .metricas-grid-3 {
-    grid-template-columns: 1fr;
   }
 
   .metricas-map-body {
@@ -3895,10 +3875,6 @@
 }
 
 @media (max-width: 480px) {
-  .metricas-stat-grid {
-    grid-template-columns: 1fr;
-  }
-
   .metricas-filters {
     width: 100%;
     justify-content: stretch;
