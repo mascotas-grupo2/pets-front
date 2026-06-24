@@ -67,10 +67,12 @@ export const STATS: Stat[] = [
 
 
 /** Color de la compatibilidad según el porcentaje. */
-export function compatTone(pct: number): Tone {
-  if (pct >= 85) return "green";
-  if (pct >= 60) return "amber";
-  return "red";
+export function compatTone(pct: number): string {
+  if (pct >= 90) return "sky"; // Excelente
+  if (pct >= 80) return "green"; // Alta
+  if (pct >= 65) return "lime"; // Buena
+  if (pct >= 50) return "yellow"; // Moderada
+  return "red"; // Baja
 }
 
 /** Iniciales para los avatares (máx. 2 letras). */

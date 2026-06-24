@@ -19,6 +19,7 @@ type Actions = {
   handleFinalize: (id: string) => Promise<boolean>;
   handleDelete: (id: string, reason?: string) => Promise<boolean>;
   handleConfirmReturn: (id: string, returnedTo: string) => Promise<boolean>;
+  handleApproveClaim: (id: string, adminNote?: string) => Promise<boolean>;
   handleSave: (id: string, patch: Partial<Pet>) => Promise<boolean>;
 };
 
@@ -67,8 +68,8 @@ const CONFIRM_CONFIG: Record<
     title: "Confirmar devolución",
     message: (name) =>
       `¿Confirmás que "${name}" fue devuelta a su dueño? Se cerrará la publicación y se cancelarán adopciones activas.`,
-    requireReason: true,
-    reasonLabel: "¿A quién se devolvió?",
+    requireReason: false,
+    reasonLabel: "Nota (opcional)",
   },
 };
 
@@ -273,8 +274,8 @@ export function PublicacionDrawer({ pet, onClose, actions, initialEditing = fals
                 <Check size={16} aria-hidden />
                 {drawerActions.busy ? "Procesando…" : "Aprobar"}
               </button>
-              {/* Botón "Confirmar devolución": visible para mascotas perdidas o encontradas activas */}
-              {(pet.status === "perdido" || pet.status === "encontrado") &&
+              {/* Botón "Confirmar devolución": solo si la mascota está en refugio/tránsito (NO si está perdida) */}
+              {(pet.status === "encontrado" || pet.status === "en tránsito" || pet.status === "en tratamiento médico") &&
                 pet.reportStatus === "activo" && (
                   <button
                     type="button"

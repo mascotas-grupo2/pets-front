@@ -4,9 +4,3 @@ out
 coverage
 playwright-report
 test-results
-npm-debug.log*
-.git
-.gitignore
-Dockerfile
-.dockerignore
-.env*.local

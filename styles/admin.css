@@ -716,17 +716,25 @@
   font-size: 11px;
   font-weight: 500;
 }
+.dash-compat.tone-sky,
+.dash-compat.tone-sky + .dash-compat-label {
+  color: #0ea5e9;
+}
 .dash-compat.tone-green,
 .dash-compat.tone-green + .dash-compat-label {
-  color: var(--secondary-500);
+  color: #16a34a;
 }
-.dash-compat.tone-amber,
-.dash-compat.tone-amber + .dash-compat-label {
-  color: var(--warning);
+.dash-compat.tone-lime,
+.dash-compat.tone-lime + .dash-compat-label {
+  color: #84cc16;
+}
+.dash-compat.tone-yellow,
+.dash-compat.tone-yellow + .dash-compat-label {
+  color: #eab308;
 }
 .dash-compat.tone-red,
 .dash-compat.tone-red + .dash-compat-label {
-  color: var(--danger);
+  color: #ef4444;
 }
 
 /* ---------- Pills de estado ---------- */
@@ -2602,6 +2610,83 @@
 .claim-muted {
   color: #9ca3af;
   font-size: 0.8rem;
+}
+
+/* ---------- Tarjeta de reclamo en el chat (arriba del thread) ---------- */
+.claim-in-chat {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 18px;
+  margin: 8px 14px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: var(--radius-lg);
+}
+
+.claim-in-chat-icon {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-full);
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.claim-in-chat-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.claim-in-chat-body strong {
+  display: block;
+  font-size: 14px;
+  color: #991b1b;
+  margin-bottom: 2px;
+}
+
+.claim-in-chat-body p {
+  margin: 0;
+  font-size: 13px;
+  color: #b91c1c;
+}
+
+/* Variante en verde: la mascota ya fue devuelta al dueño (estado resuelto). */
+.claim-in-chat--returned {
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+}
+.claim-in-chat--returned .claim-in-chat-icon {
+  background: #dcfce7;
+  color: #16a34a;
+}
+.claim-in-chat--returned .claim-in-chat-body strong {
+  color: #166534;
+}
+.claim-in-chat--returned .claim-in-chat-body p {
+  color: #15803d;
+}
+
+.claim-in-chat-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.claim-returned-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  background: rgba(34, 197, 94, 0.15);
+  color: #16a34a;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
 }
 
 .msg-bubble time {

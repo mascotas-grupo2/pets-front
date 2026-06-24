@@ -50,6 +50,7 @@ export function PublicacionSection() {
     handleFinalize,
     handleDelete,
     handleConfirmReturn,
+    handleApproveClaim,
     handleSave,
     reload,
   } = usePublicaciones();
@@ -66,6 +67,7 @@ export function PublicacionSection() {
     handleFinalize,
     handleDelete,
     handleConfirmReturn,
+    handleApproveClaim,
     handleSave,
   };
 

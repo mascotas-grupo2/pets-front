@@ -10,11 +10,18 @@ axiosInstance.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      if (error.config?.url?.includes("auth/login")) {
-        return Promise.reject(error);
+      const url = error.config?.url ?? "";
+      const onLoginPage =
+        typeof window !== "undefined" &&
+        window.location.pathname.startsWith("/login");
+
+      if (
+        !url.includes("auth/login") &&
+        !onLoginPage &&
+        typeof window !== "undefined"
+      ) {
+        window.location.href = "/login?error=session_expired";
       }
-      // La sesión expiró definitivamente.
-      window.location.href = "/login?error=session_expired";
     }
     return Promise.reject(error);
   },

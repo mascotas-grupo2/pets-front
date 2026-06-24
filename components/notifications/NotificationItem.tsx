@@ -1,4 +1,13 @@
-import { MessageSquare, FileText, Megaphone, Bell, AlertTriangle } from "lucide-react";
+import {
+  MessageSquare,
+  MessageCircle,
+  FileText,
+  Megaphone,
+  Bell,
+  AlertTriangle,
+  UserPlus,
+  MapPin,
+} from "lucide-react";
 import type { Notification } from "@/services/notifications";
 
 /** Formato relativo simple ("recién", "hace 5 min", "hace 2 h", "hace 3 d"). */
@@ -20,6 +29,9 @@ const TYPE_META: Record<string, { Icon: typeof Bell; tone: string }> = {
   message: { Icon: MessageSquare, tone: "violet" },
   adoption_status: { Icon: FileText, tone: "green" },
   publication: { Icon: Megaphone, tone: "amber" },
+  comment: { Icon: MessageCircle, tone: "violet" },
+  avistamiento: { Icon: MapPin, tone: "amber" },
+  actividad: { Icon: UserPlus, tone: "violet" },
 };
 
 /** Meta para reclamos de mascota (urgencia). */

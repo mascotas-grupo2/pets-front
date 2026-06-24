@@ -22,12 +22,24 @@ export type TopPublicacion = {
   avatar?: string;
 };
 
+export type CategoriaMapa =
+  | "perdida"
+  | "adopcion"
+  | "refugio"
+  | "transito"
+  | "otros";
+
 export type UbicacionMapa = {
   id: string;
   nombre: string;
   lat: number;
   lng: number;
-  tipo: "adopcion" | "perdida" | "refugio";
+  /** Categoría que define el color del pin (derivada del estado). */
+  tipo: CategoriaMapa;
+  /** Estado real para el popup (ej. "perdido", "en adopción"). */
+  estado?: string;
+  /** Especie/animal para el popup (ej. "perro"). */
+  especie?: string;
 };
 
 export type MetricasData = {

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import handleToast from "@/components/utils/toast";
 import {
   approvePet,
+  approveClaimPet,
   confirmReturnPet,
   deletePet,
   finalizePet,
@@ -192,8 +193,20 @@ export function usePublicaciones() {
     return false;
   }
 
+  async function handleApproveClaim(id: string, adminNote?: string) {
+    const res = await approveClaimPet(id, adminNote);
+    if (res.ok) {
+      handleToast("success", "Reclamo aprobado. Badge 'CON DUEÑO' activado.");
+      await reload();
+      return true;
+    }
+    handleToast("error", res.error || "No se pudo aprobar el reclamo.");
+    return false;
+  }
+
   return {
     handleConfirmReturn,
+    handleApproveClaim,
     visible: pets,
     loading,
     counts,

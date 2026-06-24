@@ -43,7 +43,10 @@ export type UbicacionMascota = {
   nombre: string;
   lat: number;
   lng: number;
-  tipo: PetStatus;
+  /** Estado de la mascota (ej. "perdido", "en adopción"). */
+  estado: string;
+  /** Especie/animal (ej. "perro", "gato"). */
+  especie: string;
 };
 
 export type MetricasData = {
@@ -61,7 +64,6 @@ export type MetricasData = {
   usuariosPorMes: UsuarioPorMes[];
   mascotasPorTipo: MascotaPorTipo[];
   topPublicaciones: TopPublicacion[];
-  mapaReportes: UbicacionMascota[];
 };
 
 export const getMetricas = (periodo: string = "30d", signal?: AbortSignal) =>
@@ -70,4 +72,13 @@ export const getMetricas = (periodo: string = "30d", signal?: AbortSignal) =>
       params: { periodo },
       signal: s || signal,
     }),
+  );
+
+/** Mapa de ubicaciones (endpoint propio, trae todas las mascotas con coords). */
+export const getMapaReportes = (
+  params?: { estado?: string; especie?: string },
+  signal?: AbortSignal,
+) =>
+  request<{ ok: boolean; data: UbicacionMascota[] }>((s) =>
+    axios.get("pets/admin/mapa", { params, signal: s || signal }),
   );

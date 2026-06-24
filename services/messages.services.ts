@@ -4,7 +4,7 @@ const axios = axiosInstance;
 
 export type userMessage = {
   id: number;
-  photo: string;
+  photo?: string | null;
   name: string;
   /** Rol del otro participante (lo incluye el back vía publicUser). */
   role?: string;
@@ -53,6 +53,10 @@ export interface ConversationProfile {
   adoptionId?: number | null;
   phone?: string | null;
   town?: string | null;
+  /** ID de la mascota reclamada (si la conversación inició con un reclamo). */
+  claimPetId?: string | null;
+  /** true si la mascota reclamada ya fue devuelta al dueño. */
+  claimPetReturned?: boolean;
   notes?: ConversationNote[];
 }
 

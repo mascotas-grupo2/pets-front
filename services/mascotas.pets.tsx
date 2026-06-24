@@ -67,10 +67,23 @@ export const claimPet = (id: string, data: {
   claimantPhone: string;
   claimantEmail?: string;
   description?: string;
-}) =>
-  request<{ ok: boolean; message: string }>(() =>
-    axios.post(`mascotas/${id}/claim`, data),
+  photos?: File[];
+}) => {
+  // Multipart: permite adjuntar fotos de prueba (campo "photo", hasta 5).
+  const fd = new FormData();
+  fd.append("claimantName", data.claimantName);
+  fd.append("claimantPhone", data.claimantPhone ?? "");
+  if (data.claimantEmail) fd.append("claimantEmail", data.claimantEmail);
+  if (data.description) fd.append("description", data.description);
+  (data.photos ?? []).forEach((f) => fd.append("photo", f));
+  return request<{ ok: boolean; message: string }>(() =>
+    axios.post(`mascotas/${id}/claim`, fd),
   );
+};
+
+/** Renueva (extiende) el vencimiento de una publicación. */
+export const renewPet = (id: string) =>
+  request<Pet>(() => axios.post(`mascotas/${id}/renew`));
 
 /**
  * Confirmar devolución: el admin confirma que la mascota fue devuelta a su dueño.
@@ -79,6 +92,20 @@ export const confirmReturnPet = (id: string, returnedTo: string) =>
   request<Pet>(() =>
     axios.post(`mascotas/${id}/confirm-return`, { returnedTo }),
   );
+
+/**
+ * Aprobar reclamo: el admin confirma que el reclamante es el dueño legítimo.
+ * Activa el badge "CON DUEÑO" (isOwner = true). No cierra la publicación.
+ * ownerUserId se auto-detecta en el backend desde las notas de reclamo.
+ */
+export const approveClaimPet = (
+  id: string,
+  adminNote?: string,
+) =>
+  request<{ ok: boolean; message: string }>(() =>
+    axios.post(`mascotas/${id}/approve-claim`, { adminNote }),
+  );
+
 
 /** Elimina una publicación (solo admin). El motivo es opcional. */
 export const deletePet = (id: string, reason?: string) =>

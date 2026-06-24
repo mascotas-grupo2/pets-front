@@ -18,16 +18,24 @@ export async function request<T>(
     const response = await call(signal);
     return { ok: true, data: response.data, status: response.status };
   } catch (error) {
-    console.error(error);
     const err = error as AxiosError;
-    // If the request was aborted, return a specific error.
-    if (err.name === 'CanceledError' || (err.code === 'ERR_CANCELED')) {
-      return { ok: false, data: null, status: 0, error: 'Request aborted' };
+    // Request abortada (cambio de pantalla, etc.): silencioso.
+    if (err.name === "CanceledError" || err.code === "ERR_CANCELED") {
+      return { ok: false, data: null, status: 0, error: "Request aborted" };
+    }
+    const status = err.response?.status ?? 0;
+    // Solo logueamos lo inesperado (red caída o 5xx). Los 4xx (401/403/404/409…)
+    // son respuestas válidas que cada caller maneja, así que no ensucian la consola.
+    if (status === 0 || status >= 500) {
+      const method = err.config?.method?.toUpperCase() ?? "GET";
+      console.warn(
+        `[request] ${method} ${err.config?.url ?? ""} → ${status || "sin respuesta"}: ${err.message}`,
+      );
     }
     return {
       ok: false,
       data: null,
-      status: err.response?.status || 500,
+      status: status || 500,
       // Mensaje específico del backend ({ error: "..." }) si existe; sino el genérico.
       error: extractBackendError(err) ?? err.message,
     };
