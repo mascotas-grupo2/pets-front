@@ -717,7 +717,7 @@ function ClaimForm({
       const res = await claimPet(petId, {
         claimantName: user.name || user.email || "Usuario",
         claimantPhone: "", // el backend detecta al usuario autenticado por el token
-        description: description.trim() || undefined,
+        description: description.trim(),
         photos: files,
       });
       if (res.ok) {
@@ -774,8 +774,8 @@ function ClaimForm({
               <div className="confirm-dialog-body">
                 <p className="confirm-dialog-message">
                   Subí al menos una foto que pruebe que es tuya (fotos previas
-                  con la mascota, carnet veterinario, etc.). El texto es
-                  opcional.
+                  con la mascota, carnet veterinario, etc.) y contanos por qué
+                  creés que es tuya. Ambos son obligatorios.
                 </p>
 
                 {previews.length > 0 && (
@@ -817,13 +817,14 @@ function ClaimForm({
                 )}
 
                 <div className="confirm-dialog-field">
-                  <label className="field-label">Mensaje (opcional)</label>
+                  <label className="field-label">Mensaje (obligatorio)</label>
                   <textarea
                     className="input confirm-dialog-textarea"
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     placeholder="Contanos por qué creés que es tuya, señas particulares, etc."
                     rows={3}
+                    required
                     disabled={submitting}
                   />
                 </div>
@@ -842,8 +843,18 @@ function ClaimForm({
                   type="button"
                   className="btn btn-primary"
                   onClick={handleSubmit}
-                  disabled={submitting || files.length === 0}
-                  title={files.length === 0 ? "Agregá al menos una foto de prueba" : undefined}
+                  disabled={
+                    submitting ||
+                    files.length === 0 ||
+                    description.trim().length === 0
+                  }
+                  title={
+                    files.length === 0
+                      ? "Agregá al menos una foto de prueba"
+                      : description.trim().length === 0
+                        ? "Escribí por qué creés que es tuya"
+                        : undefined
+                  }
                 >
                   {submitting ? "Enviando…" : "Enviar reclamo"}
                 </button>

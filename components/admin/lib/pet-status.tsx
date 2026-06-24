@@ -18,6 +18,35 @@ export function EstadoPill({ status }: { status?: PetReportStatus | null }) {
   return meta ? <Pill tone={meta.tone}>{meta.label}</Pill> : <>—</>;
 }
 
+/** Días de gracia tras el vencimiento antes de que la publicación se oculte
+ *  del público (debe coincidir con EXPIRY_GRACE_DAYS del backend). */
+const EXPIRY_GRACE_DAYS = 15;
+
+/**
+ * Estado de vencimiento de una publicación para la tabla del admin:
+ * "Vencida · oculta" (fuera de gracia), "Vencida" (en gracia), "Vence en Nd"
+ * (ámbar si está por vencer ≤7d), o los días restantes en gris. "—" si no vence.
+ */
+export function VencimientoPill({
+  expiresAt,
+  daysLeft,
+  expired,
+}: {
+  expiresAt?: string | null;
+  daysLeft?: number | null;
+  expired?: boolean;
+}) {
+  if (!expiresAt || daysLeft == null) return <>—</>;
+  if (expired) {
+    const oculta = daysLeft < -EXPIRY_GRACE_DAYS;
+    return <Pill tone="red">{oculta ? "Vencida · oculta" : "Vencida"}</Pill>;
+  }
+  if (daysLeft <= 7) {
+    return <Pill tone="amber">{`Vence en ${daysLeft} d`}</Pill>;
+  }
+  return <Pill tone="gray">{`${daysLeft} d`}</Pill>;
+}
+
 const STATUS_TONE: Partial<Record<PetStatus, Tone>> = {
   "en adopción": "green",
   adoptado: "gray",

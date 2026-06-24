@@ -40,6 +40,8 @@ export type UbicacionMapa = {
   estado?: string;
   /** Especie/animal para el popup (ej. "perro"). */
   especie?: string;
+  /** Foto principal para mostrar en el popup (URL o null). */
+  foto?: string | null;
 };
 
 export type MetricasData = {
