@@ -60,6 +60,21 @@ export default function MetricasMapInner({ ubicaciones }: { ubicaciones: Ubicaci
       {ubicaciones.map((u) => (
         <Marker key={u.id} position={[u.lat, u.lng]} icon={ICONS[u.tipo] ?? ICONS.otros}>
           <Popup>
+            {u.foto && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={u.foto}
+                alt={u.nombre}
+                style={{
+                  width: "100%",
+                  height: "110px",
+                  objectFit: "cover",
+                  borderRadius: "6px",
+                  marginBottom: "6px",
+                  display: "block",
+                }}
+              />
+            )}
             <strong>{u.nombre}</strong>
             <br />
             <span style={{ fontSize: "12px", color: "#666" }}>
