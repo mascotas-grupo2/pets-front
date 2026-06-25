@@ -8,11 +8,6 @@ import {
   ArrowDown,
   Image as ImageIcon,
   X,
-  ExternalLink,
-  Undo2,
-  AlertTriangle,
-  ChevronDown,
-  ChevronUp,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useAppSelector } from "@/redux/hooks";
@@ -20,11 +15,6 @@ import { userMessage } from "@/services/messages.services";
 import { useConversation } from "../hook/messages/useConversation";
 import { useEvaluacion } from "../hook/useEvaluacion";
 import { initials } from "../dashboard/dashboard.data";
-import { ConfirmDialog } from "@/components/admin/ui/confirm-dialog";
-import Link from "next/link";
-import { toast } from "sonner";
-import { confirmReturnPet } from "@/services/mascotas.pets";
-import { rejectClaimPet } from "@/services/messages.services";
 import { Avatar, Burbuja, Spinner } from "@/components/messages/chat-ui";
 
 type Props = {
@@ -179,7 +169,6 @@ export default function ConversationView({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [tab, setTab] = useState<Tab>("mensajes");
   const [newCount, setNewCount] = useState(0);
-  const [claimsExpanded, setClaimsExpanded] = useState(false);
 
   const { messages, profile, hasMore, loadingOlder, loadOlder } = conversationData;
   const esInterno = activeUserMessage?.role === "admin";
@@ -272,57 +261,6 @@ export default function ConversationView({
     setSending(false);
   }
 
-  // Estado de devolución de cada mascota reclamada (local + server)
-  const [returnedPets, setReturnedPets] = useState<Set<string>>(new Set());
-  const [returningPet, setReturningPet] = useState<string | null>(null);
-  const [showReturnModal, setShowReturnModal] = useState<string | null>(null);
-  // Estado para el modal de rechazo
-  const [showRejectModal, setShowRejectModal] = useState(false);
-  const [rejectTarget, setRejectTarget] = useState<{ petId: string; claimPetId: string; claimantName: string } | null>(null);
-  const [rejectReason, setRejectReason] = useState("");
-  const [rejecting, setRejecting] = useState(false);
-
-  const claimPetIds = profile?.claimPetIds ?? (profile?.claimPetId ? [profile.claimPetId] : []);
-  const claimPetMap = profile?.claimPetMap ?? {};
-
-  function isPetReturned(petId: string): boolean {
-    if (returnedPets.has(petId)) return true;
-    const info = claimPetMap[petId];
-    if (info?.returned) return true;
-    // Fallback compatibilidad: el perfil viejo solo tiene claimPetReturned
-    if (petId === profile?.claimPetId && profile?.claimPetReturned) return true;
-    return false;
-  }
-
-  async function handleConfirmReturn(petId: string) {
-    setShowReturnModal(petId);
-  }
-
-  const openRejectModal = (petId: string, claimPetId: string, claimantName: string) => {
-    setRejectTarget({ petId, claimPetId, claimantName });
-    setShowRejectModal(true);
-  };
-
-  async function submitReturn() {
-    const petId = showReturnModal;
-    if (!petId) return;
-    setShowReturnModal(null);
-    setReturningPet(petId);
-    const res = await confirmReturnPet(petId, "");
-    setReturningPet(null);
-    if (res.ok) {
-      toast.success("Devolución confirmada.");
-      setReturnedPets((prev) => new Set(prev).add(petId));
-      conversationData.reload();
-    } else {
-      toast.error(res.error ?? "Error al confirmar devolución.");
-    }
-  }
-
-  const hasMultipleClaims = claimPetIds.length > 1;
-  const visibleClaims = claimsExpanded ? claimPetIds : claimPetIds.slice(0, 1);
-  const hiddenCount = claimPetIds.length - 1;
-
   return (
     <section className="msg-chat-panel">
       <header className="msg-chat-head">
@@ -350,166 +288,8 @@ export default function ConversationView({
 
       {tab === "mensajes" && (
         <>
-          {/* Tarjetas de reclamo: visibles si la conversación tiene reclamos */}
-          {currentUser.role === "admin" && claimPetIds.length > 0 && (
-            <div className="claim-in-chat-container">
-              {visibleClaims.map((petId) => {
-                const petInfo = claimPetMap[petId];
-                const petName = petInfo?.name ?? "Mascota";
-                const returned = isPetReturned(petId);
-                const returning = returningPet === petId;
-
-                return (
-                  <div
-                    key={petId}
-                    className={`claim-in-chat${returned ? " claim-in-chat--returned" : ""}`}
-                    style={{
-                      zIndex: claimPetIds.indexOf(petId),
-                      transform: `translateY(${claimPetIds.indexOf(petId) * 4}px)`
-                    }}
-                  >
-                    <div className="claim-in-chat-icon">
-                      {returned ? <CheckCircle2 size={18} /> : <AlertTriangle size={18} />}
-                    </div>
-                    <div className="claim-in-chat-body">
-                      <strong>{returned ? "Devuelta" : "Reclamo"}: {petName}</strong>
-                      <p>
-                        {returned
-                          ? "Mascota devuelta al dueño."
-                          : "Esta conversación incluye un reclamo de esta mascota."}
-                      </p>
-                    </div>
-                    <div className="claim-in-chat-actions">
-                      <Link
-                        href={`/mascotas-perdidas/${petId}`}
-                        className="btn btn-outline btn-sm"
-                        target="_blank"
-                      >
-                        <ExternalLink size={14} /> Ver
-                      </Link>
-                      {returned ? (
-                        <span className="claim-returned-badge">
-                          <CheckCircle2 size={14} /> Devuelta
-                        </span>
-                      ) : (
-                        <>
-                          <button
-                            type="button"
-                            className="btn btn-primary btn-sm"
-                            onClick={() => handleConfirmReturn(petId)}
-                            disabled={returning}
-                          >
-                            {returning ? (
-                              <Loader2 className="animate-spin" size={14} />
-                            ) : (
-                              <Undo2 size={14} />
-                            )}{" "}
-                            Confirmar
-                          </button>
-                          <button
-                            type="button"
-                            className="btn btn-outline btn-sm reject-claim-btn"
-                            onClick={() => openRejectModal(petId, petId, petName)}
-                          >
-                            Rechazar
-                          </button>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-
-              {/* Botón para expandir/colapsar reclamos adicionales */}
-              {hasMultipleClaims && (
-                <button
-                  type="button"
-                  className="claim-expand-btn"
-                  onClick={() => setClaimsExpanded(!claimsExpanded)}
-                >
-                  {claimsExpanded ? (
-                    <>
-                      <ChevronUp size={14} /> Mostrar menos
-                    </>
-                  ) : (
-                    <>
-                      <ChevronDown size={14} /> {hiddenCount} reclamo{hiddenCount > 1 ? "s" : ""} más
-                    </>
-                  )}
-                </button>
-              )}
-
-              <ConfirmDialog
-                open={showReturnModal !== null}
-                title="Confirmar devolución"
-                message={`¿Confirmás que ${headName} es el dueño y que la mascota fue devuelta? Se cerrará la publicación.`}
-                confirmLabel="Confirmar"
-                cancelLabel="Cancelar"
-                busy={returningPet !== null}
-                onConfirm={() => submitReturn()}
-                onCancel={() => setShowReturnModal(null)}
-              />
-
-              {/* Modal para rechazar reclamo */}
-              {showRejectModal && rejectTarget && (
-                <div className="modal-backdrop" onClick={() => setShowRejectModal(false)}>
-                  <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-                    <h3>Rechazar reclamo de {rejectTarget.claimantName}</h3>
-                    <p className="modal-hint">Opcional: explicá por qué no es el dueño legítimo.</p>
-                    <textarea
-                      placeholder="Motivo del rechazo..."
-                      value={rejectReason}
-                      onChange={(e) => setRejectReason(e.target.value)}
-                      className="modal-textarea"
-                    />
-                    <div className="modal-actions">
-                      <button
-                        type="button"
-                        className="btn btn-outline btn-sm"
-                        onClick={() => {
-                          setShowRejectModal(false);
-                          setRejectReason("");
-                        }}
-                      >
-                        Cancelar
-                      </button>
-                      <button
-                        type="button"
-                        className="btn btn-danger btn-sm"
-                        onClick={async () => {
-                          setRejecting(true);
-                          const res = await rejectClaimPet(
-                            rejectTarget.petId,
-                            rejectTarget.claimPetId,
-                            rejectReason,
-                          );
-                          setRejecting(false);
-                          if (res.ok) {
-                            toast.success("Reclamo rechazado.");
-                            setShowRejectModal(false);
-                            setRejectReason("");
-                            await conversationData.reload();
-                          } else {
-                            toast.error(res.error ?? "Error al rechazar el reclamo.");
-                          }
-                        }}
-                        disabled={rejecting}
-                      >
-                        {rejecting ? (
-                          <>
-                            <Loader2 className="animate-spin" size={14} /> Rechazando...
-                          </>
-                        ) : (
-                          "Rechazar reclamo"
-                        )}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
+          {/* Las tarjetas de reclamo ahora viven en el carrusel de alertas
+              (arriba del panel), así que acá ya no se duplican. */}
           <div className="msg-thread-wrap">
             <div className="msg-thread" ref={threadRef} onScroll={onThreadScroll}>
               {loadingOlder && (
