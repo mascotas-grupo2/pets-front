@@ -3470,14 +3470,16 @@
 .activity-title {
   font-size: 0.88rem;
   font-weight: 600;
-  color: var(--text, #111827);
+  /* --foreground/--muted SÍ cambian por tema (--text/--text-muted no existen,
+     siempre caían al fallback oscuro → título invisible en dark mode). */
+  color: var(--foreground, #111827);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 .activity-detail {
   font-size: 0.78rem;
-  color: var(--text-muted, #6b7280);
+  color: var(--muted, #6b7280);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -4062,4 +4064,263 @@
   .donut-detail-legend {
     width: 100%;
   }
+}
+
+/* ===========================================================
+   Carrusel de alertas (panel de Mensajes)
+   =========================================================== */
+.msg-main {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+  min-height: 0;
+  height: 100%; /* llena el alto de la celda del grid */
+}
+.msg-panel-area {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.msg-panel-area > * {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.alerts-carousel {
+  flex-shrink: 0; /* el carrusel no se achica; el panel de chat toma el resto */
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: 12px 14px 8px;
+}
+
+.alerts-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.alerts-head-icon {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: var(--primary-50);
+  color: var(--primary-600);
+  flex-shrink: 0;
+}
+.alerts-head-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+}
+.alerts-head-text strong {
+  font-size: 15px;
+  color: var(--gray-900);
+}
+.alerts-head-text span {
+  font-size: 12.5px;
+  color: var(--gray-500);
+}
+.alerts-seeall {
+  margin-left: auto;
+}
+
+.alerts-viewport {
+  position: relative;
+}
+.alerts-track {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  padding-bottom: 4px;
+}
+.alerts-track::-webkit-scrollbar {
+  display: none;
+}
+
+.alerts-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 2;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--gray-700);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+.alerts-arrow:hover {
+  background: var(--gray-50);
+}
+.alerts-arrow--left {
+  left: -8px;
+}
+.alerts-arrow--right {
+  right: -8px;
+}
+
+.alert-card {
+  flex: 0 0 320px;
+  max-width: 320px;
+  scroll-snap-align: start;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 11px 13px;
+  border-radius: var(--radius-lg);
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+}
+.alert-card--reclamo {
+  border-color: #ef4444;
+  background: color-mix(in srgb, #ef4444 6%, var(--surface));
+}
+.alert-card--evaluacion {
+  border-color: #f59e0b;
+  background: color-mix(in srgb, #f59e0b 6%, var(--surface));
+}
+.alert-card--documentacion {
+  border-color: #3b82f6;
+  background: color-mix(in srgb, #3b82f6 6%, var(--surface));
+}
+
+.alert-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  align-self: flex-start;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12.5px;
+  font-weight: 600;
+}
+.alert-badge--reclamo {
+  background: color-mix(in srgb, #ef4444 16%, var(--surface));
+  color: #b91c1c;
+}
+.alert-badge--evaluacion {
+  background: color-mix(in srgb, #f59e0b 18%, var(--surface));
+  color: #b45309;
+}
+.alert-badge--documentacion {
+  background: color-mix(in srgb, #3b82f6 16%, var(--surface));
+  color: #1d4ed8;
+}
+
+.alert-card-main {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.alert-card-photo {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+.alert-card-photo--empty {
+  background: var(--gray-100);
+}
+.alert-card-info {
+  min-width: 0;
+}
+.alert-card-info strong {
+  display: block;
+  font-size: 15px;
+  color: var(--gray-900);
+}
+.alert-card-info p {
+  margin: 1px 0 0;
+  font-size: 12px;
+  color: var(--gray-600);
+  line-height: 1.3;
+  /* máx 2 líneas para que la card no crezca de alto */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.alert-card-actions {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 6px;
+  margin-top: auto;
+}
+/* Botones compactos para que los 3 (Ver/Aceptar/Rechazar) entren en una línea. */
+.alert-card-actions .btn {
+  padding: 6px 10px;
+  font-size: 12.5px;
+  white-space: nowrap;
+  flex: 0 1 auto;
+  min-width: 0;
+}
+
+.alerts-dots {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 8px;
+}
+.alerts-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--gray-300);
+  transition: background 0.2s, width 0.2s;
+}
+.alerts-dot.is-active {
+  width: 18px;
+  border-radius: 999px;
+  background: var(--primary-500);
+}
+
+/* Alerta "Devuelta" (caso de reclamo ya cerrado) */
+.alert-card--devuelta {
+  border-color: #22c55e;
+  background: color-mix(in srgb, #22c55e 6%, var(--surface));
+}
+.alert-badge--devuelta {
+  background: color-mix(in srgb, #22c55e 16%, var(--surface));
+  color: #15803d;
+}
+
+/* Fotos de prueba dentro de una nota (ej. reclamo) */
+.mdrawer-nota-fotos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 6px 0 4px;
+}
+.mdrawer-nota-fotos img {
+  width: 84px;
+  height: 84px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  cursor: zoom-in;
+}
+
+/* Flecha del carrusel deshabilitada (en los extremos) */
+.alerts-arrow:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.alerts-dot {
+  border: none;
+  padding: 0;
+  cursor: pointer;
 }
