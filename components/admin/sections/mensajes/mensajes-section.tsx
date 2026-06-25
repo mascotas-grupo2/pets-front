@@ -9,6 +9,7 @@ import ConversationView from "./ConversationView";
 import EmptyState from "./EmptyState";
 import InboxList from "./InboxList";
 import NewMessageView from "./NewMessageView";
+import { AlertsCarousel } from "./AlertsCarousel";
 export default function MensajesSection() {
   const inbox = useInbox();
 
@@ -45,31 +46,37 @@ export default function MensajesSection() {
         onNew={openNewMessage}
       />
 
-      {panelMode === "idle" && <EmptyState />}
+      <div className="msg-main">
+        <AlertsCarousel />
 
-      {panelMode === "new" && (
-        <NewMessageView
-          inboxUserIds={inbox.conversations.map((c) => c.user.id)}
-          onCancel={() => {
-            closePanel();
-          }}
-          onCreated={(user) => {
-            inbox.reload();
+        <div className="msg-panel-area">
+          {panelMode === "idle" && <EmptyState />}
 
-            openConversation(user.id);
-          }}
-        />
-      )}
+          {panelMode === "new" && (
+            <NewMessageView
+              inboxUserIds={inbox.conversations.map((c) => c.user.id)}
+              onCancel={() => {
+                closePanel();
+              }}
+              onCreated={(user) => {
+                inbox.reload();
 
-      {panelMode === "chat" && activeUserId && (
-        <ConversationView
-          conversationData={conversation}
-          activeUserMessage={
-            inbox.conversations.find((c) => c.user.id === activeUserId)?.user ||
-            null
-          }
-        />
-      )}
+                openConversation(user.id);
+              }}
+            />
+          )}
+
+          {panelMode === "chat" && activeUserId && (
+            <ConversationView
+              conversationData={conversation}
+              activeUserMessage={
+                inbox.conversations.find((c) => c.user.id === activeUserId)
+                  ?.user || null
+              }
+            />
+          )}
+        </div>
+      </div>
     </div>
   );
 }
