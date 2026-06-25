@@ -10,13 +10,14 @@ import {
   finalizePet,
   getAdminPetsPaged,
   rejectPet,
+  renewPet,
   updatePet,
 } from "@/services/mascotas.pets";
 import type { AdminPetSummary, Pet, PetReportStatus } from "@/types/pet";
 import type { SortOrder } from "../../ui/data-table";
 import { usePagination } from "./usePagination";
 
-export type EstadoFiltro = "todos" | PetReportStatus;
+export type EstadoFiltro = "todos" | PetReportStatus | "vencidas";
 export type SortKey = "name" | "tipo" | "estado" | "fecha" | "vistas";
 export type SortDir = "asc" | "desc";
 
@@ -28,10 +29,13 @@ type StatsResponse = {
   rechazado: number;
   finalizado: number;
   reservada: number;
+  vencidas: number;
 };
 
 type Params = {
   reportStatus?: PetReportStatus;
+  /** "1" cuando el filtro activo es "Vencidas". */
+  vencida?: string;
   q?: string;
   page: number;
   pageSize: number;
@@ -54,6 +58,7 @@ export function usePublicaciones() {
     rechazado: 0,
     finalizado: 0,
     reservada: 0,
+    vencidas: 0,
   });
   const [loading, setLoading] = useState(true);
   const [statsLoading, setStatsLoading] = useState(true);
@@ -70,6 +75,7 @@ export function usePublicaciones() {
       page: params.page,
       pageSize: params.pageSize,
       reportStatus: params.reportStatus,
+      vencida: params.vencida,
       q: params.q,
       sort: toSortParam(params.sort),
     });
@@ -86,7 +92,14 @@ export function usePublicaciones() {
 
   // Parámetros actuales para el fetch
   const currentParams: Params = useMemo(() => ({
-    reportStatus: estado !== "todos" ? (estado as PetReportStatus) : undefined,
+    // "Vencidas" no es un reportStatus: filtra publicaciones activas + vencidas.
+    reportStatus:
+      estado === "vencidas"
+        ? ("activo" as PetReportStatus)
+        : estado !== "todos"
+          ? (estado as PetReportStatus)
+          : undefined,
+    vencida: estado === "vencidas" ? "1" : undefined,
     q: query.trim() || undefined,
     page,
     pageSize: PAGE_SIZE,
@@ -111,7 +124,7 @@ export function usePublicaciones() {
     resetPage();
   }
 
-  function toggleEstado(key: PetReportStatus) {
+  function toggleEstado(key: EstadoFiltro) {
     handleSetEstado(estado === key ? "todos" : key);
   }
 
@@ -204,9 +217,21 @@ export function usePublicaciones() {
     return false;
   }
 
+  async function handleRenew(id: string) {
+    const res = await renewPet(id);
+    if (res.ok) {
+      handleToast("success", "Publicación renovada.");
+      await reload();
+      return true;
+    }
+    handleToast("error", res.error || "No se pudo renovar.");
+    return false;
+  }
+
   return {
     handleConfirmReturn,
     handleApproveClaim,
+    handleRenew,
     visible: pets,
     loading,
     counts,
