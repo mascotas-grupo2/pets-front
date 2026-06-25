@@ -60,6 +60,7 @@ export function MetricasSection() {
     handleSave,
     handleConfirmReturn,
     handleApproveClaim,
+    handleRenew,
   } = usePublicaciones();
 
   // Buscamos el objeto completo de la mascota en la lista de publicaciones cargada
@@ -75,6 +76,7 @@ export function MetricasSection() {
     handleDelete,
     handleConfirmReturn,
     handleApproveClaim,
+    handleRenew,
     handleSave,
   };
 
