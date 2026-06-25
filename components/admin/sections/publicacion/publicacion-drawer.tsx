@@ -20,11 +20,12 @@ type Actions = {
   handleDelete: (id: string, reason?: string) => Promise<boolean>;
   handleConfirmReturn: (id: string, returnedTo: string) => Promise<boolean>;
   handleApproveClaim: (id: string, adminNote?: string) => Promise<boolean>;
+  handleRenew: (id: string) => Promise<boolean>;
   handleSave: (id: string, patch: Partial<Pet>) => Promise<boolean>;
 };
 
 /** Acción pendiente de confirmación en el modal. */
-type PendingAction = "delete" | "reject" | "approve" | "confirmReturn";
+type PendingAction = "delete" | "reject" | "approve" | "confirmReturn" | "renew";
 
 type Props = {
   pet: AdminPetSummary;
@@ -70,6 +71,12 @@ const CONFIRM_CONFIG: Record<
       `¿Confirmás que "${name}" fue devuelta a su dueño? Se cerrará la publicación y se cancelarán adopciones activas.`,
     requireReason: false,
     reasonLabel: "Nota (opcional)",
+  },
+  renew: {
+    title: "Renovar publicación",
+    message: (name) =>
+      `¿Renovar la publicación "${name}"? Se extenderá su vencimiento y, si estaba oculta por vencida, volverá a ser visible.`,
+    requireReason: false,
   },
 };
 
@@ -120,6 +127,7 @@ export function PublicacionDrawer({ pet, onClose, actions, initialEditing = fals
     else if (pending === "reject") await drawerActions.reject(reason);
     else if (pending === "approve") await drawerActions.approve();
     else if (pending === "confirmReturn") await drawerActions.confirmReturn(reason);
+    else if (pending === "renew") await drawerActions.renew();
     setPending(null);
   }
 
@@ -287,6 +295,23 @@ export function PublicacionDrawer({ pet, onClose, actions, initialEditing = fals
                     🐾 Devuelta al dueño
                   </button>
                 )}
+              {/* Botón "Renovar": si la publicación tiene vencimiento y no está finalizada
+                  (las finalizadas no se renuevan; el guard cubre data vieja con expiresAt). */}
+              {pet.expiresAt != null && pet.reportStatus !== "finalizado" && (
+                <button
+                  type="button"
+                  className="btn btn-outline btn-sm"
+                  onClick={() => setPending("renew")}
+                  disabled={drawerActions.busy}
+                  title={
+                    pet.expired
+                      ? "Publicación vencida — renovar para volver a publicarla"
+                      : `Vence en ${pet.daysLeft} día${pet.daysLeft === 1 ? "" : "s"} — renovar`
+                  }
+                >
+                  🔄 {pet.expired ? "Renovar (vencida)" : "Renovar"}
+                </button>
+              )}
             </>
           )}
         </footer>
