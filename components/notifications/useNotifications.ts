@@ -14,7 +14,12 @@ import {
 
 // El polling queda como FALLBACK; el push en tiempo real lo da el websocket.
 const POLL_MS = 60000;
-const WS_URL = process.env.NEXT_PUBLIC_WS_URL || "http://localhost:3001";
+// El socket NO pega directo al backend: se conecta al MISMO origen (el server de
+// Next) en este path, y el route handler `app/api/socketio/[[...path]]` reenvía el
+// tráfico a WS_BACKEND_URL. Como un route handler de Next no puede hacer el upgrade
+// a WebSocket, usamos el transporte de polling de Socket.IO (HTTP), que sí se
+// puede proxyear. Así el backend queda detrás de Next (un solo origen expuesto).
+const SOCKET_PATH = "/api/socketio";
 
 type State = { items: Notification[]; unread: number; loading: boolean };
 
@@ -96,10 +101,16 @@ async function connectSocket() {
     }, 5000);
     return;
   }
-  socket = io(WS_URL, {
+  // Sin URL → mismo origen que la app (el server de Next). `path` apunta al proxy
+  // y forzamos `polling` porque el route handler no hace upgrade a WebSocket.
+  socket = io({
+    path: SOCKET_PATH,
     auth: { token: res.data.token },
-    transports: ["websocket", "polling"],
+    transports: ["polling"],
     withCredentials: true,
+    // Sin el slash final engine.io pega a `/api/socketio` (no `/api/socketio/`),
+    // así Next no hace el redirect 308 de trailing slash hacia el route handler.
+    addTrailingSlash: false,
   });
   // Push: al llegar una notificación nueva, refrescamos lista + contador al instante.
   socket.on("notification:new", () => void refresh());
