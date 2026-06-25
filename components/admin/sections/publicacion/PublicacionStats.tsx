@@ -1,8 +1,7 @@
 "use client";
 
-import { CheckCircle2, Clock, XCircle, Flag, Bookmark } from "lucide-react";
+import { CheckCircle2, Clock, XCircle, Flag, Bookmark, TimerOff } from "lucide-react";
 import type { EstadoFiltro } from "../hook/usePublicaciones";
-import type { PetReportStatus } from "@/types/pet";
 
 type Props = {
   counts: {
@@ -11,10 +10,11 @@ type Props = {
     rechazado: number;
     finalizado: number;
     reservada: number;
+    vencidas: number;
   };
   loading: boolean;
   estado: EstadoFiltro;
-  onToggle: (key: PetReportStatus) => void;
+  onToggle: (key: EstadoFiltro) => void;
 };
 
 type StatCardProps = {
@@ -54,7 +54,7 @@ export function PublicacionStats({ counts, loading, estado, onToggle }: Props) {
   const val = (n: number) => (loading ? "…" : n);
 
   return (
-    <div className="pub-stats pub-stats--5">
+    <div className="pub-stats pub-stats--6">
       <StatCard
         icon={<Clock size={22} aria-hidden />}
         label="Nuevas (pendientes)"
@@ -94,6 +94,14 @@ export function PublicacionStats({ counts, loading, estado, onToggle }: Props) {
         tone="blue"
         active={estado === "finalizado"}
         onClick={() => onToggle("finalizado")}
+      />
+      <StatCard
+        icon={<TimerOff size={22} aria-hidden />}
+        label="Vencidas"
+        value={val(counts.vencidas)}
+        tone="red"
+        active={estado === "vencidas"}
+        onClick={() => onToggle("vencidas")}
       />
     </div>
   );
