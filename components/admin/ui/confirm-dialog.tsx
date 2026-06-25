@@ -13,6 +13,8 @@ type Props = {
   message?: string;
   /** Si es true, exige escribir un motivo antes de poder confirmar. */
   requireReason?: boolean;
+  /** Muestra el campo de motivo pero SIN exigirlo (motivo opcional). */
+  reasonOptional?: boolean;
   reasonLabel?: string;
   reasonPlaceholder?: string;
   /** Texto del botón de confirmación. Por defecto "Sí". */
@@ -38,6 +40,7 @@ export function ConfirmDialog({
   title,
   message,
   requireReason = false,
+  reasonOptional = false,
   reasonLabel = "Motivo",
   reasonPlaceholder = "Escribí el motivo…",
   confirmLabel = "Sí",
@@ -87,9 +90,12 @@ export function ConfirmDialog({
         <div className="confirm-dialog-body">
           {message && <p className="confirm-dialog-message">{message}</p>}
 
-          {requireReason && (
+          {(requireReason || reasonOptional) && (
             <div className="confirm-dialog-field">
-              <label className="field-label">{reasonLabel} *</label>
+              <label className="field-label">
+                {reasonLabel}
+                {requireReason ? " *" : " (opcional)"}
+              </label>
               <textarea
                 className="input confirm-dialog-textarea"
                 value={reason}
