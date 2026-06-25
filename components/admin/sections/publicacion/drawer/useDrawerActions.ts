@@ -10,6 +10,7 @@ type Actions = {
   handleDelete: (id: string, reason?: string) => Promise<boolean>;
   handleConfirmReturn: (id: string, returnedTo: string) => Promise<boolean>;
   handleApproveClaim: (id: string, adminNote?: string) => Promise<boolean>;
+  handleRenew: (id: string) => Promise<boolean>;
   handleSave: (id: string, patch: Partial<Pet>) => Promise<boolean>;
 };
 
@@ -55,10 +56,15 @@ export function useDrawerActions(pet: AdminPetSummary, actions: Actions, onClose
     return run(() => actions.handleApproveClaim(pet.id, adminNote));
   }
 
+  function renew() {
+    // No cierra el drawer: el admin ve el vencimiento actualizado en el acto.
+    return run(() => actions.handleRenew(pet.id), false);
+  }
+
   function save(patch: Partial<Pet>) {
     // No cierra el drawer al guardar, solo actualiza
     return run(() => actions.handleSave(pet.id, patch), false);
   }
 
-  return { busy, approve, reject, finalize, remove, confirmReturn, approveClaim, save };
+  return { busy, approve, reject, finalize, remove, confirmReturn, approveClaim, renew, save };
 }
