@@ -128,8 +128,28 @@ export async function rejectClaimPet(
 ) {
   // El backend espera el ID de la mascota y el motivo en el cuerpo.
   // El claimPetId se incluye para que el frontend pueda identificar la tarjeta.
-  return request(() => axios.post(`/api/mascotas/${petId}/reject-claim`, {
+  // Path relativo: pasa por el proxy (/api/proxy). Con "/api/..." salteaba el proxy → 404.
+  return request(() => axios.post(`mascotas/${petId}/reject-claim`, {
     reason,
     claimPetId,
   }));
 }
+
+/** Una alerta del carrusel del panel de Mensajes: reclamo pendiente o mascota devuelta. */
+export type AdminAlert = {
+  id: string;
+  type: "reclamo" | "devuelta";
+  petId: string | null;
+  petName: string;
+  petPhoto: string | null;
+  personName: string | null;
+  description: string;
+  link: string;
+  userId: number | null;
+};
+
+/** Alertas activas del refugio para el carrusel (solo admin). */
+export const getAdminAlerts = () =>
+  request<{ alerts: AdminAlert[]; total: number }>(() =>
+    axios.get("messages/admin/alerts"),
+  );
