@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useFormik } from "formik";
-import { Check, Trash2, X } from "lucide-react";
+import { Check, Trash2, X, RotateCw, Home } from "lucide-react";
 import type { AdminPetSummary, Pet } from "@/types/pet";
 import { EditForm, PublicacionEditForm, toInitial } from "./drawer/PublicacionEditForm";
 import { useDrawerActions } from "./drawer/useDrawerActions";
@@ -292,7 +292,7 @@ export function PublicacionDrawer({ pet, onClose, actions, initialEditing = fals
                     disabled={drawerActions.busy}
                     title="Marcar como devuelta al dueño"
                   >
-                    🐾 Devuelta al dueño
+                    <Home size={16} aria-hidden /> Devuelta al dueño
                   </button>
                 )}
               {/* Botón "Renovar": si la publicación tiene vencimiento y no está finalizada
@@ -309,7 +309,8 @@ export function PublicacionDrawer({ pet, onClose, actions, initialEditing = fals
                       : `Vence en ${pet.daysLeft} día${pet.daysLeft === 1 ? "" : "s"} — renovar`
                   }
                 >
-                  🔄 {pet.expired ? "Renovar (vencida)" : "Renovar"}
+                  <RotateCw size={16} aria-hidden />{" "}
+                  {pet.expired ? "Renovar (vencida)" : "Renovar"}
                 </button>
               )}
             </>
