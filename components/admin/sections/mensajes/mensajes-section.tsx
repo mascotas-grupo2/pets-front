@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
+import { ChevronLeft } from "lucide-react";
 import { useConversation } from "../hook/messages/useConversation";
 import { useInbox } from "../hook/messages/useInbox";
 import { useMessages } from "../hook/messages/useMessages";
@@ -41,7 +42,11 @@ export default function MensajesSection() {
   }, [searchParams, handleOpenConversation]);
 
   return (
-    <div className="msg-layout">
+    <div
+      className={`msg-layout msg-layout--switch${
+        panelMode !== "idle" ? " has-detail" : ""
+      }`}
+    >
       <InboxList
         conversations={inbox.conversations}
         loading={inbox.loading}
@@ -56,6 +61,11 @@ export default function MensajesSection() {
       />
 
       <div className="msg-main">
+        {/* Solo visible en móvil (master-detail): vuelve a la bandeja. */}
+        <button type="button" className="msg-back" onClick={closePanel}>
+          <ChevronLeft size={16} aria-hidden /> Volver a la bandeja
+        </button>
+
         <AlertsCarousel highlightUserId={activeUserId} />
 
         <div className="msg-panel-area">
