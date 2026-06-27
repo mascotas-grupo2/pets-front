@@ -2838,50 +2838,57 @@
 
 .pet-vacc-wrap {
   width: 100%;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
 }
 
-.pet-vacc-table {
-  width: 100%;
-  min-width: 460px;
-  border-collapse: collapse;
-  background: var(--surface);
-  font-size: 0.85rem;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  overflow: hidden;
-}
-
-.pet-vacc-table th,
-.pet-vacc-table td {
-  padding: 0.85rem 1rem;
-  text-align: center;
-  border: 1px solid var(--border);
-  vertical-align: middle;
-}
-
-.pet-vacc-table thead th {
-  background: var(--surface-alt);
+.pet-vacc-title {
+  font-size: 0.95rem;
   font-weight: 700;
   color: var(--primary-900);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  font-size: 0.72rem;
+  margin: 0 0 0.6rem;
 }
 
-.pet-vacc-table tbody th {
-  background: var(--primary-500);
-  color: #fff;
-  font-weight: 600;
-  font-size: 0.85rem;
-  text-align: center;
-}
-
-.pet-vacc-table tbody td {
-  color: var(--gray-700);
-  line-height: 1.6;
+/* Estado de vacunación REAL (a partir de pet.vaccinated). Antes había una tabla
+   con un calendario de vacunas inventado igual para todas las mascotas. */
+.pet-vacc-status {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
   background: var(--surface);
+}
+
+.pet-vacc-status-icon {
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.pet-vacc-status strong {
+  display: block;
+  font-size: 0.92rem;
+  color: var(--gray-900);
+}
+
+.pet-vacc-status p {
+  margin: 0.15rem 0 0;
+  font-size: 0.82rem;
+  color: var(--gray-600);
+}
+
+.pet-vacc-status--yes {
+  border-color: color-mix(in srgb, #22c55e 45%, var(--border));
+  background: color-mix(in srgb, #22c55e 8%, var(--surface));
+}
+
+.pet-vacc-status--no {
+  border-color: color-mix(in srgb, #f59e0b 45%, var(--border));
+  background: color-mix(in srgb, #f59e0b 8%, var(--surface));
+}
+
+.pet-vacc-status--unknown {
+  border-color: var(--border);
+  background: var(--surface-alt);
 }
 
 .pet-detail-col-side {
