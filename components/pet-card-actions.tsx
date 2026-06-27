@@ -6,18 +6,28 @@ import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { Share2, Eye, Check, X } from "lucide-react";
 import { createSighting } from "@/services/mascotas.pets";
+import { useAppSelector } from "@/redux/hooks";
 
 function petLabel(pet: Pet): string {
-  return pet.name ?? pet.animalType.charAt(0).toUpperCase() + pet.animalType.slice(1);
+  return (
+    pet.name ?? pet.animalType.charAt(0).toUpperCase() + pet.animalType.slice(1)
+  );
 }
 
 /** Acciones de la tarjeta: Compartir (difundir), "La vi" (avistamiento) y Ver más. */
 export function PetCardActions({ pet }: { pet: Pet }) {
   const [copied, setCopied] = useState(false);
   const [sightOpen, setSightOpen] = useState(false);
+  const currentUser = useAppSelector((s) => s.user);
 
   const href = `/mascotas-perdidas/${pet.id}`;
   const name = petLabel(pet);
+
+  const esMia =
+    currentUser.isLoggedIn &&
+    [pet.userId, pet.ownerUserId].some(
+      (id) => id != null && Number(id) === Number(currentUser.id),
+    );
 
   const handleShare = async () => {
     const url =
@@ -45,10 +55,14 @@ export function PetCardActions({ pet }: { pet: Pet }) {
           onClick={handleShare}
           aria-label={`Compartir ${name}`}
         >
-          {copied ? <Check size={15} aria-hidden /> : <Share2 size={15} aria-hidden />}
+          {copied ? (
+            <Check size={15} aria-hidden />
+          ) : (
+            <Share2 size={15} aria-hidden />
+          )}
           {copied ? "¡Copiado!" : "Compartir"}
         </button>
-        {pet.status === "perdido" && (
+        {pet.status === "perdido" && !esMia && (
           <button
             type="button"
             className="pet-action pet-action--sight"
@@ -64,7 +78,11 @@ export function PetCardActions({ pet }: { pet: Pet }) {
       </div>
 
       {sightOpen && (
-        <SightingModal pet={pet} name={name} onClose={() => setSightOpen(false)} />
+        <SightingModal
+          pet={pet}
+          name={name}
+          onClose={() => setSightOpen(false)}
+        />
       )}
     </>
   );
@@ -127,7 +145,12 @@ function SightingModal({
       className="sight-overlay"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
-      <div className="sight-modal" role="dialog" aria-modal="true" aria-labelledby="sight-title">
+      <div
+        className="sight-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="sight-title"
+      >
         <div className="sight-head">
           <div>
             <span className="sight-eyebrow">
@@ -135,7 +158,12 @@ function SightingModal({
             </span>
             <h2 id="sight-title">¿Viste a {name}?</h2>
           </div>
-          <button type="button" className="sight-close" onClick={onClose} aria-label="Cerrar">
+          <button
+            type="button"
+            className="sight-close"
+            onClick={onClose}
+            aria-label="Cerrar"
+          >
             <X size={18} aria-hidden />
           </button>
         </div>
