@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { useConversation } from "../hook/messages/useConversation";
 import { useInbox } from "../hook/messages/useInbox";
@@ -23,13 +23,22 @@ export default function MensajesSection() {
 
   const conversation = useConversation(activeUserId);
 
+  const { updateUnreadCount } = inbox;
+  const handleOpenConversation = useCallback(
+    (userId: number) => {
+      openConversation(userId);
+      updateUnreadCount(userId, 0);
+    },
+    [openConversation, updateUnreadCount],
+  );
+
   // Abrir directo la conversación cuando se llega con ?user=<id>
   // (ej. desde "Ir a la conversación" en el drawer de una solicitud).
   const searchParams = useSearchParams();
   useEffect(() => {
     const u = Number(searchParams?.get("user"));
-    if (Number.isInteger(u) && u > 0) openConversation(u);
-  }, [searchParams, openConversation]);
+    if (Number.isInteger(u) && u > 0) handleOpenConversation(u);
+  }, [searchParams, handleOpenConversation]);
 
   return (
     <div className="msg-layout">
@@ -42,7 +51,7 @@ export default function MensajesSection() {
         setTipo={inbox.setTipo}
         counts={inbox.counts}
         activeUserId={activeUserId}
-        onSelect={openConversation}
+        onSelect={handleOpenConversation}
         onNew={openNewMessage}
       />
 
@@ -80,4 +89,3 @@ export default function MensajesSection() {
     </div>
   );
 }
-
