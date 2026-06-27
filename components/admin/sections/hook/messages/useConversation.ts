@@ -9,7 +9,10 @@ import {
   Message,
   ConversationProfile,
 } from "@/services/messages.services";
-import { refreshNotifications } from "@/components/notifications/useNotifications";
+import {
+  refreshNotifications,
+  onMessageNotification,
+} from "@/components/notifications/useNotifications";
 
 const PAGE = 30;
 
@@ -29,6 +32,7 @@ export function useConversation(userId: number | null) {
 
   // Carga inicial (última página).
   const loadInitial = useCallback(async () => {
+    if (!userId) return;
     setLoading(true);
     try {
       const res = await getConversation(userId, { limit: PAGE });
@@ -92,8 +96,11 @@ export function useConversation(userId: number | null) {
     setMessages([]);
     loadInitial();
     if (!userId) return;
-    // Sin polling: la actualizacion en tiempo real llega via WebSocket (useNotifications)
-  }, [userId, loadInitial]);
+    // Sin polling: traemos los mensajes nuevos SOLO cuando llega una notificación
+    // de mensaje por el websocket (useNotifications).
+    const unsubscribe = onMessageNotification(() => void pollLatest());
+    return unsubscribe;
+  }, [userId, loadInitial, pollLatest]);
 
   async function send(content: string, photo?: File | null) {
     if (!userId) return false;
