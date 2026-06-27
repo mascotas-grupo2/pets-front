@@ -55,6 +55,17 @@ export function refreshNotifications() {
   void refresh();
 }
 
+const messageListeners = new Set<() => void>();
+export function onMessageNotification(cb: () => void) {
+  messageListeners.add(cb);
+  return () => {
+    messageListeners.delete(cb);
+  };
+}
+function emitMessageNotification() {
+  for (const l of messageListeners) l();
+}
+
 async function load() {
   setState({ loading: true });
   await refresh();
@@ -113,7 +124,11 @@ async function connectSocket() {
     addTrailingSlash: false,
   });
   // Push: al llegar una notificación nueva, refrescamos lista + contador al instante.
-  socket.on("notification:new", () => void refresh());
+
+  socket.on("notification:new", (payload?: { type?: string }) => {
+    void refresh();
+    if (payload?.type === "message") emitMessageNotification();
+  });
 }
 
 function disconnectSocket() {
