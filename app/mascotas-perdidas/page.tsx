@@ -327,12 +327,12 @@ export default function LostPetsPage() {
           <h1>Mascotas perdidas</h1>
           <p>
             {loading ? (
-              "Explorá las publicaciones y ayudá a reunirlas con su familia."
+              "Explorá las publicaciones y ayudá a reunirlas con su familia o a encontrarles un hogar."
             ) : (
               <>
                 <strong>{pets.length}</strong>{" "}
-                {pets.length === 1 ? "mascota busca" : "mascotas buscan"} volver a
-                casa. Explorá y ayudá a reunirlas.
+                {pets.length === 1 ? "mascota publicada" : "mascotas publicadas"}.
+                Ayudá a reunirlas con su familia o a encontrarles un hogar.
               </>
             )}
           </p>
