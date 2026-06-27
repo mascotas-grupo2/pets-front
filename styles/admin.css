@@ -647,6 +647,27 @@
 .dash-table tbody tr:last-child td {
   border-bottom: none;
 }
+/* En el dashboard los dos paneles ("Solicitudes recientes" / "Seguimientos
+   próximos") van lado a lado (media columna ≈ 520px). El min-width fijo de 580px
+   recortaba la última columna ("Estado"). Dentro de `.dash` quitamos ese piso y
+   ajustamos el padding para que las columnas entren sin recorte (la sección
+   Mascotas usa la tabla a ancho completo, ahí no se toca). */
+.dash .dash-table {
+  min-width: 0;
+}
+.dash .dash-table th,
+.dash .dash-table td {
+  padding-left: 11px;
+  padding-right: 11px;
+}
+/* Pills de estado largos (p. ej. "ACEPTADA CON SEGUIMIENTO"): si quedaran en un
+   panel angosto (Seguimientos va a media columna) permitimos que envuelvan en vez
+   de empujar el ancho de la tabla y recortar la columna. */
+.dash .dash-table .pill {
+  white-space: normal;
+  text-align: center;
+  line-height: 1.25;
+}
 /* Zebra + hover para TODAS las tablas del panel (base DataTable). */
 .dash-table tbody tr:nth-child(even) {
   background: var(--gray-50);
@@ -4139,7 +4160,9 @@
   overflow-x: auto;
   scroll-snap-type: x mandatory;
   scrollbar-width: none;
-  padding-bottom: 4px;
+  /* Espacio extra para que el resaltado (ring + sombra) de una card no se recorte
+     contra los bordes del contenedor con overflow. */
+  padding: 6px 4px 12px;
 }
 .alerts-track::-webkit-scrollbar {
   display: none;
@@ -4172,6 +4195,7 @@
 }
 
 .alert-card {
+  position: relative;
   flex: 0 0 320px;
   max-width: 320px;
   scroll-snap-align: start;
@@ -4182,6 +4206,7 @@
   border-radius: var(--radius-lg);
   border: 1.5px solid var(--border);
   background: var(--surface);
+  transition: box-shadow 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
 }
 .alert-card--reclamo {
   border-color: #ef4444;
@@ -4315,11 +4340,37 @@
 }
 
 /* Flecha del carrusel deshabilitada (en los extremos) */
-/* Alerta destacada cuando se abre desde el carrusel */
+/* Alerta vinculada a la conversación abierta: se la trae al frente (z-index),
+   se eleva levemente y late con un anillo de acento para que salte a la vista. */
 .alert-card.is-highlighted {
-  box-shadow: 0 0 0 3px #3b82f6, 0 8px 24px rgba(59,130,246,0.25);
-  transform: translateY(-2px);
-  transition: box-shadow .2s ease, transform .2s ease;
+  z-index: 3;
+  border-color: var(--primary-500);
+  transform: translateY(-3px) scale(1.015);
+  animation: alert-highlight-pulse 1.6s ease-in-out infinite;
+}
+@keyframes alert-highlight-pulse {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 2px var(--primary-500),
+      0 0 0 6px color-mix(in srgb, var(--primary-500) 22%, transparent),
+      0 12px 28px rgba(59, 130, 246, 0.28);
+  }
+  50% {
+    box-shadow:
+      0 0 0 2px var(--primary-500),
+      0 0 0 10px color-mix(in srgb, var(--primary-500) 8%, transparent),
+      0 14px 34px rgba(59, 130, 246, 0.34);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .alert-card.is-highlighted {
+    animation: none;
+    box-shadow:
+      0 0 0 2px var(--primary-500),
+      0 0 0 6px color-mix(in srgb, var(--primary-500) 22%, transparent),
+      0 12px 28px rgba(59, 130, 246, 0.28);
+  }
 }
 .alerts-arrow:disabled {
   opacity: 0.4;
