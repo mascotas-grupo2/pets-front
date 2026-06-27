@@ -2536,7 +2536,10 @@
   color: var(--gray-400, #9ca3af);
   cursor: pointer;
   opacity: 0;
-  transition: opacity 0.15s ease, background 0.15s ease, color 0.15s ease;
+  transition:
+    opacity 0.15s ease,
+    background 0.15s ease,
+    color 0.15s ease;
 }
 
 .msg-bubble-row:hover .msg-delete {
@@ -2837,7 +2840,9 @@
   color: var(--gray-400);
   cursor: pointer;
   border-radius: var(--radius-full);
-  transition: color 0.15s ease, background 0.15s ease;
+  transition:
+    color 0.15s ease,
+    background 0.15s ease;
 }
 
 .msg-attach-btn:hover {
@@ -2902,7 +2907,6 @@
   object-fit: cover;
   display: block;
 }
-
 
 /* ---------- Detalle (Perfil / Evaluación / Notas) y vacíos ---------- */
 .msg-detail {
@@ -3274,6 +3278,21 @@
     grid-template-columns: 1fr;
     height: auto;
   }
+
+  .msg-layout--switch .msg-main {
+    display: none;
+  }
+  .msg-layout--switch.has-detail .msg-list-panel {
+    display: none;
+  }
+  .msg-layout--switch.has-detail .msg-main {
+    display: flex;
+    height: calc(100dvh - 150px);
+    min-height: 460px;
+  }
+  .msg-layout--switch .msg-back {
+    display: inline-flex;
+  }
 }
 
 /* ══════════════════════════════════════════
@@ -3477,11 +3496,26 @@
   place-items: center;
   flex-shrink: 0;
 }
-.activity-icon.tone-violet { background: #ede9fe; color: #6d28d9; }
-.activity-icon.tone-blue { background: #e0eaff; color: #1d4ed8; }
-.activity-icon.tone-green { background: #d1fadf; color: #027a48; }
-.activity-icon.tone-amber { background: #fef0c7; color: #b54708; }
-.activity-icon.tone-pink { background: #fde7f3; color: #be185d; }
+.activity-icon.tone-violet {
+  background: #ede9fe;
+  color: #6d28d9;
+}
+.activity-icon.tone-blue {
+  background: #e0eaff;
+  color: #1d4ed8;
+}
+.activity-icon.tone-green {
+  background: #d1fadf;
+  color: #027a48;
+}
+.activity-icon.tone-amber {
+  background: #fef0c7;
+  color: #b54708;
+}
+.activity-icon.tone-pink {
+  background: #fde7f3;
+  color: #be185d;
+}
 .activity-body {
   flex: 1;
   min-width: 0;
@@ -4098,6 +4132,26 @@
   min-height: 0;
   height: 100%; /* llena el alto de la celda del grid */
 }
+
+/* Botón "Volver a la bandeja": solo aparece en el modo master-detail de móvil. */
+.msg-back {
+  display: none;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-start;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  color: var(--gray-700);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.msg-back:hover {
+  background: var(--gray-50);
+}
 .msg-panel-area {
   flex: 1 1 auto;
   min-height: 0;
@@ -4206,7 +4260,10 @@
   border-radius: var(--radius-lg);
   border: 1.5px solid var(--border);
   background: var(--surface);
-  transition: box-shadow 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
+  transition:
+    box-shadow 0.2s ease,
+    transform 0.2s ease,
+    border-color 0.2s ease;
 }
 .alert-card--reclamo {
   border-color: #ef4444;
@@ -4305,7 +4362,9 @@
   height: 7px;
   border-radius: 50%;
   background: var(--gray-300);
-  transition: background 0.2s, width 0.2s;
+  transition:
+    background 0.2s,
+    width 0.2s;
 }
 .alerts-dot.is-active {
   width: 18px;
@@ -4381,4 +4440,3 @@
   padding: 0;
   cursor: pointer;
 }
-
