@@ -380,42 +380,38 @@ export default function PetDetailPage() {
             </div>
 
             <div className="pet-vacc-wrap">
-              <table className="pet-vacc-table">
-                <thead>
-                  <tr>
-                    <th>Edad</th>
-                    <th>8va semana</th>
-                    <th>14va semana</th>
-                    <th>22va semana</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <th>Vacunado</th>
-                    <td>
-                      Séxtuple
-                      <br />
-                      Moquillo
-                      <br />
-                      Leptospirosis
-                    </td>
-                    <td>
-                      Séxtuple
-                      <br />
-                      Parvovirus
-                      <br />
-                      Leptospirosis
-                    </td>
-                    <td>
-                      Séxtuple
-                      <br />
-                      Antirrábica
-                      <br />
-                      Leptospirosis
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+              <h3 className="pet-vacc-title">Vacunación</h3>
+              {pet.vaccinated === true ? (
+                <div className="pet-vacc-status pet-vacc-status--yes">
+                  <span className="pet-vacc-status-icon" aria-hidden>
+                    💉
+                  </span>
+                  <div>
+                    <strong>Al día con las vacunas</strong>
+                    <p>Según el registro del refugio.</p>
+                  </div>
+                </div>
+              ) : pet.vaccinated === false ? (
+                <div className="pet-vacc-status pet-vacc-status--no">
+                  <span className="pet-vacc-status-icon" aria-hidden>
+                    ⚠️
+                  </span>
+                  <div>
+                    <strong>Sin vacunas registradas</strong>
+                    <p>Conviene una consulta veterinaria.</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="pet-vacc-status pet-vacc-status--unknown">
+                  <span className="pet-vacc-status-icon" aria-hidden>
+                    ❔
+                  </span>
+                  <div>
+                    <strong>Sin información de vacunación</strong>
+                    <p>El refugio todavía no cargó este dato.</p>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
