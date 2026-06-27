@@ -47,7 +47,7 @@ export default function MensajesSection() {
       />
 
       <div className="msg-main">
-        <AlertsCarousel />
+        <AlertsCarousel highlightUserId={activeUserId} />
 
         <div className="msg-panel-area">
           {panelMode === "idle" && <EmptyState />}
@@ -80,3 +80,4 @@ export default function MensajesSection() {
     </div>
   );
 }
+

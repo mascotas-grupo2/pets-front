@@ -38,8 +38,7 @@ export function useInbox() {
 
   useEffect(() => {
     fetchInbox();
-    const interval = setInterval(fetchInbox, 15000); // Poll every 15 seconds
-    return () => clearInterval(interval);
+    // Sin polling: la actualizacion en tiempo real llega via WebSocket (useNotifications)
   }, [fetchInbox]);
 
   // Conteos por tipo (sobre el total, no sobre el filtro de búsqueda).

@@ -34,8 +34,7 @@ type Pending =
   | { kind: "rechazar"; alert: AdminAlert }
   | null;
 
-/** Carrusel de alertas activas del refugio (reclamos, evaluaciones, documentación). */
-export function AlertsCarousel() {
+export function AlertsCarousel({ highlightUserId }: { highlightUserId?: number | null } = {}) {
   const router = useRouter();
   const [alerts, setAlerts] = useState<AdminAlert[]>([]);
   const [loading, setLoading] = useState(true);
@@ -44,6 +43,7 @@ export function AlertsCarousel() {
   const [pending, setPending] = useState<Pending>(null);
   const [busy, setBusy] = useState(false);
   const trackRef = useRef<HTMLDivElement>(null);
+  const [canScroll, setCanScroll] = useState(false);
 
   const load = useCallback(async () => {
     const res = await getAdminAlerts();
@@ -55,7 +55,18 @@ export function AlertsCarousel() {
     void load();
   }, [load]);
 
-  // Índice activo según el scroll (para los puntitos).
+  useEffect(() => {
+    const el = trackRef.current;
+    if (!el) return;
+    const calc = () => {
+      const ok = el.scrollWidth > el.clientWidth + 1;
+      setCanScroll(ok);
+    };
+    calc();
+    window.addEventListener("resize", calc);
+    return () => window.removeEventListener("resize", calc);
+  }, [alerts]);
+
   function onScroll() {
     const el = trackRef.current;
     if (!el) return;
@@ -64,8 +75,6 @@ export function AlertsCarousel() {
     setActive(Math.round(el.scrollLeft / step));
   }
 
-  // Navegación por índice con scrollTo absoluto: más confiable que scrollBy
-  // (el scroll-snap se peleaba con el desplazamiento relativo).
   function scrollByCards(dir: 1 | -1) {
     const el = trackRef.current;
     if (!el) return;
@@ -119,17 +128,11 @@ export function AlertsCarousel() {
           </strong>
           <span>Deslizá para ver todas</span>
         </div>
-        <button
-          type="button"
-          className="btn btn-outline btn-sm alerts-seeall"
-          onClick={() => router.push("/admin/solicitudes")}
-        >
-          Ver todas
-        </button>
+        {/* Botón "Ver todas" oculto: no existe ruta /admin/solicitudes */}
       </header>
 
       <div className="alerts-viewport">
-        {alerts.length > 1 && (
+        {canScroll && (
           <button
             type="button"
             className="alerts-arrow alerts-arrow--left"
@@ -145,7 +148,12 @@ export function AlertsCarousel() {
           {alerts.map((a) => {
             const meta = TYPE_META[a.type];
             return (
-              <article key={a.id} className={`alert-card alert-card--${a.type}`}>
+              <article
+                key={a.id}
+                className={`alert-card alert-card--${a.type}${
+                  a.userId && a.userId === highlightUserId ? " is-highlighted" : ""
+                }`}
+              >
                 <span className={`alert-badge alert-badge--${a.type}`}>
                   <meta.Icon size={14} aria-hidden /> {meta.label}
                 </span>
@@ -202,7 +210,7 @@ export function AlertsCarousel() {
           })}
         </div>
 
-        {alerts.length > 1 && (
+        {canScroll && (
           <button
             type="button"
             className="alerts-arrow alerts-arrow--right"
@@ -215,7 +223,7 @@ export function AlertsCarousel() {
         )}
       </div>
 
-      {alerts.length > 1 && (
+      {canScroll && (
         <div className="alerts-dots">
           {alerts.map((a, i) => (
             <button
@@ -236,17 +244,13 @@ export function AlertsCarousel() {
         </div>
       )}
 
-      {/* Drawer del animal (reusa el de la sección Mascotas) */}
-      {drawerPet && (
-        <MascotaDrawer
-          pet={drawerPet}
-          onClose={() => setDrawerPet(null)}
-          onChanged={() => void load()}
-          reviewMode
-        />
-      )}
+     {drawerPet && <MascotaDrawer
+        pet={drawerPet}
+        onClose={() => setDrawerPet(null)}
+        onChanged={() => void load()}
+        reviewMode
+      />}
 
-      {/* Confirmación de Aceptar / Rechazar reclamo */}
       <ConfirmDialog
         open={pending !== null}
         title={

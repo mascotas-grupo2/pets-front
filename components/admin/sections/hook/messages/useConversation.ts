@@ -29,7 +29,6 @@ export function useConversation(userId: number | null) {
 
   // Carga inicial (última página).
   const loadInitial = useCallback(async () => {
-    if (!userId) return;
     setLoading(true);
     try {
       const res = await getConversation(userId, { limit: PAGE });
@@ -91,12 +90,10 @@ export function useConversation(userId: number | null) {
 
   useEffect(() => {
     setMessages([]);
-    setHasMore(false);
     loadInitial();
     if (!userId) return;
-    const interval = setInterval(pollLatest, 5000);
-    return () => clearInterval(interval);
-  }, [userId, loadInitial, pollLatest]);
+    // Sin polling: la actualizacion en tiempo real llega via WebSocket (useNotifications)
+  }, [userId, loadInitial]);
 
   async function send(content: string, photo?: File | null) {
     if (!userId) return false;

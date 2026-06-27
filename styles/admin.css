@@ -4315,6 +4315,12 @@
 }
 
 /* Flecha del carrusel deshabilitada (en los extremos) */
+/* Alerta destacada cuando se abre desde el carrusel */
+.alert-card.is-highlighted {
+  box-shadow: 0 0 0 3px #3b82f6, 0 8px 24px rgba(59,130,246,0.25);
+  transform: translateY(-2px);
+  transition: box-shadow .2s ease, transform .2s ease;
+}
 .alerts-arrow:disabled {
   opacity: 0.4;
   cursor: default;
@@ -4324,3 +4330,4 @@
   padding: 0;
   cursor: pointer;
 }
+
