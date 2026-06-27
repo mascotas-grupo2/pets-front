@@ -274,28 +274,27 @@ export function DashboardSection() {
       <DashboardStatCards
         publicaciones={pubsLoading ? null : (publicacionesCount ?? null)}
       />
+
+      <DashboardTablePanel
+        title="Solicitudes recientes"
+        href="/admin/solicitudes"
+        columns={SOLICITUDES_COLS}
+        data={solicitudesPreview}
+        rowKey={(r) => r.id}
+        loading={solicitudesLoading}
+      />
       <div className="dash-grid">
-        <DashboardTablePanel
-          title="Solicitudes recientes"
-          href="/admin/solicitudes"
-          columns={SOLICITUDES_COLS}
-          data={solicitudesPreview}
-          rowKey={(r) => r.id}
-          loading={solicitudesLoading}
-        />
         <SeguimientosPanel
           seguimientos={seguimientosPreview}
           loading={seguimientosLoading}
         />
-      </div>
-      <div className="dash-grid">
-        <PublicacionesPanel
-          pets={publicacionesPreview}
-          loading={pubsLoading}
-          href="/admin/publicacion"
-        />
         <DashboardActivity />
       </div>
+      <PublicacionesPanel
+        pets={publicacionesPreview}
+        loading={pubsLoading}
+        href="/admin/publicacion"
+      />
     </div>
   );
 }
