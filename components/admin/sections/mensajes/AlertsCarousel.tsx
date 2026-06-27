@@ -11,10 +11,7 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { toast } from "sonner";
-import {
-  getAdminAlerts,
-  type AdminAlert,
-} from "@/services/messages.services";
+import { getAdminAlerts, type AdminAlert } from "@/services/messages.services";
 import { confirmReturnPet, getAdminPet } from "@/services/mascotas.pets";
 import { rejectClaimPet } from "@/services/messages.services";
 import { MascotaDrawer } from "../mascotas/mascota-drawer";
@@ -34,7 +31,9 @@ type Pending =
   | { kind: "rechazar"; alert: AdminAlert }
   | null;
 
-export function AlertsCarousel({ highlightUserId }: { highlightUserId?: number | null } = {}) {
+export function AlertsCarousel({
+  highlightUserId,
+}: { highlightUserId?: number | null } = {}) {
   const router = useRouter();
   const [alerts, setAlerts] = useState<AdminAlert[]>([]);
   const [loading, setLoading] = useState(true);
@@ -66,6 +65,18 @@ export function AlertsCarousel({ highlightUserId }: { highlightUserId?: number |
     window.addEventListener("resize", calc);
     return () => window.removeEventListener("resize", calc);
   }, [alerts]);
+
+  useEffect(() => {
+    if (!highlightUserId) return;
+    const idx = alerts.findIndex((a) => a.userId === highlightUserId);
+    if (idx < 0) return;
+    const el = trackRef.current;
+    if (!el) return;
+    const card = el.querySelector<HTMLElement>(".alert-card");
+    const step = card ? card.offsetWidth + 16 : el.clientWidth;
+    el.scrollTo({ left: idx * step, behavior: "smooth" });
+    setActive(idx);
+  }, [highlightUserId, alerts]);
 
   function onScroll() {
     const el = trackRef.current;
@@ -126,7 +137,7 @@ export function AlertsCarousel({ highlightUserId }: { highlightUserId?: number |
             {alerts.length} alerta{alerts.length === 1 ? "" : "s"} activa
             {alerts.length === 1 ? "" : "s"}
           </strong>
-          <span>Deslizá para ver todas</span>
+          {canScroll && <span>Deslizá para ver todas</span>}
         </div>
         {/* Botón "Ver todas" oculto: no existe ruta /admin/solicitudes */}
       </header>
@@ -151,7 +162,9 @@ export function AlertsCarousel({ highlightUserId }: { highlightUserId?: number |
               <article
                 key={a.id}
                 className={`alert-card alert-card--${a.type}${
-                  a.userId && a.userId === highlightUserId ? " is-highlighted" : ""
+                  a.userId && a.userId === highlightUserId
+                    ? " is-highlighted"
+                    : ""
                 }`}
               >
                 <span className={`alert-badge alert-badge--${a.type}`}>
@@ -186,14 +199,18 @@ export function AlertsCarousel({ highlightUserId }: { highlightUserId?: number |
                       <button
                         type="button"
                         className="btn btn-primary btn-sm"
-                        onClick={() => setPending({ kind: "aceptar", alert: a })}
+                        onClick={() =>
+                          setPending({ kind: "aceptar", alert: a })
+                        }
                       >
                         Aceptar
                       </button>
                       <button
                         type="button"
                         className="btn btn-danger btn-sm"
-                        onClick={() => setPending({ kind: "rechazar", alert: a })}
+                        onClick={() =>
+                          setPending({ kind: "rechazar", alert: a })
+                        }
                       >
                         Rechazar
                       </button>
@@ -244,12 +261,14 @@ export function AlertsCarousel({ highlightUserId }: { highlightUserId?: number |
         </div>
       )}
 
-     {drawerPet && <MascotaDrawer
-        pet={drawerPet}
-        onClose={() => setDrawerPet(null)}
-        onChanged={() => void load()}
-        reviewMode
-      />}
+      {drawerPet && (
+        <MascotaDrawer
+          pet={drawerPet}
+          onClose={() => setDrawerPet(null)}
+          onChanged={() => void load()}
+          reviewMode
+        />
+      )}
 
       <ConfirmDialog
         open={pending !== null}
