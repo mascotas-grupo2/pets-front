@@ -647,6 +647,27 @@
 .dash-table tbody tr:last-child td {
   border-bottom: none;
 }
+/* En el dashboard los dos paneles ("Solicitudes recientes" / "Seguimientos
+   próximos") van lado a lado (media columna ≈ 520px). El min-width fijo de 580px
+   recortaba la última columna ("Estado"). Dentro de `.dash` quitamos ese piso y
+   ajustamos el padding para que las columnas entren sin recorte (la sección
+   Mascotas usa la tabla a ancho completo, ahí no se toca). */
+.dash .dash-table {
+  min-width: 0;
+}
+.dash .dash-table th,
+.dash .dash-table td {
+  padding-left: 11px;
+  padding-right: 11px;
+}
+/* Pills de estado largos (p. ej. "ACEPTADA CON SEGUIMIENTO"): si quedaran en un
+   panel angosto (Seguimientos va a media columna) permitimos que envuelvan en vez
+   de empujar el ancho de la tabla y recortar la columna. */
+.dash .dash-table .pill {
+  white-space: normal;
+  text-align: center;
+  line-height: 1.25;
+}
 /* Zebra + hover para TODAS las tablas del panel (base DataTable). */
 .dash-table tbody tr:nth-child(even) {
   background: var(--gray-50);
@@ -2515,7 +2536,10 @@
   color: var(--gray-400, #9ca3af);
   cursor: pointer;
   opacity: 0;
-  transition: opacity 0.15s ease, background 0.15s ease, color 0.15s ease;
+  transition:
+    opacity 0.15s ease,
+    background 0.15s ease,
+    color 0.15s ease;
 }
 
 .msg-bubble-row:hover .msg-delete {
@@ -2613,6 +2637,49 @@
 }
 
 /* ---------- Tarjeta de reclamo en el chat (arriba del thread) ---------- */
+.claim-in-chat-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin: 8px 14px;
+  border: 1px solid #fecaca;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.claim-in-chat-container .claim-in-chat {
+  margin: 0;
+  border: none;
+  border-radius: 0;
+  border-bottom: 1px solid #fecaca;
+}
+
+.claim-in-chat-container .claim-in-chat:last-child {
+  border-bottom: none;
+}
+
+.claim-expand-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 10px;
+  border: none;
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--primary-600);
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.claim-expand-btn:hover {
+  background: var(--primary-50);
+}
+
 .claim-in-chat {
   display: flex;
   align-items: flex-start;
@@ -2773,7 +2840,9 @@
   color: var(--gray-400);
   cursor: pointer;
   border-radius: var(--radius-full);
-  transition: color 0.15s ease, background 0.15s ease;
+  transition:
+    color 0.15s ease,
+    background 0.15s ease;
 }
 
 .msg-attach-btn:hover {
@@ -2838,7 +2907,6 @@
   object-fit: cover;
   display: block;
 }
-
 
 /* ---------- Detalle (Perfil / Evaluación / Notas) y vacíos ---------- */
 .msg-detail {
@@ -3210,6 +3278,21 @@
     grid-template-columns: 1fr;
     height: auto;
   }
+
+  .msg-layout--switch .msg-main {
+    display: none;
+  }
+  .msg-layout--switch.has-detail .msg-list-panel {
+    display: none;
+  }
+  .msg-layout--switch.has-detail .msg-main {
+    display: flex;
+    height: calc(100dvh - 150px);
+    min-height: 460px;
+  }
+  .msg-layout--switch .msg-back {
+    display: inline-flex;
+  }
 }
 
 /* ══════════════════════════════════════════
@@ -3413,11 +3496,26 @@
   place-items: center;
   flex-shrink: 0;
 }
-.activity-icon.tone-violet { background: #ede9fe; color: #6d28d9; }
-.activity-icon.tone-blue { background: #e0eaff; color: #1d4ed8; }
-.activity-icon.tone-green { background: #d1fadf; color: #027a48; }
-.activity-icon.tone-amber { background: #fef0c7; color: #b54708; }
-.activity-icon.tone-pink { background: #fde7f3; color: #be185d; }
+.activity-icon.tone-violet {
+  background: #ede9fe;
+  color: #6d28d9;
+}
+.activity-icon.tone-blue {
+  background: #e0eaff;
+  color: #1d4ed8;
+}
+.activity-icon.tone-green {
+  background: #d1fadf;
+  color: #027a48;
+}
+.activity-icon.tone-amber {
+  background: #fef0c7;
+  color: #b54708;
+}
+.activity-icon.tone-pink {
+  background: #fde7f3;
+  color: #be185d;
+}
 .activity-body {
   flex: 1;
   min-width: 0;
@@ -3427,14 +3525,16 @@
 .activity-title {
   font-size: 0.88rem;
   font-weight: 600;
-  color: var(--text, #111827);
+  /* --foreground/--muted SÍ cambian por tema (--text/--text-muted no existen,
+     siempre caían al fallback oscuro → título invisible en dark mode). */
+  color: var(--foreground, #111827);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 .activity-detail {
   font-size: 0.78rem;
-  color: var(--text-muted, #6b7280);
+  color: var(--muted, #6b7280);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -3520,7 +3620,10 @@
 /* ---------- Stat Cards (6 columnas) ---------- */
 .metricas-stat-grid {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
+  /* auto-fit: las tarjetas se reacomodan solas según el ancho disponible
+     (sin depender de breakpoints fijos). auto-fit colapsa los tracks vacíos
+     para que las tarjetas estiren y llenen la fila. */
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
   gap: 14px;
 }
 
@@ -3634,7 +3737,9 @@
 /* ---------- Dona grid (3 columnas) ---------- */
 .metricas-dona-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  /* Cada dona necesita ~200px de gráfico + leyenda: con minmax(380px) se
+     reacomodan a 3/2/1 columnas según el ancho, sin quedar apretadas. */
+  grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
   gap: 24px;
 }
 
@@ -3686,7 +3791,7 @@
 /* ---------- Grid 3 columnas ---------- */
 .metricas-grid-3 {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 20px;
 }
 
@@ -3852,37 +3957,12 @@
    Responsive: Métricas
    =========================================================== */
 
-@media (max-width: 1280px) {
-  .metricas-stat-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-@media (max-width: 1024px) {
-  .metricas-dona-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  .metricas-grid-3 {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
+/* Las grillas se reacomodan solas con auto-fit/minmax (arriba); acá solo
+   ajustamos lo que no es número de columnas. */
 @media (max-width: 768px) {
   .metricas-header {
     flex-direction: column;
     align-items: flex-start;
-  }
-
-  .metricas-stat-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .metricas-dona-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .metricas-grid-3 {
-    grid-template-columns: 1fr;
   }
 
   .metricas-map-body {
@@ -3895,10 +3975,6 @@
 }
 
 @media (max-width: 480px) {
-  .metricas-stat-grid {
-    grid-template-columns: 1fr;
-  }
-
   .metricas-filters {
     width: 100%;
     justify-content: stretch;
@@ -4088,3 +4164,322 @@
   color: var(--gray-600);
 }
 
+/* ===========================================================
+   Carrusel de alertas (panel de Mensajes)
+   =========================================================== */
+.msg-main {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+  min-height: 0;
+  height: 100%; /* llena el alto de la celda del grid */
+}
+
+/* Botón "Volver a la bandeja": solo aparece en el modo master-detail de móvil. */
+.msg-back {
+  display: none;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-start;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  color: var(--gray-700);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.msg-back:hover {
+  background: var(--gray-50);
+}
+.msg-panel-area {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.msg-panel-area > * {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.alerts-carousel {
+  flex-shrink: 0; /* el carrusel no se achica; el panel de chat toma el resto */
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: 12px 14px 8px;
+}
+
+.alerts-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.alerts-head-icon {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: var(--primary-50);
+  color: var(--primary-600);
+  flex-shrink: 0;
+}
+.alerts-head-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+}
+.alerts-head-text strong {
+  font-size: 15px;
+  color: var(--gray-900);
+}
+.alerts-head-text span {
+  font-size: 12.5px;
+  color: var(--gray-500);
+}
+.alerts-seeall {
+  margin-left: auto;
+}
+
+.alerts-viewport {
+  position: relative;
+}
+.alerts-track {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  /* Espacio extra para que el resaltado (ring + sombra) de una card no se recorte
+     contra los bordes del contenedor con overflow. */
+  padding: 6px 4px 12px;
+}
+.alerts-track::-webkit-scrollbar {
+  display: none;
+}
+
+.alerts-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 2;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--gray-700);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+.alerts-arrow:hover {
+  background: var(--gray-50);
+}
+.alerts-arrow--left {
+  left: -8px;
+}
+.alerts-arrow--right {
+  right: -8px;
+}
+
+.alert-card {
+  position: relative;
+  flex: 0 0 320px;
+  max-width: 320px;
+  scroll-snap-align: start;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 11px 13px;
+  border-radius: var(--radius-lg);
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  transition:
+    box-shadow 0.2s ease,
+    transform 0.2s ease,
+    border-color 0.2s ease;
+}
+.alert-card--reclamo {
+  border-color: #ef4444;
+  background: color-mix(in srgb, #ef4444 6%, var(--surface));
+}
+.alert-card--evaluacion {
+  border-color: #f59e0b;
+  background: color-mix(in srgb, #f59e0b 6%, var(--surface));
+}
+.alert-card--documentacion {
+  border-color: #3b82f6;
+  background: color-mix(in srgb, #3b82f6 6%, var(--surface));
+}
+
+.alert-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  align-self: flex-start;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12.5px;
+  font-weight: 600;
+}
+.alert-badge--reclamo {
+  background: color-mix(in srgb, #ef4444 16%, var(--surface));
+  color: #b91c1c;
+}
+.alert-badge--evaluacion {
+  background: color-mix(in srgb, #f59e0b 18%, var(--surface));
+  color: #b45309;
+}
+.alert-badge--documentacion {
+  background: color-mix(in srgb, #3b82f6 16%, var(--surface));
+  color: #1d4ed8;
+}
+
+.alert-card-main {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.alert-card-photo {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+.alert-card-photo--empty {
+  background: var(--gray-100);
+}
+.alert-card-info {
+  min-width: 0;
+}
+.alert-card-info strong {
+  display: block;
+  font-size: 15px;
+  color: var(--gray-900);
+}
+.alert-card-info p {
+  margin: 1px 0 0;
+  font-size: 12px;
+  color: var(--gray-600);
+  line-height: 1.3;
+  /* máx 2 líneas para que la card no crezca de alto */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.alert-card-actions {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 6px;
+  margin-top: auto;
+}
+/* Botones compactos para que los 3 (Ver/Aceptar/Rechazar) entren en una línea. */
+.alert-card-actions .btn {
+  padding: 6px 10px;
+  font-size: 12.5px;
+  white-space: nowrap;
+  flex: 0 1 auto;
+  min-width: 0;
+}
+
+.alerts-dots {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 8px;
+}
+.alerts-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--gray-300);
+  transition:
+    background 0.2s,
+    width 0.2s;
+}
+.alerts-dot.is-active {
+  width: 18px;
+  border-radius: 999px;
+  background: var(--primary-500);
+}
+
+/* Alerta "Devuelta" (caso de reclamo ya cerrado) */
+.alert-card--devuelta {
+  border-color: #22c55e;
+  background: color-mix(in srgb, #22c55e 6%, var(--surface));
+}
+.alert-badge--devuelta {
+  background: color-mix(in srgb, #22c55e 16%, var(--surface));
+  color: #15803d;
+}
+
+/* Fotos de prueba dentro de una nota (ej. reclamo) */
+.mdrawer-nota-fotos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 6px 0 4px;
+}
+.mdrawer-nota-fotos img {
+  width: 84px;
+  height: 84px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  cursor: zoom-in;
+}
+
+/* Flecha del carrusel deshabilitada (en los extremos) */
+/* Alerta vinculada a la conversación abierta: se la trae al frente (z-index),
+   se eleva levemente y late con un anillo de acento para que salte a la vista. */
+.alert-card.is-highlighted {
+  z-index: 3;
+  border-color: var(--primary-500);
+  transform: translateY(-3px) scale(1.015);
+  animation: alert-highlight-pulse 1.6s ease-in-out infinite;
+}
+@keyframes alert-highlight-pulse {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 2px var(--primary-500),
+      0 0 0 6px color-mix(in srgb, var(--primary-500) 22%, transparent),
+      0 12px 28px rgba(59, 130, 246, 0.28);
+  }
+  50% {
+    box-shadow:
+      0 0 0 2px var(--primary-500),
+      0 0 0 10px color-mix(in srgb, var(--primary-500) 8%, transparent),
+      0 14px 34px rgba(59, 130, 246, 0.34);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .alert-card.is-highlighted {
+    animation: none;
+    box-shadow:
+      0 0 0 2px var(--primary-500),
+      0 0 0 6px color-mix(in srgb, var(--primary-500) 22%, transparent),
+      0 12px 28px rgba(59, 130, 246, 0.28);
+  }
+}
+.alerts-arrow:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.alerts-dot {
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}

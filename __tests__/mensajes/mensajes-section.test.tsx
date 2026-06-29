@@ -5,12 +5,27 @@ import {
   getConversation,
   getInbox,
   sendMessage,
+  getAdminAlerts,
 } from "@/services/messages.services";
 
 jest.mock("@/services/messages.services", () => ({
   getInbox: jest.fn(),
   getConversation: jest.fn(),
   sendMessage: jest.fn(),
+  getAdminAlerts: jest.fn(),
+  rejectClaimPet: jest.fn(),
+}));
+
+// El carrusel de alertas (dentro de MensajesSection) usa el router y servicios de
+// mascotas; los stubeamos para que no rompan el render del panel de mensajes.
+jest.mock("next/navigation", () => ({
+  useRouter: () => ({ push: jest.fn(), replace: jest.fn() }),
+  useSearchParams: () => new URLSearchParams(),
+}));
+
+jest.mock("@/services/mascotas.pets", () => ({
+  confirmReturnPet: jest.fn(),
+  getAdminPet: jest.fn(),
 }));
 
 // Estado del usuario logueado; los tests lo mutan para simular logout.
@@ -78,8 +93,9 @@ const CONVERSATION = {
 };
 
 beforeAll(() => {
-  // jsdom no implementa scrollIntoView (lo usa el auto-scroll del hilo).
+  // jsdom no implementa scrollIntoView/scrollTo (los usa el auto-scroll del hilo).
   window.HTMLElement.prototype.scrollIntoView = jest.fn();
+  window.HTMLElement.prototype.scrollTo = jest.fn();
 });
 
 beforeEach(() => {
@@ -87,6 +103,10 @@ beforeEach(() => {
   mockUser.isLoggedIn = true;
   (getInbox as jest.Mock).mockResolvedValue(INBOX);
   (getConversation as jest.Mock).mockResolvedValue(CONVERSATION);
+  (getAdminAlerts as jest.Mock).mockResolvedValue({
+    ok: true,
+    data: { alerts: [], total: 0 },
+  });
 });
 
 describe("MensajesSection", () => {

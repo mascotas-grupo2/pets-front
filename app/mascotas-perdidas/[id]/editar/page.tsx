@@ -171,12 +171,27 @@ export default function EditPetPage() {
     [user.isLoggedIn, user.id, pet?.userId],
   );
 
-  // El que no es dueño no edita: lo devolvemos al detalle.
+  // Una vez que la mascota entra al circuito del refugio (verificada o en
+  // proceso de adopción), la gestiona solo el refugio: el publicador ya no edita.
+  const canEdit = useMemo(() => {
+    if (!isOwner || !pet) return false;
+    if (pet.isOwner) return false;
+    const REFUGIO_STATUSES = new Set([
+      "en tránsito",
+      "en tratamiento médico",
+      "en adopción",
+      "adoptado",
+      "devuelta al dueño",
+    ]);
+    return !(pet.status && REFUGIO_STATUSES.has(pet.status));
+  }, [isOwner, pet]);
+
+  // El que no puede editar (no es dueño, o ya la gestiona el refugio): al detalle.
   useEffect(() => {
-    if (!loading && pet && !isOwner) {
+    if (!loading && pet && !canEdit) {
       router.replace(`/mascotas-perdidas/${id}`);
     }
-  }, [loading, pet, isOwner, id, router]);
+  }, [loading, pet, canEdit, id, router]);
 
   function set<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((f) => (f ? { ...f, [key]: value } : f));

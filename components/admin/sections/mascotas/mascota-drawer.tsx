@@ -20,6 +20,9 @@ type Props = {
   onClose: () => void;
   /** Se llama tras cambiar el estado o registrar una entrega, para recargar la lista. */
   onChanged?: () => void;
+  /** Modo revisión (ej. al abrir desde una alerta de reclamo): oculta "Gestionar
+   *  estado" — acá se viene a MIRAR el caso, no a operar la mascota. */
+  reviewMode?: boolean;
 };
 
 /** Estados operativos que el admin puede setear a mano (sin "adoptado"). */
@@ -66,8 +69,23 @@ function boolText(v?: boolean) {
   return v ? "Sí" : "No";
 }
 
+const IMG_URL_RE = /(https?:\/\/\S+?\.(?:png|jpe?g|jfif|webp))/gi;
+
+/** Separa de una nota las URLs de imagen (ej. fotos de prueba de un reclamo) del
+ *  texto, y limpia datos internos que no van en la UI (ID de usuario). */
+function splitNotePhotos(text: string) {
+  const fotos = text.match(IMG_URL_RE) ?? [];
+  const limpio = text
+    .replace(IMG_URL_RE, "")
+    .replace(/Fotos de prueba:\s*/i, "")
+    .replace(/Usuario ID:\s*\d+/i, "") // dato interno, no se muestra
+    .replace(/\s{2,}/g, " ")
+    .trim();
+  return { limpio, fotos };
+}
+
 /** Drawer lateral con el detalle de una mascota. */
-export function MascotaDrawer({ pet, onClose, onChanged }: Props) {
+export function MascotaDrawer({ pet, onClose, onChanged, reviewMode = false }: Props) {
   const [tab, setTab] = useState<Tab>("overview");
   const {
     loading: loadingDetalle,
@@ -233,38 +251,40 @@ export function MascotaDrawer({ pet, onClose, onChanged }: Props) {
                 )}
               </div>
 
-              <div className="vdrawer-section">
-                <h3>Gestionar estado</h3>
-                {yaAdoptada ? (
-                  <p className="vdrawer-desc mdrawer-muted">
-                    La mascota está adoptada (estado final).
-                  </p>
-                ) : (
-                  <div className="mdrawer-estado-row">
-                    <select
-                      className="input"
-                      value={estado}
-                      onChange={(e) => setEstado(e.target.value as PetStatus)}
-                      disabled={busy}
-                    >
-                      {opcionesEstado.map((s) => (
-                        <option key={s} value={s}>
-                          {STATUS_LABEL[s]}
-                          {s === pet.status ? " (actual)" : ""}
-                        </option>
-                      ))}
-                    </select>
-                    <button
-                      type="button"
-                      className="btn btn-primary"
-                      onClick={guardarEstado}
-                      disabled={busy || estado === pet.status}
-                    >
-                      Guardar
-                    </button>
-                  </div>
-                )}
-              </div>
+              {!reviewMode && (
+                <div className="vdrawer-section">
+                  <h3>Gestionar estado</h3>
+                  {yaAdoptada ? (
+                    <p className="vdrawer-desc mdrawer-muted">
+                      La mascota está adoptada (estado final).
+                    </p>
+                  ) : (
+                    <div className="mdrawer-estado-row">
+                      <select
+                        className="input"
+                        value={estado}
+                        onChange={(e) => setEstado(e.target.value as PetStatus)}
+                        disabled={busy}
+                      >
+                        {opcionesEstado.map((s) => (
+                          <option key={s} value={s}>
+                            {STATUS_LABEL[s]}
+                            {s === pet.status ? " (actual)" : ""}
+                          </option>
+                        ))}
+                      </select>
+                      <button
+                        type="button"
+                        className="btn btn-primary"
+                        onClick={guardarEstado}
+                        disabled={busy || estado === pet.status}
+                      >
+                        Guardar
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
 
               <div className="vdrawer-section">
                 <h3>Compatibilidad promedio</h3>
@@ -325,17 +345,45 @@ export function MascotaDrawer({ pet, onClose, onChanged }: Props) {
                 ) : notas.length === 0 ? (
                   <p className="vdrawer-desc mdrawer-muted">Sin notas.</p>
                 ) : (
-                  notas.map((n) => (
-                    <div key={n.id} className="mdrawer-nota">
-                      <p className="vdrawer-desc">{n.text}</p>
-                      <span className="mdrawer-seg-meta">
-                        {NOTE_KIND_LABEL[n.kind]
-                          ? `${NOTE_KIND_LABEL[n.kind]} · `
-                          : ""}
-                        {fmtFecha(n.createdAt)}
-                      </span>
-                    </div>
-                  ))
+                  notas.map((n) => {
+                    const { limpio, fotos } = splitNotePhotos(n.text);
+                    return (
+                      <div key={n.id} className="mdrawer-nota">
+                        <p className="vdrawer-desc">{limpio}</p>
+                        {fotos.length > 0 && (
+                          <div className="mdrawer-nota-fotos">
+                            {fotos.map((src, i) => (
+                              <a
+                                key={i}
+                                href={src}
+                                target="_blank"
+                                rel="noreferrer"
+                                title="Ver foto de prueba"
+                              >
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img
+                                  src={src}
+                                  alt={`Prueba ${i + 1}`}
+                                  onError={(e) => {
+                                    // Si la foto no existe/falla, ocultamos el enlace
+                                    // (evita el ícono de imagen rota).
+                                    const a = e.currentTarget.closest("a");
+                                    if (a) a.style.display = "none";
+                                  }}
+                                />
+                              </a>
+                            ))}
+                          </div>
+                        )}
+                        <span className="mdrawer-seg-meta">
+                          {NOTE_KIND_LABEL[n.kind]
+                            ? `${NOTE_KIND_LABEL[n.kind]} · `
+                            : ""}
+                          {fmtFecha(n.createdAt)}
+                        </span>
+                      </div>
+                    );
+                  })
                 )}
               </div>
             </>

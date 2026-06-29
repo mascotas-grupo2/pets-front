@@ -39,6 +39,7 @@ export function useMapaReportes(params?: { estado?: string; especie?: string }) 
         tipo: categoria(u.estado),
         estado: u.estado,
         especie: u.especie,
+        foto: u.foto,
       })),
     );
     setLoading(false);

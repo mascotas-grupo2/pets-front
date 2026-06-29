@@ -130,6 +130,8 @@ export type PetReportStatusTotals = {
   rechazado: number;
   finalizado: number;
   reservada: number;
+  /** Publicaciones activas cuyo vencimiento ya pasó (transversal, no es un reportStatus). */
+  vencidas: number;
 };
 
 export type PetStatusTotals = {
@@ -159,7 +161,15 @@ export const getAdminPetsPaged = (params: {
   animalTypeId?: number;
   q?: string;
   sort?: string;
+  /** "1" para traer solo las publicaciones vencidas (expiresAt < ahora). */
+  vencida?: string;
 }) =>
   request<AdminPetsPagedResponse>(() =>
     axios.get(`mascotas/admin/paged`, { params }),
+  );
+
+/** Detalle admin de UNA mascota (para abrir el drawer desde otras secciones). */
+export const getAdminPet = (id: string) =>
+  request<import("@/types/pet").AdminPetSummary>(() =>
+    axios.get(`mascotas/admin/pet/${id}`),
   );

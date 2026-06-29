@@ -4,7 +4,7 @@ import { Eye, Pencil } from "lucide-react";
 import { DataTable, type Column, type SortOrder } from "../../ui/data-table";
 import { TablePagination } from "../../ui/table-pagination";
 import { ActionButton } from "../../ui/button";
-import { EstadoPill } from "../../lib/pet-status";
+import { EstadoPill, VencimientoPill } from "../../lib/pet-status";
 import { PetThumb } from "../../ui/pet-thumb";
 import type { AdminPetSummary } from "@/types/pet";
 import type { SortKey } from "../hook/usePublicaciones";
@@ -86,6 +86,17 @@ export function PublicacionTable({
       label: "Estado",
       sortable: true,
       render: (pet) => <EstadoPill status={pet.reportStatus} />,
+    },
+    {
+      key: "vencimiento",
+      label: "Vencimiento",
+      render: (pet) => (
+        <VencimientoPill
+          expiresAt={pet.expiresAt}
+          daysLeft={pet.daysLeft}
+          expired={pet.expired}
+        />
+      ),
     },
     {
       key: "fecha",

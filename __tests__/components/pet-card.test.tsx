@@ -2,6 +2,13 @@ import { render, screen } from "@testing-library/react";
 import { PetCard } from "@/components/pet-card";
 import { makePet } from "@/test/factories";
 
+// PetCardActions lee el usuario del store (para ocultar "La vi" en tu propia
+// mascota). Sin sesión → comportamiento por defecto, sin necesidad de <Provider>.
+jest.mock("@/redux/hooks", () => ({
+  useAppSelector: (selector: (state: unknown) => unknown) =>
+    selector({ user: { isLoggedIn: false, id: 0 } }),
+}));
+
 const basePet = makePet({ id: "abc-123" });
 
 describe("PetCard", () => {

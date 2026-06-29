@@ -13,6 +13,7 @@ import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { CatLoader } from "@/components/cat-loader";
 import { PetComments } from "@/components/pet-comments";
+import { ConfirmDialog } from "@/components/admin/ui/confirm-dialog";
 import handleToast from "@/components/utils/toast";
 import {
   Bell,
@@ -63,12 +64,26 @@ export default function PetDetailPage() {
     isPublisher && pet?.ownerUserId != null && pet?.ownerUserId !== user.id;
   // "Es dueño" (para ocultar el formulario de reclamo, etc.): publicador o dueño verificado.
   const isOwner = isPublisher || isVerifiedOwner;
-  const canEdit = isPublisher && !pet?.isOwner;
+  // Estados gestionados por el refugio: en proceso de adopción la mascota la
+  // maneja solo el refugio (carga vacunas/tratamiento), el usuario ya no la edita.
+  const REFUGIO_STATUSES = new Set([
+    "en tránsito",
+    "en tratamiento médico",
+    "en adopción",
+    "adoptado",
+    "devuelta al dueño",
+  ]);
+  const inRefugioFlow = !!pet?.status && REFUGIO_STATUSES.has(pet.status);
+  const canEdit = isPublisher && !pet?.isOwner && !inRefugioFlow;
   const isAdmin = !!user.isLoggedIn && user.role === "admin";
-  // Renovar: admin, publicador o dueño verificado, y solo si la publicación vence.
+  // Renovar: admin, publicador o dueño verificado, solo si la publicación vence
+  // y no está finalizada (una publicación cerrada no se renueva).
   const canRenew =
-    (isAdmin || isPublisher || isVerifiedOwner) && pet?.expiresAt != null;
+    (isAdmin || isPublisher || isVerifiedOwner) &&
+    pet?.expiresAt != null &&
+    pet?.reportStatus !== "finalizado";
   const [renewing, setRenewing] = useState(false);
+  const [showRenewConfirm, setShowRenewConfirm] = useState(false);
   const handleRenew = async () => {
     if (!pet?.id) return;
     setRenewing(true);
@@ -84,6 +99,7 @@ export default function PetDetailPage() {
       handleToast("error", "Error al renovar.");
     } finally {
       setRenewing(false);
+      setShowRenewConfirm(false);
     }
   };
 
@@ -251,11 +267,26 @@ export default function PetDetailPage() {
               <button
                 type="button"
                 className="btn btn-outline btn-sm"
-                onClick={handleRenew}
+                onClick={() => setShowRenewConfirm(true)}
                 disabled={renewing}
               >
                 <RotateCw size={15} aria-hidden /> {renewing ? "Renovando…" : "Renovar"}
               </button>
+              <ConfirmDialog
+                open={showRenewConfirm}
+                title="Renovar publicación"
+                message={
+                  (pet.expired
+                    ? "¿Querés renovar esta publicación vencida? Volverá a estar visible y se extenderá su vencimiento. "
+                    : "¿Querés renovar esta publicación? Se extenderá su fecha de vencimiento. ") +
+                  "Renovar no cambia los datos; si necesitás corregir algo, cancelá y usá “Editar publicación” (vuelve a revisión del refugio)."
+                }
+                confirmLabel="Renovar"
+                cancelLabel="Cancelar"
+                busy={renewing}
+                onConfirm={handleRenew}
+                onCancel={() => setShowRenewConfirm(false)}
+              />
             </div>
           )}
           <h1>¡Hola humano!</h1>
@@ -349,42 +380,38 @@ export default function PetDetailPage() {
             </div>
 
             <div className="pet-vacc-wrap">
-              <table className="pet-vacc-table">
-                <thead>
-                  <tr>
-                    <th>Edad</th>
-                    <th>8va semana</th>
-                    <th>14va semana</th>
-                    <th>22va semana</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <th>Vacunado</th>
-                    <td>
-                      Séxtuple
-                      <br />
-                      Moquillo
-                      <br />
-                      Leptospirosis
-                    </td>
-                    <td>
-                      Séxtuple
-                      <br />
-                      Parvovirus
-                      <br />
-                      Leptospirosis
-                    </td>
-                    <td>
-                      Séxtuple
-                      <br />
-                      Antirrábica
-                      <br />
-                      Leptospirosis
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+              <h3 className="pet-vacc-title">Vacunación</h3>
+              {pet.vaccinated === true ? (
+                <div className="pet-vacc-status pet-vacc-status--yes">
+                  <span className="pet-vacc-status-icon" aria-hidden>
+                    💉
+                  </span>
+                  <div>
+                    <strong>Al día con las vacunas</strong>
+                    <p>Según el registro del refugio.</p>
+                  </div>
+                </div>
+              ) : pet.vaccinated === false ? (
+                <div className="pet-vacc-status pet-vacc-status--no">
+                  <span className="pet-vacc-status-icon" aria-hidden>
+                    ⚠️
+                  </span>
+                  <div>
+                    <strong>Sin vacunas registradas</strong>
+                    <p>Conviene una consulta veterinaria.</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="pet-vacc-status pet-vacc-status--unknown">
+                  <span className="pet-vacc-status-icon" aria-hidden>
+                    ❔
+                  </span>
+                  <div>
+                    <strong>Sin información de vacunación</strong>
+                    <p>El refugio todavía no cargó este dato.</p>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
@@ -717,7 +744,7 @@ function ClaimForm({
       const res = await claimPet(petId, {
         claimantName: user.name || user.email || "Usuario",
         claimantPhone: "", // el backend detecta al usuario autenticado por el token
-        description: description.trim() || undefined,
+        description: description.trim(),
         photos: files,
       });
       if (res.ok) {
@@ -774,8 +801,8 @@ function ClaimForm({
               <div className="confirm-dialog-body">
                 <p className="confirm-dialog-message">
                   Subí al menos una foto que pruebe que es tuya (fotos previas
-                  con la mascota, carnet veterinario, etc.). El texto es
-                  opcional.
+                  con la mascota, carnet veterinario, etc.) y contanos por qué
+                  creés que es tuya. Ambos son obligatorios.
                 </p>
 
                 {previews.length > 0 && (
@@ -817,13 +844,14 @@ function ClaimForm({
                 )}
 
                 <div className="confirm-dialog-field">
-                  <label className="field-label">Mensaje (opcional)</label>
+                  <label className="field-label">Mensaje (obligatorio)</label>
                   <textarea
                     className="input confirm-dialog-textarea"
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     placeholder="Contanos por qué creés que es tuya, señas particulares, etc."
                     rows={3}
+                    required
                     disabled={submitting}
                   />
                 </div>
@@ -842,8 +870,18 @@ function ClaimForm({
                   type="button"
                   className="btn btn-primary"
                   onClick={handleSubmit}
-                  disabled={submitting || files.length === 0}
-                  title={files.length === 0 ? "Agregá al menos una foto de prueba" : undefined}
+                  disabled={
+                    submitting ||
+                    files.length === 0 ||
+                    description.trim().length === 0
+                  }
+                  title={
+                    files.length === 0
+                      ? "Agregá al menos una foto de prueba"
+                      : description.trim().length === 0
+                        ? "Escribí por qué creés que es tuya"
+                        : undefined
+                  }
                 >
                   {submitting ? "Enviando…" : "Enviar reclamo"}
                 </button>

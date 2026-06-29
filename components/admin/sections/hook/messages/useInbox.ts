@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAppSelector } from "@/redux/hooks";
 import { getInbox, InboxConversation } from "@/services/messages.services";
+import { onMessageNotification } from "@/components/notifications/useNotifications";
 import { toast } from "sonner";
 
 export type TipoConversacion = "todas" | "usuarios" | "internos";
@@ -38,8 +39,10 @@ export function useInbox() {
 
   useEffect(() => {
     fetchInbox();
-    const interval = setInterval(fetchInbox, 15000); // Poll every 15 seconds
-    return () => clearInterval(interval);
+    // Sin polling: la bandeja se refresca solo cuando llega una notificación de
+    // mensaje nuevo por el websocket (useNotifications).
+    const unsubscribe = onMessageNotification(() => void fetchInbox());
+    return unsubscribe;
   }, [fetchInbox]);
 
   // Conteos por tipo (sobre el total, no sobre el filtro de búsqueda).

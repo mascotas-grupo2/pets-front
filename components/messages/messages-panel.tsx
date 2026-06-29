@@ -52,10 +52,13 @@ export function MessagesPanel({ initialUserId }: { initialUserId?: number }) {
 
   const [showNuevo, setShowNuevo] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const threadRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    const el = threadRef.current;
+    if (!el) return;
+    el.scrollTop = el.scrollHeight;
   }, [activaMessages]);
 
   // Abrir directo una conversación cuando se llega con ?user=<id> (ej. desde una
@@ -171,7 +174,7 @@ export function MessagesPanel({ initialUserId }: { initialUserId?: number }) {
                 <h3>{activaUser?.name || "Usuario"}</h3>
               </div>
             </header>
-            <div className="msg-thread">
+            <div className="msg-thread" ref={threadRef}>
               {loadingChat ? (
                 <Spinner />
               ) : activaMessages.length === 0 ? (

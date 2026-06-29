@@ -47,6 +47,8 @@ export type UbicacionMascota = {
   estado: string;
   /** Especie/animal (ej. "perro", "gato"). */
   especie: string;
+  /** Foto principal para el popup del mapa (URL o null). */
+  foto?: string | null;
 };
 
 export type MetricasData = {

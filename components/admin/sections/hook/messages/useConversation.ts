@@ -9,6 +9,10 @@ import {
   Message,
   ConversationProfile,
 } from "@/services/messages.services";
+import {
+  refreshNotifications,
+  onMessageNotification,
+} from "@/components/notifications/useNotifications";
 
 const PAGE = 30;
 
@@ -37,6 +41,8 @@ export function useConversation(userId: number | null) {
         setMessages(res.data.messages);
         setProfile(res.data.profile ?? null);
         setHasMore(!!res.data.hasMore);
+
+        refreshNotifications();
       }
     } finally {
       if (userIdRef.current === userId) setLoading(false);
@@ -88,11 +94,12 @@ export function useConversation(userId: number | null) {
 
   useEffect(() => {
     setMessages([]);
-    setHasMore(false);
     loadInitial();
     if (!userId) return;
-    const interval = setInterval(pollLatest, 5000);
-    return () => clearInterval(interval);
+    // Sin polling: traemos los mensajes nuevos SOLO cuando llega una notificación
+    // de mensaje por el websocket (useNotifications).
+    const unsubscribe = onMessageNotification(() => void pollLatest());
+    return unsubscribe;
   }, [userId, loadInitial, pollLatest]);
 
   async function send(content: string, photo?: File | null) {
