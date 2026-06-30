@@ -25,6 +25,10 @@ export type RefugioInput = {
 
 export const getRefugios = () => request<Refugio[]>(() => axios.get("refugios"));
 
+/** Refugio del usuario autenticado (para mostrar su nombre en el panel). */
+export const getMyRefugio = () =>
+  request<Refugio | null>(() => axios.get("refugios/mine"));
+
 export const getPublicRefugios = () =>
   request<Pick<Refugio, "id" | "name" | "slug">[]>(() =>
     axios.get("refugios/public"),

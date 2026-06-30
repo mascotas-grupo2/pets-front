@@ -1,6 +1,6 @@
 "use client";
 
-import { Mail, ChevronDown, LogOut } from "lucide-react";
+import { Mail, ChevronDown, LogOut, Building2 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useAppSelector } from "@/redux/hooks";
@@ -8,11 +8,76 @@ import { useUserContext } from "@/context/UserContext";
 import { initials } from "./sections/dashboard/dashboard.data";
 import { NotificationsBell } from "../notifications/NotificationsBell";
 import { ThemeToggle } from "../theme-toggle";
+import { getMyRefugio, getRefugios, type Refugio } from "@/services/refugios";
+import { getViewRefugioId, setViewRefugioId } from "@/services/tenant-view";
 
 type AdminTopbarProps = {
   title: string;
   subtitle: string;
 };
+
+/**
+ * Indicador de refugio del panel:
+ *  - admin de refugio: muestra el nombre de su refugio (solo lectura).
+ *  - superadmin: picker para elegir qué refugio inspeccionar ("Todos" = agregado).
+ *    Al cambiar, persiste la selección y recarga para re-scopear los datos.
+ */
+function RefugioIndicator() {
+  const role = useAppSelector((state) => state.user.role);
+  const refugioId = useAppSelector((state) => state.user.refugioId);
+  const isSuperadmin = role === "superadmin";
+
+  const [refugios, setRefugios] = useState<Refugio[]>([]);
+  const [myName, setMyName] = useState<string | null>(null);
+  const [selected, setSelected] = useState<number | null>(null);
+
+  useEffect(() => {
+    setSelected(getViewRefugioId());
+    if (isSuperadmin) {
+      getRefugios().then((r) => {
+        if (r.ok && r.data) setRefugios(r.data);
+      });
+    } else if (refugioId != null) {
+      getMyRefugio().then((r) => {
+        if (r.ok && r.data) setMyName(r.data.name);
+      });
+    }
+  }, [isSuperadmin, refugioId]);
+
+  if (isSuperadmin) {
+    const onPick = (e: React.ChangeEvent<HTMLSelectElement>) => {
+      const val = e.target.value;
+      setViewRefugioId(val === "" ? null : Number(val));
+      // Recargamos para que todas las secciones re-consulten con el nuevo scope.
+      window.location.reload();
+    };
+    return (
+      <label className="admin-refugio-picker" title="Refugio en vista">
+        <Building2 size={16} aria-hidden />
+        <select
+          aria-label="Refugio en vista"
+          value={selected ?? ""}
+          onChange={onPick}
+        >
+          <option value="">Todos los refugios</option>
+          {refugios.map((r) => (
+            <option key={r.id} value={r.id}>
+              {r.name}
+            </option>
+          ))}
+        </select>
+      </label>
+    );
+  }
+
+  if (!myName) return null;
+  return (
+    <span className="admin-refugio-chip" title="Tu refugio">
+      <Building2 size={16} aria-hidden />
+      {myName}
+    </span>
+  );
+}
 
 export function AdminTopbar({ title, subtitle }: AdminTopbarProps) {
   const { logout } = useUserContext();
@@ -47,6 +112,8 @@ export function AdminTopbar({ title, subtitle }: AdminTopbarProps) {
       </div>
 
       <div className="admin-topbar-actions">
+        <RefugioIndicator />
+
         <ThemeToggle />
 
         <NotificationsBell />

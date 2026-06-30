@@ -18,10 +18,11 @@ export function AdminSidebar({
   const pathname = usePathname();
   const role = useAppSelector((state) => state.user.role);
   const isSuperadmin = role === "superadmin";
+  // El superadmin ve todas las secciones (incluida "Refugios"); puede inspeccionar
+  // cualquier refugio vía el picker del topbar. Los admins de refugio no ven las
+  // secciones superadminOnly.
   const sections = SECTIONS.filter((s) =>
-    isSuperadmin
-      ? s.id === "personas" || s.id === "refugios"
-      : !s.superadminOnly,
+    isSuperadmin ? true : !s.superadminOnly,
   );
 
   return (

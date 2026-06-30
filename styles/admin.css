@@ -340,6 +340,38 @@
   gap: 10px;
 }
 
+/* Indicador / picker de refugio (multi-tenant) en el topbar. */
+.admin-refugio-chip,
+.admin-refugio-picker {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  background: var(--surface);
+  color: var(--gray-700);
+  font-size: 13px;
+  font-weight: 600;
+  max-width: 220px;
+}
+.admin-refugio-chip {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.admin-refugio-picker select {
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  max-width: 180px;
+}
+.admin-refugio-picker select:focus {
+  outline: none;
+}
+
 .admin-search {
   display: flex;
   align-items: center;
