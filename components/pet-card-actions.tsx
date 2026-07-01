@@ -7,6 +7,7 @@ import { createPortal } from "react-dom";
 import { Share2, Eye, Check, X } from "lucide-react";
 import { createSighting } from "@/services/mascotas.pets";
 import { useAppSelector } from "@/redux/hooks";
+import handleToast from "@/components/utils/toast";
 
 function petLabel(pet: Pet): string {
   return (
@@ -118,22 +119,13 @@ function SightingModal({
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // 1) Persistir el avistamiento (queda registrado + notifica al dueño).
-    await createSighting(pet.id, { place, sightedOn: when, note, contact });
-    // 2) Además abrir el mail al dueño (contacto directo).
-    const url = `${window.location.origin}/mascotas-perdidas/${pet.id}`;
-    const subject = `👀 Vi a ${name} (${pet.status})`;
-    const body =
-      `¡Hola! Creo que vi a ${name}.\n\n` +
-      `📍 Dónde: ${place || "—"}\n` +
-      `📅 Cuándo: ${when}\n` +
-      `📝 Detalle: ${note || "—"}\n` +
-      `📞 Mi contacto: ${contact || "—"}\n\n` +
-      `Publicación: ${url}`;
-    if (pet.contactEmail) {
-      window.location.href = `mailto:${pet.contactEmail}?subject=${encodeURIComponent(
-        subject,
-      )}&body=${encodeURIComponent(body)}`;
+    // Persistir el avistamiento: queda registrado y notifica in-app al dueño
+    // y a los administradores del refugio (sin abrir el cliente de mail).
+    const res = await createSighting(pet.id, { place, sightedOn: when, note, contact });
+    if (res.ok) {
+      handleToast("success", "¡Gracias! Avisamos al refugio y a quien lo busca.");
+    } else {
+      handleToast("error", "No se pudo enviar el aviso. Probá de nuevo.");
     }
     onClose();
   };
