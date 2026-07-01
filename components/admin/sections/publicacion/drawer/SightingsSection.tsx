@@ -1,9 +1,22 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Check, Eye, MapPin } from "lucide-react";
-import { acceptSighting, listSightings, type Sighting } from "@/services/mascotas.pets";
-import { Pill } from "../../../ui/pill";
+import {
+  Calendar,
+  Check,
+  CheckCircle2,
+  Eye,
+  MapPin,
+  Phone,
+  X,
+  XCircle,
+} from "lucide-react";
+import {
+  acceptSighting,
+  listSightings,
+  rejectSighting,
+  type Sighting,
+} from "@/services/mascotas.pets";
 
 /**
  * Lista de avistamientos ("La vi") de una publicación para el admin/dueño.
@@ -24,9 +37,12 @@ export function SightingsSection({ petId }: { petId: string }) {
     };
   }, [petId]);
 
-  const handleAccept = async (sightingId: string) => {
+  const resolve = async (
+    sightingId: string,
+    action: (p: string, s: string) => ReturnType<typeof acceptSighting>,
+  ) => {
     setBusyId(sightingId);
-    const res = await acceptSighting(petId, sightingId);
+    const res = await action(petId, sightingId);
     if (res.ok && res.data) {
       setItems((prev) =>
         (prev ?? []).map((s) => (s.id === sightingId ? res.data! : s)),
@@ -35,58 +51,113 @@ export function SightingsSection({ petId }: { petId: string }) {
     setBusyId(null);
   };
 
-  if (items == null) {
-    return (
-      <section className="vdrawer-section">
-        <h3>Avistamientos</h3>
-        <p className="vdrawer-desc">Cargando…</p>
-      </section>
-    );
-  }
+  const pending = (items ?? []).filter(
+    (s) => !s.accepted && !s.rejected,
+  ).length;
 
   return (
-    <section className="vdrawer-section">
-      <h3>
-        Avistamientos{items.length > 0 ? ` (${items.length})` : ""}
-      </h3>
-      {items.length === 0 ? (
-        <p className="vdrawer-desc">Todavía nadie reportó haber visto a esta mascota.</p>
+    <div className="sightings">
+      <div className="sightings-head">
+        <span className="sightings-title">
+          <Eye size={16} aria-hidden /> Avistamientos
+          {items && items.length > 0 && (
+            <span className="sightings-count">{items.length}</span>
+          )}
+        </span>
+        {pending > 0 && (
+          <span className="sightings-pending">{pending} sin confirmar</span>
+        )}
+      </div>
+
+      {items == null ? (
+        <p className="sightings-empty">Cargando…</p>
+      ) : items.length === 0 ? (
+        <div className="sightings-empty-box">
+          <MapPin size={22} aria-hidden />
+          <p>Todavía nadie reportó haber visto a esta mascota.</p>
+        </div>
       ) : (
-        <ul className="sight-list">
+        <ul className="sightings-list">
           {items.map((s) => (
-            <li key={s.id} className="sight-list-item">
-              <div className="sight-list-head">
-                <span className="sight-list-place">
-                  <MapPin size={14} aria-hidden /> {s.place || "Sin ubicación"}
+            <li
+              key={s.id}
+              className={`sighting-card${
+                s.accepted ? " is-accepted" : s.rejected ? " is-rejected" : ""
+              }`}
+            >
+              <div className="sighting-card-top">
+                <span className="sighting-place">
+                  <span className="sighting-pin" aria-hidden>
+                    <MapPin size={15} />
+                  </span>
+                  {s.place || "Ubicación no indicada"}
                 </span>
                 {s.accepted ? (
-                  <Pill tone="green">Confirmado</Pill>
+                  <span className="sighting-badge is-ok">
+                    <CheckCircle2 size={13} aria-hidden /> Confirmado
+                  </span>
+                ) : s.rejected ? (
+                  <span className="sighting-badge is-no">
+                    <XCircle size={13} aria-hidden /> Descartado
+                  </span>
                 ) : (
-                  <Pill tone="amber">Nuevo</Pill>
+                  <span className="sighting-badge is-new">Nuevo</span>
                 )}
               </div>
-              {s.sightedOn && (
-                <p className="sight-list-meta">Fecha: {s.sightedOn}</p>
+
+              {(s.sightedOn || s.contact) && (
+                <div className="sighting-meta">
+                  {s.sightedOn && (
+                    <span>
+                      <Calendar size={13} aria-hidden /> {s.sightedOn}
+                    </span>
+                  )}
+                  {s.contact && (
+                    <span>
+                      <Phone size={13} aria-hidden /> {s.contact}
+                    </span>
+                  )}
+                </div>
               )}
-              {s.note && <p className="sight-list-note">{s.note}</p>}
-              {s.contact && (
-                <p className="sight-list-meta">Contacto: {s.contact}</p>
-              )}
-              {!s.accepted && (
-                <button
-                  type="button"
-                  className="btn btn-primary btn-sm"
-                  onClick={() => handleAccept(s.id)}
-                  disabled={busyId === s.id}
+
+              {s.note && <p className="sighting-note">“{s.note}”</p>}
+
+              {(s.latitud != null && s.longitud != null) && (
+                <a
+                  className="sighting-maplink"
+                  href={`https://www.openstreetmap.org/?mlat=${s.latitud}&mlon=${s.longitud}#map=17/${s.latitud}/${s.longitud}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
                 >
-                  <Check size={14} aria-hidden />
-                  {busyId === s.id ? "Aceptando…" : "Aceptar"}
-                </button>
+                  <MapPin size={13} aria-hidden /> Ver punto exacto en el mapa
+                </a>
+              )}
+
+              {!s.accepted && !s.rejected && (
+                <div className="sighting-actions">
+                  <button
+                    type="button"
+                    className="btn btn-outline btn-sm sighting-reject"
+                    onClick={() => resolve(s.id, rejectSighting)}
+                    disabled={busyId === s.id}
+                  >
+                    <X size={14} aria-hidden /> Rechazar
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-primary btn-sm"
+                    onClick={() => resolve(s.id, acceptSighting)}
+                    disabled={busyId === s.id}
+                  >
+                    <Check size={14} aria-hidden />
+                    {busyId === s.id ? "…" : "Aceptar"}
+                  </button>
+                </div>
               )}
             </li>
           ))}
         </ul>
       )}
-    </section>
+    </div>
   );
 }

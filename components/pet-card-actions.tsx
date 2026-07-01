@@ -4,10 +4,11 @@ import { Pet } from "@/types/pet";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { Share2, Eye, Check, X } from "lucide-react";
+import { Share2, Eye, Check, X, MapPin } from "lucide-react";
 import { createSighting } from "@/services/mascotas.pets";
 import { useAppSelector } from "@/redux/hooks";
 import handleToast from "@/components/utils/toast";
+import { SightingMapPicker } from "@/components/sighting-map-picker";
 
 function petLabel(pet: Pet): string {
   return (
@@ -105,6 +106,17 @@ function SightingModal({
   const [when, setWhen] = useState(today);
   const [note, setNote] = useState("");
   const [contact, setContact] = useState("");
+  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(
+    null,
+  );
+
+  // Centro inicial del mapa: la ubicación de la mascota si la tiene; si no, CABA.
+  const petLat = (pet as { latitud?: number | null }).latitud;
+  const petLng = (pet as { longitud?: number | null }).longitud;
+  const mapCenter: [number, number] =
+    typeof petLat === "number" && typeof petLng === "number"
+      ? [petLat, petLng]
+      : [-34.6037, -58.3816];
 
   useEffect(() => {
     setMounted(true);
@@ -117,11 +129,48 @@ function SightingModal({
     };
   }, [onClose]);
 
+  // Al marcar en el mapa: guardamos las coords y completamos el campo de texto
+  // con la dirección (geocodificación inversa vía Nominatim/OpenStreetMap).
+  const handlePickCoords = async (c: { lat: number; lng: number }) => {
+    setCoords(c);
+    try {
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${c.lat}&lon=${c.lng}&accept-language=es`,
+      );
+      if (!res.ok) return;
+      const data = await res.json();
+      const a = data.address ?? {};
+      const linea1 = [a.road, a.house_number].filter(Boolean).join(" ");
+      const zona =
+        a.neighbourhood ||
+        a.suburb ||
+        a.city_district ||
+        a.town ||
+        a.city ||
+        a.village ||
+        "";
+      const label =
+        [linea1, zona].filter(Boolean).join(", ") ||
+        data.display_name ||
+        `${c.lat.toFixed(5)}, ${c.lng.toFixed(5)}`;
+      setPlace(label);
+    } catch {
+      /* si el geocoder falla, quedan las coords marcadas igual */
+    }
+  };
+
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     // Persistir el avistamiento: queda registrado y notifica in-app al dueño
     // y a los administradores del refugio (sin abrir el cliente de mail).
-    const res = await createSighting(pet.id, { place, sightedOn: when, note, contact });
+    const res = await createSighting(pet.id, {
+      place,
+      sightedOn: when,
+      note,
+      contact,
+      latitud: coords?.lat ?? null,
+      longitud: coords?.lng ?? null,
+    });
     if (res.ok) {
       handleToast("success", "¡Gracias! Avisamos al refugio y a quien lo busca.");
     } else {
@@ -138,7 +187,7 @@ function SightingModal({
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
       <div
-        className="sight-modal"
+        className="sight-modal sight-modal--wide"
         role="dialog"
         aria-modal="true"
         aria-labelledby="sight-title"
@@ -149,6 +198,9 @@ function SightingModal({
               <Eye size={14} aria-hidden /> Reportar avistamiento
             </span>
             <h2 id="sight-title">¿Viste a {name}?</h2>
+            <p className="sight-intro">
+              Tu pista puede reunir a {name} con su familia.
+            </p>
           </div>
           <button
             type="button"
@@ -159,52 +211,78 @@ function SightingModal({
             <X size={18} aria-hidden />
           </button>
         </div>
-        <p className="sight-intro">
-          Tu pista puede reunir a {name} con su familia. Contanos lo que viste y
-          le avisamos a quien lo busca.
-        </p>
-        <form className="sight-form" onSubmit={submit}>
-          <label className="sight-field">
-            <span>¿Dónde la/lo viste?</span>
-            <input
-              className="input"
-              type="text"
-              placeholder="Esquina, plaza, comercio…"
-              value={place}
-              onChange={(e) => setPlace(e.target.value)}
-              autoFocus
+
+        <form className="sight-form sight-form--grid" onSubmit={submit}>
+          <div className="sight-fields">
+            <label className="sight-field">
+              <span>¿Dónde la/lo viste?</span>
+              <input
+                className="input"
+                type="text"
+                placeholder="Esquina, plaza, comercio…"
+                value={place}
+                onChange={(e) => setPlace(e.target.value)}
+                autoFocus
+              />
+            </label>
+            <label className="sight-field">
+              <span>¿Cuándo?</span>
+              <input
+                className="input"
+                type="date"
+                max={today}
+                value={when}
+                onChange={(e) => setWhen(e.target.value)}
+              />
+            </label>
+            <label className="sight-field">
+              <span>Detalle (opcional)</span>
+              <textarea
+                className="input"
+                rows={2}
+                placeholder="Iba hacia…, estaba con…, cómo se la veía…"
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+              />
+            </label>
+            <label className="sight-field">
+              <span>Tu contacto (opcional)</span>
+              <input
+                className="input"
+                type="text"
+                placeholder="Teléfono o email para coordinar"
+                value={contact}
+                onChange={(e) => setContact(e.target.value)}
+              />
+            </label>
+          </div>
+
+          <div className="sight-mapcol">
+            <span className="sight-mapcol-label">
+              <MapPin size={14} aria-hidden />
+              {coords ? "Punto marcado ✓" : "Marcá el punto exacto (opcional)"}
+            </span>
+            <SightingMapPicker
+              center={mapCenter}
+              value={coords}
+              onChange={handlePickCoords}
             />
-          </label>
-          <label className="sight-field">
-            <span>¿Cuándo?</span>
-            <input
-              className="input"
-              type="date"
-              max={today}
-              value={when}
-              onChange={(e) => setWhen(e.target.value)}
-            />
-          </label>
-          <label className="sight-field">
-            <span>Detalle (opcional)</span>
-            <textarea
-              className="input"
-              rows={3}
-              placeholder="Iba hacia…, estaba con…, cómo se la veía…"
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-            />
-          </label>
-          <label className="sight-field">
-            <span>Tu contacto (opcional)</span>
-            <input
-              className="input"
-              type="text"
-              placeholder="Teléfono o email para coordinar"
-              value={contact}
-              onChange={(e) => setContact(e.target.value)}
-            />
-          </label>
+            <div className="sight-mapcol-foot">
+              <span className="sight-map-hint">
+                Tocá el mapa para ubicarlo.
+              </span>
+              {coords && (
+                <button
+                  type="button"
+                  className="sight-map-clear"
+                  onClick={() => setCoords(null)}
+                >
+                  Quitar punto
+                </button>
+              )}
+            </div>
+          </div>
+
           <div className="sight-actions">
             <button type="button" className="btn btn-outline" onClick={onClose}>
               Cancelar

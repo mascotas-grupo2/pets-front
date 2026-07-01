@@ -14,6 +14,7 @@ import { useEffect, useMemo, useState } from "react";
 import { CatLoader } from "@/components/cat-loader";
 import { PetComments } from "@/components/pet-comments";
 import { ConfirmDialog } from "@/components/admin/ui/confirm-dialog";
+import { SightingsSection } from "@/components/admin/sections/publicacion/drawer/SightingsSection";
 import handleToast from "@/components/utils/toast";
 import {
   Bell,
@@ -75,7 +76,9 @@ export default function PetDetailPage() {
   ]);
   const inRefugioFlow = !!pet?.status && REFUGIO_STATUSES.has(pet.status);
   const canEdit = isPublisher && !pet?.isOwner && !inRefugioFlow;
-  const isAdmin = !!user.isLoggedIn && user.role === "admin";
+  const isAdmin =
+    !!user.isLoggedIn &&
+    (user.role === "admin" || user.role === "superadmin");
   // Renovar: admin, publicador o dueño verificado, solo si la publicación vence
   // y no está finalizada (una publicación cerrada no se renueva).
   const canRenew =
@@ -507,6 +510,14 @@ export default function PetDetailPage() {
                     </Link>
                   )}
                 </div>
+              </section>
+            )}
+
+            {/* Avistamientos ("La vi"): visibles para el dueño de la publicación
+                y para los admins, que pueden confirmarlos. */}
+            {(isOwner || isAdmin) && (
+              <section className="pet-detail-sightings">
+                <SightingsSection petId={pet.id} />
               </section>
             )}
 

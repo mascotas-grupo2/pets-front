@@ -408,6 +408,66 @@
   animation: sightPop 0.18s ease;
 }
 
+.sight-modal--wide {
+  max-width: 760px;
+}
+
+/* Form en 2 columnas: campos a la izquierda, mapa a la derecha. */
+.sight-form--grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+  gap: 1rem 1.5rem;
+  margin-top: 1.1rem;
+}
+.sight-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  min-width: 0;
+}
+.sight-mapcol {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  min-width: 0;
+}
+.sight-mapcol-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--gray-700);
+}
+.sight-mapcol .sight-map {
+  flex: 1 1 auto;
+  height: auto;
+  min-height: 240px;
+}
+.sight-mapcol-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  min-height: 1.2rem;
+}
+.sight-form--grid .sight-actions {
+  grid-column: 1 / -1;
+  margin-top: 0.25rem;
+}
+
+@media (max-width: 640px) {
+  .sight-modal--wide {
+    max-width: 440px;
+  }
+  .sight-form--grid {
+    grid-template-columns: 1fr;
+  }
+  .sight-mapcol .sight-map {
+    min-height: 200px;
+  }
+}
+
 @keyframes sightPop {
   from { opacity: 0; transform: translateY(8px) scale(0.98); }
   to { opacity: 1; transform: none; }
@@ -454,9 +514,9 @@
 }
 
 .sight-intro {
-  font-size: 0.88rem;
+  font-size: 0.85rem;
   color: var(--gray-600);
-  margin: 0.75rem 0 1rem;
+  margin: 0.3rem 0 0;
 }
 
 .sight-form {
@@ -490,48 +550,241 @@
   margin-top: 0.4rem;
 }
 
-/* ===== Lista de avistamientos (drawer admin) ===== */
-.sight-list {
+/* ===== Lista de avistamientos (dueño / admin) ===== */
+.sightings-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.85rem;
+}
+.sightings-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-weight: 700;
+  color: var(--primary-900);
+}
+.sightings-count {
+  display: inline-grid;
+  place-items: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: var(--radius-full);
+  background: var(--primary-500);
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+.sightings-pending {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #b45309;
+  background: #fef3c7;
+  border-radius: var(--radius-full);
+  padding: 2px 10px;
+}
+:root[data-theme="dark"] .sightings-pending {
+  color: #fcd34d;
+  background: rgba(180, 83, 9, 0.18);
+}
+.sightings-empty {
+  font-size: 0.88rem;
+  color: var(--gray-600);
+}
+.sightings-empty-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1.5rem 1rem;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-lg);
+  color: var(--gray-500);
+  text-align: center;
+  font-size: 0.88rem;
+}
+.sightings-empty-box p {
+  margin: 0;
+}
+
+.sightings-list {
   list-style: none;
   margin: 0;
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
+  gap: 0.7rem;
 }
-.sight-list-item {
+
+.sighting-card {
+  position: relative;
   border: 1px solid var(--border);
+  border-left: 3px solid var(--primary-500);
   border-radius: var(--radius);
-  padding: 0.65rem 0.75rem;
-  background: var(--surface-alt);
+  padding: 0.8rem 0.9rem;
+  background: var(--surface);
   display: flex;
   flex-direction: column;
-  gap: 0.3rem;
-}
-.sight-list-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
   gap: 0.5rem;
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
 }
-.sight-list-place {
+.sighting-card:hover {
+  box-shadow: var(--shadow-sm, 0 2px 8px rgba(0, 0, 0, 0.06));
+}
+.sighting-card.is-accepted {
+  border-left-color: #16a34a;
+  background: var(--surface-alt);
+}
+.sighting-card.is-rejected {
+  border-left-color: var(--gray-400, #9ca3af);
+  opacity: 0.72;
+}
+
+.sighting-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+.sighting-place {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+.sighting-pin {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  flex: 0 0 auto;
+  border-radius: var(--radius-full);
+  background: color-mix(in srgb, var(--primary-500) 15%, transparent);
+  color: var(--primary-500);
+}
+
+.sighting-badge {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: var(--radius-full);
+  white-space: nowrap;
+}
+.sighting-badge.is-new {
+  color: #b45309;
+  background: #fef3c7;
+}
+.sighting-badge.is-ok {
+  color: #15803d;
+  background: #dcfce7;
+}
+.sighting-badge.is-no {
+  color: var(--gray-600);
+  background: var(--gray-100, #f3f4f6);
+}
+:root[data-theme="dark"] .sighting-badge.is-new {
+  color: #fcd34d;
+  background: rgba(180, 83, 9, 0.2);
+}
+:root[data-theme="dark"] .sighting-badge.is-ok {
+  color: #86efac;
+  background: rgba(21, 128, 61, 0.22);
+}
+:root[data-theme="dark"] .sighting-badge.is-no {
+  color: var(--gray-500);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.sighting-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1rem;
+  font-size: 0.82rem;
+  color: var(--gray-600);
+}
+.sighting-meta span {
   display: inline-flex;
   align-items: center;
   gap: 0.3rem;
-  font-weight: 600;
 }
-.sight-list-meta {
-  margin: 0;
-  font-size: 0.85rem;
-  color: var(--text-muted);
-}
-.sight-list-note {
+.sighting-note {
   margin: 0;
   font-size: 0.9rem;
+  font-style: italic;
+  color: var(--gray-700);
+  padding-left: 0.6rem;
+  border-left: 2px solid var(--border);
 }
-.sight-list-item .btn-sm {
+.sighting-maplink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--primary-500);
+  width: fit-content;
+}
+.sighting-maplink:hover {
+  text-decoration: underline;
+}
+
+.sighting-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 0.15rem;
+}
+.sighting-actions .sighting-reject {
+  color: var(--gray-600);
+}
+.sighting-actions .sighting-reject:hover {
+  color: #b91c1c;
+  border-color: #b91c1c;
+}
+
+/* ===== Selector de mapa del modal "La vi" ===== */
+.sight-map-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--primary-500);
+  padding: 0.4rem 0;
+  width: fit-content;
+}
+.sight-map-toggle:hover {
+  text-decoration: underline;
+}
+.sight-map-hint {
+  margin: 0.2rem 0 0.5rem;
+  font-size: 0.78rem;
+  color: var(--gray-600);
+}
+.sight-map {
+  height: 220px;
+  width: 100%;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  overflow: hidden;
+  z-index: 0;
+}
+.sight-map-clear {
+  margin-top: 0.4rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--gray-600);
   align-self: flex-start;
-  margin-top: 0.2rem;
+}
+.sight-map-clear:hover {
+  color: #b91c1c;
 }
 
 /* ===== Toggle Grilla / Mapa ===== */
