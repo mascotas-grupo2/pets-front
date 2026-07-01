@@ -8,6 +8,7 @@ import {
   MessageSquare,
   MessageCircle,
   Users,
+  Building2,
   // BookOpen, // Historias (oculto)
   // DollarSign, // Costos (oculto)
   // Settings, // Configuración (oculto)
@@ -25,6 +26,7 @@ export type Section =
   | "mensajes"
   | "comentarios"
   | "personas"
+  | "refugios"
   | "historias"
   | "costos"
   | "configuracion";
@@ -45,6 +47,8 @@ export type SectionDef = {
   subtitle: string;
   /** Contador opcional junto al item del menú. */
   badge?: number;
+  /** Si es true, el item solo se muestra para superadmin. */
+  superadminOnly?: boolean;
 };
 
 /**
@@ -114,6 +118,14 @@ export const SECTIONS: SectionDef[] = [
     icon: Users,
     title: "Personas",
     subtitle: "Usuarios y adoptantes",
+  },
+  {
+    id: "refugios",
+    label: "Refugios",
+    icon: Building2,
+    title: "Refugios",
+    subtitle: "Gestión de refugios de la plataforma",
+    superadminOnly: true,
   },
   // Ocultas temporalmente del menú (sin contenido real todavía):
   // {

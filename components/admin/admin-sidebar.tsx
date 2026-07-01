@@ -4,6 +4,7 @@ import { ChevronsLeft, ChevronsRight, Plus } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { SECTIONS, type Section } from "./admin-config";
+import { useAppSelector } from "@/redux/hooks";
 
 type AdminSidebarProps = {
   collapsed: boolean;
@@ -15,6 +16,14 @@ export function AdminSidebar({
   onToggleCollapse,
 }: AdminSidebarProps) {
   const pathname = usePathname();
+  const role = useAppSelector((state) => state.user.role);
+  const isSuperadmin = role === "superadmin";
+  // El superadmin ve todas las secciones (incluida "Refugios"); puede inspeccionar
+  // cualquier refugio vía el picker del topbar. Los admins de refugio no ven las
+  // secciones superadminOnly.
+  const sections = SECTIONS.filter((s) =>
+    isSuperadmin ? true : !s.superadminOnly,
+  );
 
   return (
     <aside
@@ -30,7 +39,7 @@ export function AdminSidebar({
       </Link>
 
       <nav className="admin-nav" aria-label="Secciones">
-        {SECTIONS.map((item) => {
+        {sections.map((item) => {
           const Icon = item.icon;
           const href = `/admin/${item.id}`;
           // Marcamos como activo si la URL coincide con la sección o si estamos en el raíz y es el dashboard

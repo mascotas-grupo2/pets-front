@@ -205,6 +205,12 @@ export function MascotaDrawer({ pet, onClose, onChanged, reviewMode = false }: P
                   </span>
                 </div>
                 <div className="vdrawer-field">
+                  <span className="vdrawer-field-label">Refugio</span>
+                  <span className="vdrawer-field-value">
+                    {pet.refugioName ?? "—"}
+                  </span>
+                </div>
+                <div className="vdrawer-field">
                   <span className="vdrawer-field-label">Esterilizado</span>
                   <span className="vdrawer-field-value">
                     {boolText(pet.neutered)}

@@ -29,6 +29,7 @@ const userReducer = (state = initialUserState, action: AppAction): User => {
         adopter: action.payload.adopter,
         role: action.payload.role,
         signature: action.payload.signature,
+        refugioId: action.payload.refugioId ?? null,
       };
     case "user/setFormAdoption":
       return {
@@ -39,6 +40,7 @@ const userReducer = (state = initialUserState, action: AppAction): User => {
         adopter: action.payload.adopter,
         role: action.payload.role,
         signature: action.payload.signature,
+        refugioId: action.payload.refugioId ?? null,
       };
     case "user/Logout":
       return initialUserState;

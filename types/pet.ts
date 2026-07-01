@@ -105,4 +105,6 @@ export type Pet = {
   friendlyWithPets?: boolean;
   trained?: boolean;
   viewsCount?: number;
+  refugioId?: number | null;
+  refugioName?: string | null;
 };
