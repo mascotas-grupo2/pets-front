@@ -23,7 +23,8 @@ export function SiteHeader() {
   const pathname = usePathname();
   const { isLoggedIn, adopter } = useUserContext();
   const role = useAppSelector((state) => state.user.role);
-  const isAdmin = role === "admin";
+  // El superadmin también accede al panel (para gestionar Refugios y Usuarios).
+  const isAdmin = role === "admin" || role === "superadmin";
   const [menuOpen, setMenuOpen] = useState(false);
 
   const navItems = NAV.filter((item) =>
