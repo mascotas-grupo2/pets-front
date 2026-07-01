@@ -102,7 +102,7 @@ export function PetCard({
           alt={pet.name ?? pet.description}
         />
         <span className={`pet-badge pet-badge--${tone}`}>
-          {(pet.status && pet.status.toLocaleUpperCase()) || "PERDIDO"}
+          {(pet.statusLabel ?? pet.status)?.toLocaleUpperCase() || "PERDIDO"}
         </span>
         {pet.status === "perdido" && pet.isOwner && !reportMeta && (
           <span

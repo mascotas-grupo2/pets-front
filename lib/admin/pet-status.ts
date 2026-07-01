@@ -2,7 +2,7 @@ import { PetMedicalStatus, PetNoteKind, PetStatus } from "@/types/pet";
 
 export const PET_STATUS_OPTIONS: { value: PetStatus; label: string }[] = [
   { value: "perdido", label: "Perdido" },
-  { value: "encontrado", label: "Encontrado" },
+  { value: "encontrado", label: "En refugio" },
   { value: "en tránsito", label: "En tránsito" },
   { value: "en tratamiento médico", label: "En tratamiento médico" },
   { value: "en adopción", label: "En adopción" },
