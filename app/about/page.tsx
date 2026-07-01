@@ -18,13 +18,6 @@ const VALUES = [
   },
 ];
 
-const TEAM = [
-  { name: "María López", role: "Fundadora", img: "/images/avatar-1.jpg" },
-  { name: "Carlos Pérez", role: "Veterinario", img: "/images/avatar-2.jpg" },
-  { name: "Lucía Gómez", role: "Voluntaria", img: "/images/avatar-3.jpg" },
-  { name: "Diego Ruiz", role: "Desarrollo", img: "/images/avatar-4.jpg" },
-];
-
 export default function AboutPage() {
   return (
     <main className="about-page">
@@ -78,24 +71,6 @@ export default function AboutPage() {
         </div>
       </section>
 
-      <section className="section" style={{ background: "var(--surface-alt)" }}>
-        <div className="container">
-          <div className="section-title">
-            <h2>Nuestro equipo</h2>
-            <p>Voluntarios comprometidos con el bienestar animal.</p>
-          </div>
-          <div className="team-grid">
-            {TEAM.map((m) => (
-              <div key={m.name} className="team-member">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={m.img} alt={m.name} />
-                <h4>{m.name}</h4>
-                <span>{m.role}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
     </main>
   );
 }

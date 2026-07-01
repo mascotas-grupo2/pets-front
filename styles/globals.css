@@ -396,7 +396,8 @@
 }
 
 .sight-modal {
-  background: #fff;
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-lg);
   width: 100%;
@@ -487,6 +488,50 @@
   justify-content: flex-end;
   gap: 0.6rem;
   margin-top: 0.4rem;
+}
+
+/* ===== Lista de avistamientos (drawer admin) ===== */
+.sight-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+.sight-list-item {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.65rem 0.75rem;
+  background: var(--surface-alt);
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+.sight-list-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+.sight-list-place {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-weight: 600;
+}
+.sight-list-meta {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+.sight-list-note {
+  margin: 0;
+  font-size: 0.9rem;
+}
+.sight-list-item .btn-sm {
+  align-self: flex-start;
+  margin-top: 0.2rem;
 }
 
 /* ===== Toggle Grilla / Mapa ===== */
