@@ -15,6 +15,7 @@ import { CatLoader } from "@/components/cat-loader";
 import { PetComments } from "@/components/pet-comments";
 import { ConfirmDialog } from "@/components/admin/ui/confirm-dialog";
 import { SightingsSection } from "@/components/admin/sections/publicacion/drawer/SightingsSection";
+import { SightingTrailMap } from "@/components/sighting-trail-map";
 import handleToast from "@/components/utils/toast";
 import {
   Bell,
@@ -87,6 +88,8 @@ export default function PetDetailPage() {
     pet?.reportStatus !== "finalizado";
   const [renewing, setRenewing] = useState(false);
   const [showRenewConfirm, setShowRenewConfirm] = useState(false);
+  // Se incrementa al aceptar/rechazar un avistamiento, para refrescar el rastro.
+  const [trailKey, setTrailKey] = useState(0);
   const handleRenew = async () => {
     if (!pet?.id) return;
     setRenewing(true);
@@ -337,7 +340,7 @@ export default function PetDetailPage() {
           <div className="pet-detail-col-main">
             <div className="pet-detail-hero">
               <span className="pet-badge">
-                {pet.status.toLocaleUpperCase()}
+                {(pet.statusLabel ?? pet.status).toLocaleUpperCase()}
               </span>
               {pet.isOwner && (
                 <span
@@ -513,11 +516,36 @@ export default function PetDetailPage() {
               </section>
             )}
 
-            {/* Avistamientos ("La vi"): visibles para el dueño de la publicación
-                y para los admins, que pueden confirmarlos. */}
-            {(isOwner || isAdmin) && (
+            {/* Recorrido: mapa público con el origen + avistamientos confirmados
+                (por dónde se fue moviendo el animal). Solo para perdidas. */}
+            {pet.status === "perdido" &&
+              (() => {
+                const lat = (pet as { latitud?: number | null }).latitud;
+                const lng = (pet as { longitud?: number | null }).longitud;
+                return (
+                  <SightingTrailMap
+                    petId={pet.id}
+                    origin={
+                      typeof lat === "number" && typeof lng === "number"
+                        ? [lat, lng]
+                        : null
+                    }
+                    originLabel={pet.location}
+                    reloadKey={trailKey}
+                  />
+                );
+              })()}
+
+            {/* Avistamientos ("La vi"): el dueño y los admins ven todos y pueden
+                confirmarlos/descartarlos; un reportante logueado ve solo los
+                suyos (read-only) para seguir el estado de su pista. */}
+            {isLoggedIn && (
               <section className="pet-detail-sightings">
-                <SightingsSection petId={pet.id} />
+                <SightingsSection
+                  petId={pet.id}
+                  canManage={isOwner || isAdmin}
+                  onChanged={() => setTrailKey((k) => k + 1)}
+                />
               </section>
             )}
 

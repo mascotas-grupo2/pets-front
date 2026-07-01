@@ -102,6 +102,20 @@ export const rejectSighting = (petId: string, sightingId: string) =>
     axios.post(`mascotas/${petId}/sightings/${sightingId}/reject`),
   );
 
+/** Un punto del rastro: avistamiento aceptado con coordenadas. */
+export type TrailPoint = {
+  id: string;
+  place: string | null;
+  latitud: number;
+  longitud: number;
+  sightedOn: string | null;
+  createdAt: string;
+};
+
+/** Rastro público del animal: avistamientos aceptados con coords, cronológico. */
+export const getSightingTrail = (id: string) =>
+  request<TrailPoint[]>(() => axios.get(`mascotas/${id}/sightings/trail`));
+
 /**
  * Reclamo de mascota: un usuario reporta que una mascota podría ser suya.
  */

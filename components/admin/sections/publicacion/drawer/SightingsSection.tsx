@@ -22,7 +22,17 @@ import {
  * Lista de avistamientos ("La vi") de una publicación para el admin/dueño.
  * Permite confirmar cada avistamiento; al aceptar, se avisa a quien lo reportó.
  */
-export function SightingsSection({ petId }: { petId: string }) {
+export function SightingsSection({
+  petId,
+  canManage = true,
+  onChanged,
+}: {
+  petId: string;
+  /** Si es false, es la vista del reportante: read-only y sin botones. */
+  canManage?: boolean;
+  /** Se llama tras aceptar/rechazar (para refrescar el mapa de recorrido). */
+  onChanged?: () => void;
+}) {
   const [items, setItems] = useState<Sighting[] | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
 
@@ -47,6 +57,7 @@ export function SightingsSection({ petId }: { petId: string }) {
       setItems((prev) =>
         (prev ?? []).map((s) => (s.id === sightingId ? res.data! : s)),
       );
+      onChanged?.();
     }
     setBusyId(null);
   };
@@ -55,16 +66,21 @@ export function SightingsSection({ petId }: { petId: string }) {
     (s) => !s.accepted && !s.rejected,
   ).length;
 
+  // En la vista del reportante no mostramos nada si no tiene avistamientos
+  // (así no aparece una sección vacía en cada publicación que visita).
+  if (!canManage && (items == null || items.length === 0)) return null;
+
   return (
     <div className="sightings">
       <div className="sightings-head">
         <span className="sightings-title">
-          <Eye size={16} aria-hidden /> Avistamientos
+          <Eye size={16} aria-hidden />
+          {canManage ? "Avistamientos" : "Tus avistamientos"}
           {items && items.length > 0 && (
             <span className="sightings-count">{items.length}</span>
           )}
         </span>
-        {pending > 0 && (
+        {canManage && pending > 0 && (
           <span className="sightings-pending">{pending} sin confirmar</span>
         )}
       </div>
@@ -74,7 +90,11 @@ export function SightingsSection({ petId }: { petId: string }) {
       ) : items.length === 0 ? (
         <div className="sightings-empty-box">
           <MapPin size={22} aria-hidden />
-          <p>Todavía nadie reportó haber visto a esta mascota.</p>
+          <p>
+            {canManage
+              ? "Todavía nadie reportó haber visto a esta mascota."
+              : "No reportaste avistamientos de esta mascota."}
+          </p>
         </div>
       ) : (
         <ul className="sightings-list">
@@ -133,7 +153,7 @@ export function SightingsSection({ petId }: { petId: string }) {
                 </a>
               )}
 
-              {!s.accepted && !s.rejected && (
+              {canManage && !s.accepted && !s.rejected && (
                 <div className="sighting-actions">
                   <button
                     type="button"

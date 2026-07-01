@@ -6,6 +6,7 @@ import handleToast from "@/components/utils/toast";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import { getIdPets, updatePet, updatePetPhotos } from "@/services/mascotas.pets";
 import { Pet, PetSex, PetStatus } from "@/types/pet";
+import { PET_STATUS_LABELS } from "@/components/admin/lib/pet-status";
 import {
   Camera,
   ClipboardList,
@@ -352,7 +353,7 @@ export default function EditPetPage() {
             <div className="edit-card__id">
               <span className="edit-card__name">{pet.name || "Sin nombre"}</span>
               <span className="edit-card__chips">
-                <span className="edit-chip edit-chip--accent">{capitalize(form.status)}</span>
+                <span className="edit-chip edit-chip--accent">{PET_STATUS_LABELS[form.status] ?? capitalize(form.status)}</span>
                 {pet.reportStatus && pet.reportStatus !== "activo" && (
                   <span className="edit-chip">{capitalize(pet.reportStatus)}</span>
                 )}
@@ -437,7 +438,7 @@ export default function EditPetPage() {
                 <select className="select" value={form.status}
                   onChange={(e) => set("status", e.target.value as PetStatus)}>
                   {STATUS_OPTIONS.map((s) => (
-                    <option key={s} value={s}>{capitalize(s)}</option>
+                    <option key={s} value={s}>{PET_STATUS_LABELS[s] ?? capitalize(s)}</option>
                   ))}
                 </select>
               </div>
