@@ -43,7 +43,7 @@ export function SeguimientoFormDrawer({ petOptions, userOptions, now, onClose, o
 
     const when = new Date(appointmentAt);
     if (Number.isNaN(when.getTime()) || when <= now) {
-      setError("La fecha y hora debe ser posterior a este momento.");
+      setError("Elegí una fecha y hora a futuro para agendar el seguimiento 🙂");
       return;
     }
 

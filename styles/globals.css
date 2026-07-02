@@ -1294,10 +1294,12 @@
 
 .preview {
   margin-top: 0.75rem;
-  max-height: 220px;
+  max-height: 360px;
   border-radius: var(--radius-md);
-  object-fit: cover;
+  object-fit: contain;
   width: 100%;
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
 }
 
 .form-actions {

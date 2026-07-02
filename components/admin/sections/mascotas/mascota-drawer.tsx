@@ -3,14 +3,19 @@
 import { useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
-import { X, PawPrint, Heart } from "lucide-react";
+import { X, PawPrint, Heart, Home } from "lucide-react";
 import {
   MascotaEstadoPill,
   transicionesMascotaPermitidas,
   esEstadoMascotaTerminal,
 } from "../../lib/pet-status";
 import { formatEdad } from "../../lib/pet-format";
-import { updatePet, entregaDirectaPet, resolvePet } from "@/services/mascotas.pets";
+import {
+  updatePet,
+  entregaDirectaPet,
+  resolvePet,
+  confirmReturnPet,
+} from "@/services/mascotas.pets";
 import { useMascotaDetalle } from "../hook/useMascotaDetalle";
 import { ConfirmDialog } from "../../ui/confirm-dialog";
 import type { AdminPetSummary, PetStatus } from "@/types/pet";
@@ -97,12 +102,21 @@ export function MascotaDrawer({ pet, onClose, onChanged, reviewMode = false }: P
   const [recipient, setRecipient] = useState("");
   const [showEntrega, setShowEntrega] = useState(false);
   const [showCerrar, setShowCerrar] = useState(false);
+  const [showDevolver, setShowDevolver] = useState(false);
   const [busy, setBusy] = useState(false);
   const yaAdoptada = esEstadoMascotaTerminal(pet.status);
   // "Registrar adopción directa" solo aplica a mascotas que están en adopción.
   const puedeEntregar = pet.status === "en adopción";
-  // El cierre "apareció/resuelta" aplica a casos de pérdida (perdido/encontrado).
+  // Mascota marcada "con dueño" (isOwner, sea por el form o por un reclamo
+  // aprobado): el paso correcto es devolverla, no ponerla "en refugio".
+  const tieneDuenoVerificado =
+    pet.isOwner === true && pet.status !== "devuelta al dueño";
+  const puedeDevolver =
+    tieneDuenoVerificado && !yaAdoptada && pet.reportStatus !== "finalizado";
+  // El cierre "apareció/resuelta" aplica a casos de pérdida SIN dueño verificado
+  // (con dueño verificado se usa "Devolver al dueño").
   const puedeCerrar =
+    !tieneDuenoVerificado &&
     (pet.status === "perdido" || pet.status === "encontrado") &&
     pet.reportStatus !== "finalizado";
   // Estados ofrecidos: el actual + solo los siguientes válidos (incremental).
@@ -151,6 +165,20 @@ export function MascotaDrawer({ pet, onClose, onChanged, reviewMode = false }: P
       onClose();
     } else {
       toast.error(res.error || "No se pudo cerrar la publicación.");
+    }
+  }
+
+  async function devolverAlDueno() {
+    setBusy(true);
+    const res = await confirmReturnPet(pet.id, pet.ownerName ?? "su dueño");
+    setBusy(false);
+    if (res.ok) {
+      toast.success("Mascota devuelta a su dueño.");
+      setShowDevolver(false);
+      onChanged?.();
+      onClose();
+    } else {
+      toast.error(res.error || "No se pudo registrar la devolución.");
     }
   }
   const especie = pet.animalTypeLabel ?? pet.animalType ?? "—";
@@ -258,6 +286,22 @@ export function MascotaDrawer({ pet, onClose, onChanged, reviewMode = false }: P
                     <p className="vdrawer-desc mdrawer-muted">
                       La mascota está adoptada (estado final).
                     </p>
+                  ) : puedeDevolver ? (
+                    <>
+                      <p className="vdrawer-desc mdrawer-muted">
+                        Esta mascota tiene dueño verificado
+                        {pet.ownerName ? ` (${pet.ownerName})` : ""}. Cuando lo
+                        retire, cerrá la publicación devolviéndola a su dueño.
+                      </p>
+                      <button
+                        type="button"
+                        className="btn btn-primary"
+                        onClick={() => setShowDevolver(true)}
+                        disabled={busy}
+                      >
+                        <Home size={16} aria-hidden /> Devolver al dueño
+                      </button>
+                    </>
                   ) : (
                     <div className="mdrawer-estado-row">
                       <select
@@ -465,6 +509,21 @@ export function MascotaDrawer({ pet, onClose, onChanged, reviewMode = false }: P
           busy={busy}
           onConfirm={cerrarPublicacion}
           onCancel={() => setShowCerrar(false)}
+        />
+
+        <ConfirmDialog
+          open={showDevolver}
+          title="Devolver al dueño"
+          message={`¿Confirmás que ${
+            pet.name ?? "esta mascota"
+          } fue devuelta a ${
+            pet.ownerName ?? "su dueño"
+          }? Se cierra la publicación como "Devuelta al dueño" y se cancelan las adopciones y seguimientos en curso.`}
+          confirmLabel="Sí, devolver"
+          cancelLabel="Cancelar"
+          busy={busy}
+          onConfirm={devolverAlDueno}
+          onCancel={() => setShowDevolver(false)}
         />
       </aside>
     </div>
