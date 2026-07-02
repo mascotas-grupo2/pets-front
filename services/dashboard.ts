@@ -17,7 +17,7 @@ export const getDashboardStats = () =>
 
 export type ActivityItem = {
   id: string;
-  type: "solicitud" | "mensaje" | "publicacion" | "usuario" | "comentario";
+  type: "solicitud" | "mensaje" | "publicacion" | "usuario" | "comentario" | "seguimiento";
   title: string;
   detail: string;
   link: string;
