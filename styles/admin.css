@@ -3291,9 +3291,17 @@
   gap: 7px;
 }
 
-/* Dropdown propio (SegSelect) — reemplaza al <select> nativo */
+/* Dropdown propio (ComboSelect) — reemplaza al <select> nativo */
 .seg-combo {
   position: relative;
+}
+.seg-combo--grow {
+  flex: 1;
+  min-width: 0;
+}
+.seg-combo-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 .seg-combo-btn {
   display: flex;
@@ -3397,6 +3405,10 @@
 }
 .seg-combo-opt.is-selected svg {
   color: var(--primary-500);
+}
+.seg-combo-opt:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 .seg-combo-empty {
   padding: 14px 10px;
@@ -3505,6 +3517,52 @@
 }
 .seg-detail-row-value::first-letter {
   text-transform: uppercase;
+}
+
+/* ============================================================
+   Edición inline de la ficha de mascota (drawer)
+   ============================================================ */
+.mdrawer-ficha-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.mdrawer-ficha-checks {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 12px;
+}
+.mdrawer-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--gray-800);
+  cursor: pointer;
+}
+.mdrawer-check input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--primary-500);
+  cursor: pointer;
+}
+.mdrawer-save-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+}
+
+/* Celda Responsable con adoptante secundario (tabla de seguimientos) */
+.seg-resp-cell {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.25;
+}
+.seg-resp-adopter {
+  font-size: 11.5px;
+  color: var(--muted);
 }
 
 /* Layout de dos columnas: tabla + panel lateral */
