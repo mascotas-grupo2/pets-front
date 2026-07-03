@@ -13,8 +13,22 @@ import { ConfirmDialog } from "../../ui/confirm-dialog";
 
 export function MascotasSection() {
   const [selected, setSelected] = useState<AdminPetSummary | null>(null);
+  const [editOpen, setEditOpen] = useState(false);
   const [pendingDelete, setPendingDelete] = useState<AdminPetSummary | null>(null);
   const [busy, setBusy] = useState(false);
+
+  function openDetalle(pet: AdminPetSummary) {
+    setEditOpen(false);
+    setSelected(pet);
+  }
+  function openEdicion(pet: AdminPetSummary) {
+    setEditOpen(true);
+    setSelected(pet);
+  }
+  function cerrarDrawer() {
+    setSelected(null);
+    setEditOpen(false);
+  }
 
   const {
     visible, loading,
@@ -54,7 +68,8 @@ export function MascotasSection() {
         loading={loading}
         sort={sort}
         onSort={setSort}
-        onView={setSelected}
+        onView={openDetalle}
+        onEdit={openEdicion}
         onDelete={setPendingDelete}
         page={page}
         totalPages={totalPages}
@@ -66,9 +81,11 @@ export function MascotasSection() {
 
       {selected && (
         <MascotaDrawer
+          key={selected.id}
           pet={selected}
-          onClose={() => setSelected(null)}
+          onClose={cerrarDrawer}
           onChanged={reload}
+          initialEditing={editOpen}
         />
       )}
 
