@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
-import { Eye, MoreVertical, Trash2 } from "lucide-react";
+import { Eye, MoreVertical, Trash2, Pencil } from "lucide-react";
 import { DataTable, type Column } from "../../ui/data-table";
 import { TablePagination } from "../../ui/table-pagination";
 import { ActionButton } from "../../ui/button";
@@ -27,6 +27,17 @@ type Props = {
   hasta: number;
   onPage: (n: number) => void;
 };
+
+/** Estados en los que el refugio gestiona a la mascota: se puede editar su ficha
+ * (vacunas, peso, tratamiento…) desde el panel, aunque no sea el publicador. */
+const ADMIN_EDITABLE_STATUSES = new Set([
+  "encontrado",
+  "en tránsito",
+  "en tratamiento médico",
+  "en adopción",
+  "adoptado",
+  "devuelta al dueño",
+]);
 
 /** Menú contextual por fila. Se renderiza por portal para que el scroll
  * horizontal de la tabla (responsive) no lo recorte. */
@@ -99,6 +110,15 @@ function RowMenu({
             >
               <Eye size={15} /> Ver perfil completo
             </Link>
+            {pet.status && ADMIN_EDITABLE_STATUSES.has(pet.status) && (
+              <Link
+                href={`/mascotas-perdidas/${pet.id}/editar`}
+                className="pub-menu-item"
+                onClick={() => setOpen(false)}
+              >
+                <Pencil size={15} /> Editar datos
+              </Link>
+            )}
             <button type="button" className="pub-menu-item danger" onClick={() => { setOpen(false); onDelete(); }}>
               <Trash2 size={15} /> Eliminar
             </button>
