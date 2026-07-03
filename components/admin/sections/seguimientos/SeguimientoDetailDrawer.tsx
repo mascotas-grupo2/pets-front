@@ -1,7 +1,7 @@
 "use client";
 
 import { createPortal } from "react-dom";
-import { X, CalendarClock, UserCog, Clock, CalendarDays } from "lucide-react";
+import { X, CalendarClock, UserCog, Clock, CalendarDays, Heart } from "lucide-react";
 import type { Seguimiento } from "./seguimientos.data";
 import { seguimientoEstadoTone, formatAppointment } from "./seguimientos.data";
 import { TYPE_ICON } from "./seguimientos.icons";
@@ -97,6 +97,9 @@ export function SeguimientoDetailDrawer({ seguimiento: s, onClose }: Props) {
           <div className="seg-detail-rows">
             <Row icon={TipoIcon} label="Tipo">{s.tipo}</Row>
             <Row icon={UserCog} label="Responsable">{s.responsable}</Row>
+            {s.adoptante && (
+              <Row icon={Heart} label="Adoptante">{s.adoptante}</Row>
+            )}
             <Row icon={Clock} label="Agendado el">{fullDate(s.createdAt)}</Row>
           </div>
         </div>
