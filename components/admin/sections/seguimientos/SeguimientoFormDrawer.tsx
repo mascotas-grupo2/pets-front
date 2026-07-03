@@ -15,7 +15,7 @@ import type { CreateFollowupInput } from "@/services/followups";
 import type { Option } from "../hook/useSeguimientos";
 import { TIPO_OPTIONS } from "./seguimientos.data";
 import { TYPE_ICON } from "./seguimientos.icons";
-import { SegSelect } from "./SegSelect";
+import { ComboSelect } from "../../ui/combo-select";
 
 type Props = {
   petOptions: Option<string>[];
@@ -112,7 +112,7 @@ export function SeguimientoFormDrawer({ petOptions, userOptions, now, onClose, o
             <label className="seg-label" htmlFor="seg-pet">
               <PawPrint size={14} aria-hidden /> Mascota <span className="seg-req">*</span>
             </label>
-            <SegSelect
+            <ComboSelect
               id="seg-pet"
               value={petId}
               options={petOptions}
@@ -126,7 +126,7 @@ export function SeguimientoFormDrawer({ petOptions, userOptions, now, onClose, o
             <label className="seg-label" htmlFor="seg-user">
               <UserCog size={14} aria-hidden /> Responsable <span className="seg-req">*</span>
             </label>
-            <SegSelect
+            <ComboSelect
               id="seg-user"
               value={userId === "" ? "" : Number(userId)}
               options={userOptions}
