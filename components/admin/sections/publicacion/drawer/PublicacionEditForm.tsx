@@ -1,5 +1,6 @@
 import type { FormikProps } from "formik";
 import { EditableField } from "./EditableField";
+import { ComboSelect } from "../../../ui/combo-select";
 import type {
   AdminPetSummary,
   AnimalType,
@@ -118,33 +119,28 @@ function SelectInput({
   formik: F;
 }) {
   return (
-    <select
-      className="vdrawer-select"
+    <ComboSelect
       value={(formik.values[field] as string) ?? ""}
-      onChange={(e) => formik.setFieldValue(field, e.target.value)}
-    >
-      <option value="" disabled>
-        Seleccionar…
-      </option>
-      {options.map((o) => (
-        <option key={o} value={o}>
-          {cap(o)}
-        </option>
-      ))}
-    </select>
+      options={options.map((o) => ({ value: o, label: cap(o) }))}
+      placeholder="Seleccionar…"
+      searchable={options.length > 8}
+      onChange={(v) => formik.setFieldValue(field, v)}
+    />
   );
 }
 
 function BoolSelect({ field, formik }: { field: keyof EditForm; formik: F }) {
   return (
-    <select
-      className="vdrawer-select"
+    <ComboSelect
       value={formik.values[field] === true ? "true" : "false"}
-      onChange={(e) => formik.setFieldValue(field, e.target.value === "true")}
-    >
-      <option value="true">Sí</option>
-      <option value="false">No</option>
-    </select>
+      options={[
+        { value: "true", label: "Sí" },
+        { value: "false", label: "No" },
+      ]}
+      placeholder="—"
+      searchable={false}
+      onChange={(v) => formik.setFieldValue(field, v === "true")}
+    />
   );
 }
 
