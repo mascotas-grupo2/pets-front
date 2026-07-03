@@ -78,7 +78,12 @@ export function SeguimientosTable({
           <span className="dash-avatar" aria-hidden>
             {initials(s.responsable)}
           </span>
-          <span className="dash-user-name">{s.responsable}</span>
+          <span className="seg-resp-cell">
+            <span className="dash-user-name">{s.responsable}</span>
+            {s.adoptante && (
+              <span className="seg-resp-adopter">Adoptante: {s.adoptante}</span>
+            )}
+          </span>
         </div>
       ),
     },
