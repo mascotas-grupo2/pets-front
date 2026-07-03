@@ -3462,7 +3462,9 @@
 .seg-detail-date-full {
   font-size: 12px;
   color: var(--primary-600);
-  text-transform: capitalize;
+}
+.seg-detail-date-full::first-letter {
+  text-transform: uppercase;
 }
 
 /* Filas de detalle con ícono */
@@ -3500,7 +3502,9 @@
   font-weight: 600;
   color: var(--gray-900);
   text-align: right;
-  text-transform: capitalize;
+}
+.seg-detail-row-value::first-letter {
+  text-transform: uppercase;
 }
 
 /* Layout de dos columnas: tabla + panel lateral */
