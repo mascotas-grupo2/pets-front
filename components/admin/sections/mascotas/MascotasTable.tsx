@@ -19,6 +19,7 @@ type Props = {
   sort: SortOrder<string>[];
   onSort: (next: SortOrder<string>[]) => void;
   onView: (pet: AdminPetSummary) => void;
+  onEdit: (pet: AdminPetSummary) => void;
   onDelete: (pet: AdminPetSummary) => void;
   page: number;
   totalPages: number;
@@ -44,10 +45,12 @@ const ADMIN_EDITABLE_STATUSES = new Set([
 function RowMenu({
   pet,
   onView,
+  onEdit,
   onDelete,
 }: {
   pet: AdminPetSummary;
   onView: () => void;
+  onEdit: () => void;
   onDelete: () => void;
 }) {
   const [open, setOpen] = useState(false);
@@ -111,13 +114,13 @@ function RowMenu({
               <Eye size={15} /> Ver perfil completo
             </Link>
             {pet.status && ADMIN_EDITABLE_STATUSES.has(pet.status) && (
-              <Link
-                href={`/mascotas-perdidas/${pet.id}/editar`}
+              <button
+                type="button"
                 className="pub-menu-item"
-                onClick={() => setOpen(false)}
+                onClick={() => { setOpen(false); onEdit(); }}
               >
                 <Pencil size={15} /> Editar datos
-              </Link>
+              </button>
             )}
             <button type="button" className="pub-menu-item danger" onClick={() => { setOpen(false); onDelete(); }}>
               <Trash2 size={15} /> Eliminar
@@ -135,6 +138,7 @@ export function MascotasTable({
   sort,
   onSort,
   onView,
+  onEdit,
   onDelete,
   page,
   totalPages,
@@ -197,6 +201,7 @@ export function MascotasTable({
           <RowMenu
             pet={p}
             onView={() => onView(p)}
+            onEdit={() => onEdit(p)}
             onDelete={() => onDelete(p)}
           />
         </div>
