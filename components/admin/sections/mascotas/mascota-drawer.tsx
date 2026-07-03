@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
-import { X, PawPrint, Heart, Home } from "lucide-react";
+import { X, PawPrint, Heart, Home, Pencil } from "lucide-react";
 import {
   MascotaEstadoPill,
   transicionesMascotaPermitidas,
@@ -119,6 +119,16 @@ export function MascotaDrawer({ pet, onClose, onChanged, reviewMode = false }: P
     !tieneDuenoVerificado &&
     (pet.status === "perdido" || pet.status === "encontrado") &&
     pet.reportStatus !== "finalizado";
+  // El refugio puede editar la ficha (vacunas, peso, tratamiento…) una vez que la
+  // mascota está en su custodia ("En refugio" o estado posterior).
+  const puedeEditarFicha = new Set<PetStatus>([
+    "encontrado",
+    "en tránsito",
+    "en tratamiento médico",
+    "en adopción",
+    "adoptado",
+    "devuelta al dueño",
+  ]).has(pet.status);
   // Estados ofrecidos: el actual + solo los siguientes válidos (incremental).
   const opcionesEstado: PetStatus[] = [
     pet.status,
@@ -488,6 +498,15 @@ export function MascotaDrawer({ pet, onClose, onChanged, reviewMode = false }: P
             >
               Cerrar publicación (apareció / resuelta)
             </button>
+          )}
+          {puedeEditarFicha && !reviewMode && (
+            <Link
+              href={`/mascotas-perdidas/${pet.id}/editar`}
+              className="btn btn-outline"
+              style={{ textAlign: "center" }}
+            >
+              <Pencil size={16} aria-hidden /> Editar datos (vacunas, peso…)
+            </Link>
           )}
           <Link
             href={`/mascotas-perdidas/${pet.id}`}
