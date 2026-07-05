@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
-import { Eye, MoreVertical, Trash2 } from "lucide-react";
+import { Eye, MoreVertical, Trash2, Pencil } from "lucide-react";
 import { DataTable, type Column } from "../../ui/data-table";
 import { TablePagination } from "../../ui/table-pagination";
 import { ActionButton } from "../../ui/button";
@@ -19,6 +19,7 @@ type Props = {
   sort: SortOrder<string>[];
   onSort: (next: SortOrder<string>[]) => void;
   onView: (pet: AdminPetSummary) => void;
+  onEdit: (pet: AdminPetSummary) => void;
   onDelete: (pet: AdminPetSummary) => void;
   page: number;
   totalPages: number;
@@ -28,15 +29,27 @@ type Props = {
   onPage: (n: number) => void;
 };
 
+/** Estados en los que el refugio gestiona a la mascota: se puede editar su ficha
+ * (vacunas, peso, tratamiento…) desde el panel, aunque no sea el publicador. */
+const ADMIN_EDITABLE_STATUSES = new Set([
+  "en tránsito",
+  "en tratamiento médico",
+  "en adopción",
+  "adoptado",
+  "devuelta al dueño",
+]);
+
 /** Menú contextual por fila. Se renderiza por portal para que el scroll
  * horizontal de la tabla (responsive) no lo recorte. */
 function RowMenu({
   pet,
   onView,
+  onEdit,
   onDelete,
 }: {
   pet: AdminPetSummary;
   onView: () => void;
+  onEdit: () => void;
   onDelete: () => void;
 }) {
   const [open, setOpen] = useState(false);
@@ -99,6 +112,15 @@ function RowMenu({
             >
               <Eye size={15} /> Ver perfil completo
             </Link>
+            {pet.status && ADMIN_EDITABLE_STATUSES.has(pet.status) && (
+              <button
+                type="button"
+                className="pub-menu-item"
+                onClick={() => { setOpen(false); onEdit(); }}
+              >
+                <Pencil size={15} /> Editar datos
+              </button>
+            )}
             <button type="button" className="pub-menu-item danger" onClick={() => { setOpen(false); onDelete(); }}>
               <Trash2 size={15} /> Eliminar
             </button>
@@ -115,6 +137,7 @@ export function MascotasTable({
   sort,
   onSort,
   onView,
+  onEdit,
   onDelete,
   page,
   totalPages,
@@ -177,6 +200,7 @@ export function MascotasTable({
           <RowMenu
             pet={p}
             onView={() => onView(p)}
+            onEdit={() => onEdit(p)}
             onDelete={() => onDelete(p)}
           />
         </div>

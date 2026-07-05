@@ -4,8 +4,13 @@ import { LocationPicker } from "@/components/location-picker";
 import { ConfirmDialog } from "@/components/admin/ui/confirm-dialog";
 import handleToast from "@/components/utils/toast";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
-import { getIdPets, updatePet, updatePetPhotos } from "@/services/mascotas.pets";
+import {
+  getIdPets,
+  updatePet,
+  updatePetPhotos,
+} from "@/services/mascotas.pets";
 import { Pet, PetSex, PetStatus } from "@/types/pet";
+import { PET_STATUS_LABELS } from "@/components/admin/lib/pet-status";
 import {
   Camera,
   ClipboardList,
@@ -30,7 +35,8 @@ const STATUS_OPTIONS: PetStatus[] = [
   "adoptado",
 ];
 
-const capitalize = (s: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s);
+const capitalize = (s: string) =>
+  s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
 
 const CHECKS: { key: keyof FormState; label: string; icon: string }[] = [
   { key: "hasCollar", label: "Tiene collar", icon: "🦮" },
@@ -170,10 +176,29 @@ export default function EditPetPage() {
     [user.isLoggedIn, user.id, pet?.userId],
   );
 
+  const isRefugioAdmin = user.isLoggedIn && user.role === "admin";
+
+  const ADMIN_EDITABLE = useMemo(
+    () =>
+      new Set([
+        "en tránsito",
+        "en tratamiento médico",
+        "en adopción",
+        "adoptado",
+        "devuelta al dueño",
+      ]),
+    [],
+  );
+
   // Una vez que la mascota entra al circuito del refugio (verificada o en
-  // proceso de adopción), la gestiona solo el refugio: el publicador ya no edita.
+  // proceso de adopción), la gestiona solo el refugio: el publicador ya no edita,
+  // pero SÍ el admin del refugio (vacunas, peso, tratamiento…).
   const canEdit = useMemo(() => {
-    if (!isOwner || !pet) return false;
+    if (!pet) return false;
+    if (isRefugioAdmin) {
+      return !!pet.status && ADMIN_EDITABLE.has(pet.status);
+    }
+    if (!isOwner) return false;
     if (pet.isOwner) return false;
     const REFUGIO_STATUSES = new Set([
       "en tránsito",
@@ -183,9 +208,9 @@ export default function EditPetPage() {
       "devuelta al dueño",
     ]);
     return !(pet.status && REFUGIO_STATUSES.has(pet.status));
-  }, [isOwner, pet]);
+  }, [isRefugioAdmin, ADMIN_EDITABLE, isOwner, pet]);
 
-  // El que no puede editar (no es dueño, o ya la gestiona el refugio): al detalle.
+  // El que no puede editar (no es dueño ni admin, o ya la gestiona el refugio): al detalle.
   useEffect(() => {
     if (!loading && pet && !canEdit) {
       router.replace(`/mascotas-perdidas/${id}`);
@@ -299,17 +324,23 @@ export default function EditPetPage() {
   if (loading) {
     return (
       <main>
-        <div className="container" style={{ padding: "4rem 0", textAlign: "center" }}>
+        <div
+          className="container"
+          style={{ padding: "4rem 0", textAlign: "center" }}
+        >
           <p>Cargando...</p>
         </div>
       </main>
     );
   }
 
-  if (!pet || !form || !isOwner) {
+  if (!pet || !form || (!isOwner && !isRefugioAdmin)) {
     return (
       <main>
-        <div className="container" style={{ padding: "4rem 0", textAlign: "center" }}>
+        <div
+          className="container"
+          style={{ padding: "4rem 0", textAlign: "center" }}
+        >
           <p>Redirigiendo...</p>
         </div>
       </main>
@@ -333,7 +364,8 @@ export default function EditPetPage() {
           <h1>Editar publicación</h1>
           <p>
             Modificá los datos de{" "}
-            {pet.name ? <strong>{pet.name}</strong> : "tu mascota publicada"} y guardá los cambios.
+            {pet.name ? <strong>{pet.name}</strong> : "tu mascota publicada"} y
+            guardá los cambios.
           </p>
         </header>
 
@@ -349,11 +381,17 @@ export default function EditPetPage() {
               )}
             </div>
             <div className="edit-card__id">
-              <span className="edit-card__name">{pet.name || "Sin nombre"}</span>
+              <span className="edit-card__name">
+                {pet.name || "Sin nombre"}
+              </span>
               <span className="edit-card__chips">
-                <span className="edit-chip edit-chip--accent">{capitalize(form.status)}</span>
+                <span className="edit-chip edit-chip--accent">
+                  {PET_STATUS_LABELS[form.status] ?? capitalize(form.status)}
+                </span>
                 {pet.reportStatus && pet.reportStatus !== "activo" && (
-                  <span className="edit-chip">{capitalize(pet.reportStatus)}</span>
+                  <span className="edit-chip">
+                    {capitalize(pet.reportStatus)}
+                  </span>
                 )}
               </span>
             </div>
@@ -363,7 +401,9 @@ export default function EditPetPage() {
           <section className="edit-block">
             <div className="edit-block__head">
               <h2 className="form-section__title">
-                <span className="form-section__icon" aria-hidden><Camera /></span>
+                <span className="form-section__icon" aria-hidden>
+                  <Camera />
+                </span>
                 Foto
               </h2>
               <p className="form-section__hint">
@@ -405,13 +445,27 @@ export default function EditPetPage() {
               </div>
             )}
 
-            <label className="file-drop" style={{ marginTop: keepPhotos.length || newPhotos.length ? "1rem" : 0 }}>
-              <div className="icon"><ImagePlus size={28} /></div>
+            <label
+              className="file-drop"
+              style={{
+                marginTop: keepPhotos.length || newPhotos.length ? "1rem" : 0,
+              }}
+            >
+              <div className="icon">
+                <ImagePlus size={28} />
+              </div>
               <div>
                 <strong>Agregar foto</strong>
               </div>
-              <div className="hint">PNG o JPG, hasta ~5 MB cada una. Podés subir varias.</div>
-              <input type="file" accept="image/*" multiple onChange={handleSelectPhotos} />
+              <div className="hint">
+                PNG o JPG, hasta ~5 MB cada una. Podés subir varias.
+              </div>
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={handleSelectPhotos}
+              />
             </label>
           </section>
 
@@ -419,33 +473,47 @@ export default function EditPetPage() {
           <section className="edit-block">
             <div className="edit-block__head">
               <h2 className="form-section__title">
-                <span className="form-section__icon" aria-hidden><ClipboardList /></span>
+                <span className="form-section__icon" aria-hidden>
+                  <ClipboardList />
+                </span>
                 Datos básicos
               </h2>
             </div>
             <div className="form-grid">
               <div className="field">
                 <label className="field-label">Nombre</label>
-                <input className="input" type="text" value={form.name}
+                <input
+                  className="input"
+                  type="text"
+                  value={form.name}
                   placeholder="Ej: Toby"
-                  onChange={(e) => set("name", e.target.value)} />
+                  onChange={(e) => set("name", e.target.value)}
+                />
               </div>
 
               <div className="field">
                 <label className="field-label">Estado *</label>
-                <select className="select" value={form.status}
-                  onChange={(e) => set("status", e.target.value as PetStatus)}>
+                <select
+                  className="select"
+                  value={form.status}
+                  onChange={(e) => set("status", e.target.value as PetStatus)}
+                >
                   {STATUS_OPTIONS.map((s) => (
-                    <option key={s} value={s}>{capitalize(s)}</option>
+                    <option key={s} value={s}>
+                      {PET_STATUS_LABELS[s] ?? capitalize(s)}
+                    </option>
                   ))}
                 </select>
               </div>
 
               <div className="field full">
                 <label className="field-label">Descripción *</label>
-                <textarea className="textarea" value={form.description}
+                <textarea
+                  className="textarea"
+                  value={form.description}
                   placeholder="Color, tamaño, señas particulares, comportamiento…"
-                  onChange={(e) => set("description", e.target.value)} />
+                  onChange={(e) => set("description", e.target.value)}
+                />
               </div>
             </div>
           </section>
@@ -454,7 +522,9 @@ export default function EditPetPage() {
           <section className="edit-block">
             <div className="edit-block__head">
               <h2 className="form-section__title">
-                <span className="form-section__icon" aria-hidden><PawPrint /></span>
+                <span className="form-section__icon" aria-hidden>
+                  <PawPrint />
+                </span>
                 Características
               </h2>
               <p className="form-section__hint">
@@ -466,15 +536,21 @@ export default function EditPetPage() {
                 <label className="field-label">Sexo</label>
                 <div className="radio-row">
                   <label className="radio-opt">
-                    <input type="radio" name="sex"
+                    <input
+                      type="radio"
+                      name="sex"
                       checked={form.sex === "macho"}
-                      onChange={() => set("sex", "macho" as PetSex)} />
+                      onChange={() => set("sex", "macho" as PetSex)}
+                    />
                     Macho
                   </label>
                   <label className="radio-opt">
-                    <input type="radio" name="sex"
+                    <input
+                      type="radio"
+                      name="sex"
                       checked={form.sex === "hembra"}
-                      onChange={() => set("sex", "hembra" as PetSex)} />
+                      onChange={() => set("sex", "hembra" as PetSex)}
+                    />
                     Hembra
                   </label>
                 </div>
@@ -482,37 +558,62 @@ export default function EditPetPage() {
 
               <div className="field">
                 <label className="field-label">Raza</label>
-                <input className="input" type="text" value={form.breed}
+                <input
+                  className="input"
+                  type="text"
+                  value={form.breed}
                   placeholder="Ej: Labrador, Mestizo"
-                  onChange={(e) => set("breed", e.target.value)} />
+                  onChange={(e) => set("breed", e.target.value)}
+                />
               </div>
 
               <div className="field">
                 <label className="field-label">Edad (meses)</label>
-                <input className="input" type="number" min={0} value={form.ageMonths}
+                <input
+                  className="input"
+                  type="number"
+                  min={0}
+                  value={form.ageMonths}
                   placeholder="Ej: 24"
-                  onChange={(e) => set("ageMonths", e.target.value)} />
+                  onChange={(e) => set("ageMonths", e.target.value)}
+                />
               </div>
 
               <div className="field">
                 <label className="field-label">Color</label>
-                <input className="input" type="text" value={form.color}
+                <input
+                  className="input"
+                  type="text"
+                  value={form.color}
                   placeholder="Ej: Negro, Atigrado"
-                  onChange={(e) => set("color", e.target.value)} />
+                  onChange={(e) => set("color", e.target.value)}
+                />
               </div>
 
               <div className="field">
                 <label className="field-label">Peso (kg)</label>
-                <input className="input" type="number" min={0} step="0.1" value={form.weightKg}
+                <input
+                  className="input"
+                  type="number"
+                  min={0}
+                  step="0.1"
+                  value={form.weightKg}
                   placeholder="Ej: 12.5"
-                  onChange={(e) => set("weightKg", e.target.value)} />
+                  onChange={(e) => set("weightKg", e.target.value)}
+                />
               </div>
 
               <div className="field">
                 <label className="field-label">Altura (cm)</label>
-                <input className="input" type="number" min={0} step="0.1" value={form.heightCm}
+                <input
+                  className="input"
+                  type="number"
+                  min={0}
+                  step="0.1"
+                  value={form.heightCm}
                   placeholder="Ej: 45"
-                  onChange={(e) => set("heightCm", e.target.value)} />
+                  onChange={(e) => set("heightCm", e.target.value)}
+                />
               </div>
             </div>
           </section>
@@ -521,10 +622,14 @@ export default function EditPetPage() {
           <section className="edit-block">
             <div className="edit-block__head">
               <h2 className="form-section__title">
-                <span className="form-section__icon" aria-hidden><Heart /></span>
+                <span className="form-section__icon" aria-hidden>
+                  <Heart />
+                </span>
                 Salud y comportamiento
               </h2>
-              <p className="form-section__hint">Marcá las casillas que apliquen.</p>
+              <p className="form-section__hint">
+                Marcá las casillas que apliquen.
+              </p>
             </div>
             <div className="checkbox-grid">
               {CHECKS.map((c) => (
@@ -534,7 +639,9 @@ export default function EditPetPage() {
                     checked={form[c.key] as boolean}
                     onChange={(e) => set(c.key, e.target.checked as never)}
                   />
-                  <span className="checkbox-card-icon" aria-hidden>{c.icon}</span>
+                  <span className="checkbox-card-icon" aria-hidden>
+                    {c.icon}
+                  </span>
                   <span>{c.label}</span>
                 </label>
               ))}
@@ -545,15 +652,21 @@ export default function EditPetPage() {
           <section className="edit-block">
             <div className="edit-block__head">
               <h2 className="form-section__title">
-                <span className="form-section__icon" aria-hidden><MapPin /></span>
+                <span className="form-section__icon" aria-hidden>
+                  <MapPin />
+                </span>
                 Dónde y cuándo
               </h2>
             </div>
             <div className="form-grid">
               <div className="field full">
                 <label className="field-label">Fecha *</label>
-                <input className="input" type="date" value={form.date}
-                  onChange={(e) => set("date", e.target.value)} />
+                <input
+                  className="input"
+                  type="date"
+                  value={form.date}
+                  onChange={(e) => set("date", e.target.value)}
+                />
               </div>
               <div className="field full">
                 <label className="field-label">Ubicación *</label>
@@ -569,23 +682,33 @@ export default function EditPetPage() {
           <section className="edit-block">
             <div className="edit-block__head">
               <h2 className="form-section__title">
-                <span className="form-section__icon" aria-hidden><Phone /></span>
+                <span className="form-section__icon" aria-hidden>
+                  <Phone />
+                </span>
                 Contacto
               </h2>
             </div>
             <div className="form-grid">
               <div className="field">
                 <label className="field-label">Teléfono de contacto *</label>
-                <input className="input" type="text" value={form.contactPhone}
+                <input
+                  className="input"
+                  type="text"
+                  value={form.contactPhone}
                   placeholder="+54 11 5555-5555"
-                  onChange={(e) => set("contactPhone", e.target.value)} />
+                  onChange={(e) => set("contactPhone", e.target.value)}
+                />
               </div>
 
               <div className="field">
                 <label className="field-label">Email de contacto *</label>
-                <input className="input" type="email" value={form.contactEmail}
+                <input
+                  className="input"
+                  type="email"
+                  value={form.contactEmail}
                   placeholder="tu@email.com"
-                  onChange={(e) => set("contactEmail", e.target.value)} />
+                  onChange={(e) => set("contactEmail", e.target.value)}
+                />
               </div>
             </div>
           </section>

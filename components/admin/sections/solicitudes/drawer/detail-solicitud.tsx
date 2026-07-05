@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
 import Image from "next/image";
+import { ComboSelect } from "../../../ui/combo-select";
 import {
   PawPrint,
   X,
@@ -612,28 +613,23 @@ export function SolicitudDetail({
                     >
                       Cambiar a
                     </label>
-                    <select
+                    <ComboSelect
                       id="sdet-estado-select"
-                      className="select"
                       value={selectedEstado}
-                      onChange={(e) =>
-                        setSelectedEstado(e.target.value as Solicitud["estado"])
-                      }
-                    >
-                      {opciones.map((value) => {
+                      placeholder="Elegí un estado…"
+                      searchable={false}
+                      options={opciones.map((value) => {
                         const faltan = checksFaltantes(value).length;
-                        return (
-                          <option
-                            key={value}
-                            value={value}
-                            disabled={faltan > 0}
-                          >
-                            {ESTADO_LABELS[value]}
-                            {faltan > 0 ? ` (faltan ${faltan} ítem(s))` : ""}
-                          </option>
-                        );
+                        return {
+                          value,
+                          label: `${ESTADO_LABELS[value]}${faltan > 0 ? ` (faltan ${faltan} ítem(s))` : ""}`,
+                          disabled: faltan > 0,
+                        };
                       })}
-                    </select>
+                      onChange={(v) =>
+                        setSelectedEstado(v as Solicitud["estado"])
+                      }
+                    />
                   </div>
                   <button
                     type="button"

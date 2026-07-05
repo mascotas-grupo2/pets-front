@@ -39,6 +39,9 @@ export type Seguimiento = {
   petPhoto: string | null;
   userId: number;
   responsable: string;
+  /** Adoptante / persona interesada (solo post-adopción; null en el resto). */
+  adopterUserId: number | null;
+  adoptante: string | null;
   tipo: string;
   typeId: number;
   estado: string;
@@ -116,6 +119,11 @@ export function toSeguimiento(
     petPhoto: pet?.photo ?? null,
     userId: f.userId,
     responsable: userMap.get(f.userId) ?? `Usuario #${f.userId}`,
+    adopterUserId: f.adopterUserId ?? null,
+    adoptante:
+      f.adopterUserId != null
+        ? (userMap.get(f.adopterUserId) ?? `Usuario #${f.adopterUserId}`)
+        : null,
     tipo: f.type?.label ?? "—",
     typeId: f.typeId,
     estado: f.status?.label ?? "—",

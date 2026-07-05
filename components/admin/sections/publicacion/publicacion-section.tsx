@@ -1,8 +1,11 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Plus } from "lucide-react";
+import { getAdminPet } from "@/services/mascotas.pets";
+import type { AdminPetSummary } from "@/types/pet";
 import { usePublicaciones } from "../hook/usePublicaciones";
 import { PublicacionStats } from "./PublicacionStats";
 import { PublicacionFilters } from "./PublicacionFilters";
@@ -10,8 +13,21 @@ import { PublicacionTable } from "./PublicacionTable";
 import { PublicacionDrawer } from "./publicacion-drawer";
 
 export function PublicacionSection() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [openEditing, setOpenEditing] = useState(false);
+  // Pet traído por id cuando viene de una notificación y no está en la página.
+  const [fetchedPet, setFetchedPet] = useState<AdminPetSummary | null>(null);
+
+  // Abrir el drawer directo desde una notificación: /admin/publicacion?pet=<id>
+  useEffect(() => {
+    const petParam = searchParams.get("pet");
+    if (petParam) {
+      setOpenEditing(false);
+      setSelectedId(petParam);
+    }
+  }, [searchParams]);
 
   function handleView(id: string) {
     setOpenEditing(false);
@@ -26,6 +42,9 @@ export function PublicacionSection() {
   function handleClose() {
     setSelectedId(null);
     setOpenEditing(false);
+    setFetchedPet(null);
+    // Limpiar el ?pet de la URL para que un refresh no reabra el drawer.
+    if (searchParams.get("pet")) router.replace("/admin/publicacion");
   }
 
   const {
@@ -56,11 +75,29 @@ export function PublicacionSection() {
     reload,
   } = usePublicaciones();
 
-  // El pet seleccionado se busca en la lista ya cargada (no hay fetch extra)
-  const selected = useMemo(
+  // El pet seleccionado se busca primero en la lista ya cargada.
+  const inList = useMemo(
     () => visible.find((p) => p.id === selectedId) ?? null,
     [visible, selectedId],
   );
+
+  // Si vino de una notificación y no está en la página actual, lo traemos por id.
+  useEffect(() => {
+    if (!selectedId || inList) {
+      setFetchedPet(null);
+      return;
+    }
+    let alive = true;
+    getAdminPet(selectedId).then((res) => {
+      if (alive && res.ok && res.data) setFetchedPet(res.data);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [selectedId, inList]);
+
+  const selected =
+    inList ?? (fetchedPet?.id === selectedId ? fetchedPet : null);
 
   const drawerActions = {
     handleApprove,

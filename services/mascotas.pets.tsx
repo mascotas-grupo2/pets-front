@@ -53,11 +53,68 @@ export const finalizePet = (id: string) =>
 export const resolvePet = (id: string) =>
   request<Pet>(() => axios.post(`mascotas/${id}/resolve`));
 
-/** Reporta un avistamiento ("La vi") — queda registrado y notifica al dueño. */
+/** Un avistamiento ("La vi") reportado sobre una mascota. */
+export type Sighting = {
+  id: string;
+  petId: string;
+  reporterUserId: number | null;
+  place: string | null;
+  latitud: number | null;
+  longitud: number | null;
+  sightedOn: string | null;
+  note: string | null;
+  contact: string | null;
+  accepted: boolean;
+  acceptedAt: string | null;
+  acceptedByUserId: number | null;
+  rejected: boolean;
+  rejectedAt: string | null;
+  rejectedByUserId: number | null;
+  createdAt: string;
+};
+
+/** Reporta un avistamiento ("La vi") — queda registrado y notifica al dueño y al refugio. */
 export const createSighting = (
   id: string,
-  data: { place?: string; sightedOn?: string; note?: string; contact?: string },
+  data: {
+    place?: string;
+    sightedOn?: string;
+    note?: string;
+    contact?: string;
+    latitud?: number | null;
+    longitud?: number | null;
+  },
 ) => request<unknown>(() => axios.post(`mascotas/${id}/sightings`, data));
+
+/** Lista los avistamientos de una mascota (solo dueño o admin). */
+export const listSightings = (id: string) =>
+  request<Sighting[]>(() => axios.get(`mascotas/${id}/sightings`));
+
+/** Acepta/confirma un avistamiento (dueño o admin). */
+export const acceptSighting = (petId: string, sightingId: string) =>
+  request<Sighting>(() =>
+    axios.post(`mascotas/${petId}/sightings/${sightingId}/accept`),
+  );
+
+/** Rechaza/descarta un avistamiento (dueño o admin). */
+export const rejectSighting = (petId: string, sightingId: string) =>
+  request<Sighting>(() =>
+    axios.post(`mascotas/${petId}/sightings/${sightingId}/reject`),
+  );
+
+/** Un punto del rastro: avistamiento aceptado con coordenadas. */
+export type TrailPoint = {
+  id: string;
+  place: string | null;
+  latitud: number;
+  longitud: number;
+  sightedOn: string | null;
+  createdAt: string;
+};
+
+/** Rastro público del animal: avistamientos aceptados con coords, cronológico. */
+export const getSightingTrail = (id: string) =>
+  request<TrailPoint[]>(() => axios.get(`mascotas/${id}/sightings/trail`));
 
 /**
  * Reclamo de mascota: un usuario reporta que una mascota podría ser suya.

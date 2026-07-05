@@ -8,6 +8,7 @@ import {
   Megaphone,
   UserPlus,
   MessageCircle,
+  CalendarClock,
   Clock,
 } from "lucide-react";
 import { Panel } from "../../ui/panel";
@@ -19,6 +20,7 @@ const ICON: Record<ActivityItem["type"], typeof FileText> = {
   publicacion: Megaphone,
   usuario: UserPlus,
   comentario: MessageCircle,
+  seguimiento: CalendarClock,
 };
 const TONE: Record<ActivityItem["type"], string> = {
   solicitud: "violet",
@@ -26,6 +28,7 @@ const TONE: Record<ActivityItem["type"], string> = {
   publicacion: "pink",
   usuario: "amber",
   comentario: "green",
+  seguimiento: "violet",
 };
 
 function relativeTime(iso: string): string {

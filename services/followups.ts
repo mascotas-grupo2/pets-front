@@ -14,7 +14,10 @@ export type FollowupCatalogValue = {
 export type FollowupItem = {
   id: number;
   petId: string;
+  /** Responsable del seguimiento (admin/staff). */
   userId: number;
+  /** Adoptante / persona interesada (solo seguimientos post-adopción). */
+  adopterUserId?: number | null;
   typeId: number;
   statusId: number;
   appointmentAt: string;

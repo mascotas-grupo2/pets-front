@@ -4,11 +4,16 @@ import { useState } from "react";
 import { useFormik } from "formik";
 import { Check, Trash2, X, RotateCw, Home } from "lucide-react";
 import type { AdminPetSummary, Pet } from "@/types/pet";
-import { EditForm, PublicacionEditForm, toInitial } from "./drawer/PublicacionEditForm";
+import {
+  EditForm,
+  PublicacionEditForm,
+  toInitial,
+} from "./drawer/PublicacionEditForm";
 import { useDrawerActions } from "./drawer/useDrawerActions";
 import { Pill } from "../../ui/pill";
 import { ConfirmDialog } from "../../ui/confirm-dialog";
 import { EditableField } from "./drawer/EditableField";
+import { SightingsSection } from "./drawer/SightingsSection";
 
 const yesNo = (v?: boolean | null) =>
   v === true ? "Sí" : v === false ? "No" : null;
@@ -25,7 +30,12 @@ type Actions = {
 };
 
 /** Acción pendiente de confirmación en el modal. */
-type PendingAction = "delete" | "reject" | "approve" | "confirmReturn" | "renew";
+type PendingAction =
+  | "delete"
+  | "reject"
+  | "approve"
+  | "confirmReturn"
+  | "renew";
 
 type Props = {
   pet: AdminPetSummary;
@@ -80,7 +90,12 @@ const CONFIRM_CONFIG: Record<
   },
 };
 
-export function PublicacionDrawer({ pet, onClose, actions, initialEditing = false }: Props) {
+export function PublicacionDrawer({
+  pet,
+  onClose,
+  actions,
+  initialEditing = false,
+}: Props) {
   const [editing, setEditing] = useState(initialEditing);
   const [pending, setPending] = useState<PendingAction | null>(null);
 
@@ -126,7 +141,8 @@ export function PublicacionDrawer({ pet, onClose, actions, initialEditing = fals
     if (pending === "delete") await drawerActions.remove(reason);
     else if (pending === "reject") await drawerActions.reject(reason);
     else if (pending === "approve") await drawerActions.approve();
-    else if (pending === "confirmReturn") await drawerActions.confirmReturn(reason);
+    else if (pending === "confirmReturn")
+      await drawerActions.confirmReturn(reason);
     else if (pending === "renew") await drawerActions.renew();
     setPending(null);
   }
@@ -142,7 +158,11 @@ export function PublicacionDrawer({ pet, onClose, actions, initialEditing = fals
       >
         {/* ── Header ─────────────────────────────────────────────────────── */}
         <header className="vdrawer-head">
-          <h2>{editing ? `Editar: ${pet.name ?? "publicación"}` : (pet.name ?? "Sin nombre")}</h2>
+          <h2>
+            {editing
+              ? `Editar: ${pet.name ?? "publicación"}`
+              : (pet.name ?? "Sin nombre")}
+          </h2>
           <div className="vdrawer-head-actions">
             <button
               type="button"
@@ -159,7 +179,11 @@ export function PublicacionDrawer({ pet, onClose, actions, initialEditing = fals
         <div className="vdrawer-body">
           {photo && (
             // eslint-disable-next-line @next/next/no-img-element
-            <img className="vdrawer-photo" src={photo} alt={pet.name ? `Foto de ${pet.name}` : "Foto de la mascota"} />
+            <img
+              className="vdrawer-photo"
+              src={photo}
+              alt={pet.name ? `Foto de ${pet.name}` : "Foto de la mascota"}
+            />
           )}
 
           {editing ? (
@@ -177,35 +201,137 @@ export function PublicacionDrawer({ pet, onClose, actions, initialEditing = fals
               {/* Creado por */}
               <section className="vdrawer-section">
                 <h3>Creado por</h3>
-                <EditableField label="Nombre" value={pet.ownerName ?? "Anónimo"} editing={false}>{null}</EditableField>
-                <EditableField label="Email" value={pet.ownerEmail ?? pet.contactEmail} editing={false}>{null}</EditableField>
+                <EditableField
+                  label="Nombre"
+                  value={pet.ownerName ?? "Anónimo"}
+                  editing={false}
+                >
+                  {null}
+                </EditableField>
+                <EditableField
+                  label="Email"
+                  value={pet.ownerEmail ?? pet.contactEmail}
+                  editing={false}
+                >
+                  {null}
+                </EditableField>
               </section>
 
               {/* Datos del animal */}
               <section className="vdrawer-section">
                 <h3>Datos del animal</h3>
-                <EditableField label="Nombre" value={pet.name} editing={false}>{null}</EditableField>
-                <EditableField label="Estado" value={pet.statusLabel ?? pet.status} editing={false}>{null}</EditableField>
-                <EditableField label="Especie" value={pet.animalTypeLabel ?? pet.animalType} editing={false}>{null}</EditableField>
-                <EditableField label="Sexo" value={pet.sexLabel ?? pet.sex} editing={false}>{null}</EditableField>
-                <EditableField label="Raza" value={pet.breed} editing={false}>{null}</EditableField>
-                <EditableField label="Edad (meses)" value={pet.ageMonths} editing={false}>{null}</EditableField>
-                <EditableField label="Color" value={pet.color} editing={false}>{null}</EditableField>
-                <EditableField label="Peso (kg)" value={pet.weightKg} editing={false}>{null}</EditableField>
-                <EditableField label="Altura (cm)" value={pet.heightCm} editing={false}>{null}</EditableField>
-                <EditableField label="Estado de salud" value={pet.medicalStatusLabel ?? pet.medicalStatus} editing={false}>{null}</EditableField>
+                <EditableField label="Nombre" value={pet.name} editing={false}>
+                  {null}
+                </EditableField>
+                <EditableField
+                  label="Estado"
+                  value={pet.statusLabel ?? pet.status}
+                  editing={false}
+                >
+                  {null}
+                </EditableField>
+                <EditableField
+                  label="Especie"
+                  value={pet.animalTypeLabel ?? pet.animalType}
+                  editing={false}
+                >
+                  {null}
+                </EditableField>
+                <EditableField
+                  label="Sexo"
+                  value={pet.sexLabel ?? pet.sex}
+                  editing={false}
+                >
+                  {null}
+                </EditableField>
+                <EditableField label="Raza" value={pet.breed} editing={false}>
+                  {null}
+                </EditableField>
+                <EditableField
+                  label="Edad (meses)"
+                  value={pet.ageMonths}
+                  editing={false}
+                >
+                  {null}
+                </EditableField>
+                <EditableField label="Color" value={pet.color} editing={false}>
+                  {null}
+                </EditableField>
+                <EditableField
+                  label="Peso (kg)"
+                  value={pet.weightKg}
+                  editing={false}
+                >
+                  {null}
+                </EditableField>
+                <EditableField
+                  label="Altura (cm)"
+                  value={pet.heightCm}
+                  editing={false}
+                >
+                  {null}
+                </EditableField>
+                <EditableField
+                  label="Estado de salud"
+                  value={pet.medicalStatusLabel ?? pet.medicalStatus}
+                  editing={false}
+                >
+                  {null}
+                </EditableField>
               </section>
 
               {/* Características */}
               <section className="vdrawer-section">
                 <h3>Características</h3>
-                <EditableField label="Collar" value={yesNo(pet.hasCollar)} editing={false}>{null}</EditableField>
-                <EditableField label="Chapa" value={yesNo(pet.hasTag)} editing={false}>{null}</EditableField>
-                <EditableField label="Microchip" value={yesNo(pet.microchipped)} editing={false}>{null}</EditableField>
-                <EditableField label="Castrado" value={yesNo(pet.neutered)} editing={false}>{null}</EditableField>
-                <EditableField label="Vacunado" value={yesNo(pet.vaccinated)} editing={false}>{null}</EditableField>
-                <EditableField label="Bueno con niños" value={yesNo(pet.friendlyWithKids)} editing={false}>{null}</EditableField>
-                <EditableField label="Entrenado" value={yesNo(pet.trained)} editing={false}>{null}</EditableField>
+                <EditableField
+                  label="Collar"
+                  value={yesNo(pet.hasCollar)}
+                  editing={false}
+                >
+                  {null}
+                </EditableField>
+                <EditableField
+                  label="Chapa"
+                  value={yesNo(pet.hasTag)}
+                  editing={false}
+                >
+                  {null}
+                </EditableField>
+                <EditableField
+                  label="Microchip"
+                  value={yesNo(pet.microchipped)}
+                  editing={false}
+                >
+                  {null}
+                </EditableField>
+                <EditableField
+                  label="Castrado"
+                  value={yesNo(pet.neutered)}
+                  editing={false}
+                >
+                  {null}
+                </EditableField>
+                <EditableField
+                  label="Vacunado"
+                  value={yesNo(pet.vaccinated)}
+                  editing={false}
+                >
+                  {null}
+                </EditableField>
+                <EditableField
+                  label="Bueno con niños"
+                  value={yesNo(pet.friendlyWithKids)}
+                  editing={false}
+                >
+                  {null}
+                </EditableField>
+                <EditableField
+                  label="Entrenado"
+                  value={yesNo(pet.trained)}
+                  editing={false}
+                >
+                  {null}
+                </EditableField>
               </section>
 
               {/* Descripción */}
@@ -219,11 +345,33 @@ export function PublicacionDrawer({ pet, onClose, actions, initialEditing = fals
               {/* Ubicación y contacto */}
               <section className="vdrawer-section">
                 <h3>Ubicación y contacto</h3>
-                <EditableField label="Ubicación" value={pet.location} editing={false}>{null}</EditableField>
-                <EditableField label="Fecha" value={pet.date} editing={false}>{null}</EditableField>
-                <EditableField label="Email" value={pet.contactEmail} editing={false}>{null}</EditableField>
-                <EditableField label="Teléfono" value={pet.contactPhone} editing={false}>{null}</EditableField>
+                <EditableField
+                  label="Ubicación"
+                  value={pet.location}
+                  editing={false}
+                >
+                  {null}
+                </EditableField>
+                <EditableField label="Fecha" value={pet.date} editing={false}>
+                  {null}
+                </EditableField>
+                <EditableField
+                  label="Email"
+                  value={pet.contactEmail}
+                  editing={false}
+                >
+                  {null}
+                </EditableField>
+                <EditableField
+                  label="Teléfono"
+                  value={pet.contactPhone}
+                  editing={false}
+                >
+                  {null}
+                </EditableField>
               </section>
+
+              <SightingsSection petId={pet.id} />
             </>
           )}
         </div>
@@ -268,7 +416,7 @@ export function PublicacionDrawer({ pet, onClose, actions, initialEditing = fals
                 className="btn btn-outline"
                 onClick={() => setPending("reject")}
                 disabled={drawerActions.busy || !canModerate}
-                title={!canModerate ? moderationHint ?? undefined : undefined}
+                title={!canModerate ? (moderationHint ?? undefined) : undefined}
               >
                 <X size={16} aria-hidden /> Rechazar
               </button>
@@ -277,13 +425,14 @@ export function PublicacionDrawer({ pet, onClose, actions, initialEditing = fals
                 className="btn btn-primary"
                 onClick={() => setPending("approve")}
                 disabled={drawerActions.busy || !canModerate}
-                title={!canModerate ? moderationHint ?? undefined : undefined}
+                title={!canModerate ? (moderationHint ?? undefined) : undefined}
               >
                 <Check size={16} aria-hidden />
                 {drawerActions.busy ? "Procesando…" : "Aprobar"}
               </button>
               {/* Botón "Confirmar devolución": solo si la mascota está en el flujo del refugio (NO si está perdida) */}
-              {(pet.status === "en tránsito" || pet.status === "en tratamiento médico") &&
+              {(pet.status === "en tránsito" ||
+                pet.status === "en tratamiento médico") &&
                 pet.reportStatus === "activo" && (
                   <button
                     type="button"
