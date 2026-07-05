@@ -51,7 +51,6 @@ const STATUS_TONE: Partial<Record<PetStatus, Tone>> = {
   "en adopción": "green",
   adoptado: "gray",
   perdido: "red",
-  encontrado: "blue",
   "en tránsito": "amber",
   "en tratamiento médico": "violet",
 };
@@ -69,7 +68,6 @@ export function MascotaEstadoPill({
 
 export const PET_STATUS_LABELS: Record<PetStatus, string> = {
   perdido: "Perdido",
-  encontrado: "En refugio",
   "en tránsito": "En tránsito",
   "en tratamiento médico": "En tratamiento médico",
   "en adopción": "En adopción",
@@ -78,8 +76,15 @@ export const PET_STATUS_LABELS: Record<PetStatus, string> = {
 };
 
 export const PET_STATUS_TRANSITIONS: Record<PetStatus, PetStatus[]> = {
-  perdido: ["encontrado"],
-  encontrado: ["en tránsito", "en tratamiento médico", "en adopción"],
+  // Una perdida de la comunidad (avistaje/callejero) puede entrar al flujo del
+  // refugio o devolverse. Si tiene dueño verificado, el backend solo permite la
+  // devolución (lo valida en el server; acá mostramos el superset).
+  perdido: [
+    "en tránsito",
+    "en tratamiento médico",
+    "en adopción",
+    "devuelta al dueño",
+  ],
   "en tránsito": ["en tratamiento médico", "en adopción"],
   "en tratamiento médico": ["en tránsito", "en adopción"],
   "en adopción": ["adoptado"],

@@ -649,6 +649,127 @@
   color: var(--primary-900);
 }
 
+/* Popup de Leaflet: usar la superficie del tema para que sea legible también en
+   modo oscuro. El CSS de Leaflet se carga por CDN DESPUÉS de este archivo y trae
+   fondo blanco fijo, así que hace falta !important para ganar la cascada. */
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
+  background: var(--surface) !important;
+  color: var(--gray-700) !important;
+}
+.leaflet-popup-close-button {
+  color: var(--gray-500) !important;
+}
+
+/* Card de preview propia (no el tooltip de Leaflet): se posiciona con JS y se
+   clampa dentro del mapa, así nunca se recorta contra el borde. */
+.pets-map-viewport {
+  position: relative;
+}
+.map-hovercard {
+  position: absolute;
+  z-index: 500;
+  pointer-events: none; /* no roba el hover ni el click del marcador */
+}
+
+/* Mini-card de preview al pasar el mouse por un marcador. */
+.map-preview {
+  width: 190px;
+  background: var(--surface);
+  border: 1px solid var(--border, rgba(0, 0, 0, 0.08));
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
+}
+.map-preview-img {
+  display: block;
+  width: 100%;
+  height: 115px;
+  object-fit: cover;
+}
+.map-preview-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.05rem;
+  padding: 0.4rem 0.6rem 0.5rem;
+}
+.map-preview-name {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--primary-900);
+}
+.map-preview-meta {
+  font-size: 0.75rem;
+  color: var(--gray-500);
+}
+.map-preview-cta {
+  margin-top: 0.15rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--primary-500);
+}
+.map-preview--refugio {
+  width: auto;
+  max-width: 220px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  padding: 0.45rem 0.65rem;
+}
+
+/* Foto en el popup de una mascota perdida. */
+.map-pop-img {
+  width: 200px;
+  max-width: 100%;
+  height: 110px;
+  object-fit: cover;
+  border-radius: var(--radius);
+  margin-bottom: 0.15rem;
+}
+
+/* Lista de mascotas del refugio (con miniatura). */
+.map-pop-listitem {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0 !important;
+}
+.map-pop-listimg {
+  width: 28px;
+  height: 28px;
+  object-fit: cover;
+  border-radius: 6px;
+  flex: 0 0 auto;
+}
+
+/* Marcador de mascota perdida: carita del animal (o punto para "otro"). */
+.map-pet-icon {
+  background: transparent;
+  border: 0;
+}
+.map-pet-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-full);
+  background: #fff;
+  border: 2px solid #e53935;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+  font-size: 0.95rem;
+  line-height: 1;
+}
+.map-pet-dot {
+  display: block;
+  width: 14px;
+  height: 14px;
+  border-radius: var(--radius-full);
+  background: #e53935;
+  border: 2px solid #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+}
+
 .map-pop-status {
   text-transform: capitalize;
   color: var(--gray-600);
@@ -669,6 +790,62 @@
   color: var(--secondary-700);
   font-weight: 600;
   font-size: 0.78rem;
+}
+
+/* Popup del refugio: lista de sus mascotas en adopción. */
+.map-pop-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  margin-top: 0.25rem;
+}
+
+.map-pop-list a {
+  margin-top: 0;
+}
+
+.map-pop-more {
+  color: var(--gray-500);
+  font-size: 0.78rem;
+}
+
+/* Marcador especial del refugio: "casita" verde con contador de mascotas. */
+.map-refugio-icon {
+  background: transparent;
+  border: 0;
+}
+
+.map-refugio-badge {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-full);
+  background: #1ba07a;
+  border: 3px solid #fff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.map-refugio-count {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: var(--radius-full);
+  background: var(--primary-500);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #fff;
 }
 
 /* Barra de acciones del mapa (Cerca de mí + resumen). */
@@ -2425,6 +2602,12 @@
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 0.4rem;
+}
+
+/* Toggle de tipo de reporte: 3 opciones de igual tamaño (el grid estira las
+   celdas a la misma altura aunque "En adopción" ocupe dos líneas). */
+.sidebar-types--cats {
+  grid-template-columns: repeat(3, 1fr);
 }
 
 .sidebar-type {

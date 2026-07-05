@@ -23,17 +23,25 @@ export function SiteFooter() {
         </div>
 
         <div className="footer-col">
-          <h4>¿Cómo te ayudamos?</h4>
+          <h4>Explorar</h4>
           <ul>
             <li>
               <Link href="/mascotas-perdidas">Mascotas perdidas</Link>
+            </li>
+            <li>
+              <Link href="/adoptar">Adoptar</Link>
             </li>
             {isLoggedIn ? (
               <li>
                 <Link href="/mascotas-perdidas/reportar">Reportar</Link>
               </li>
             ) : null}
+          </ul>
+        </div>
 
+        <div className="footer-col">
+          <h4>Recursos</h4>
+          <ul>
             <li>
               <Link href="/care-guides">Guías de cuidado</Link>
             </li>
@@ -41,34 +49,6 @@ export function SiteFooter() {
               <Link href="/faq">Preguntas frecuentes</Link>
             </li>
           </ul>
-        </div>
-
-        <div className="footer-col footer-contact">
-          <h4>Contacto</h4>
-          <p>📍 Av. Siempre Viva 1234, CABA</p>
-          <p>📞 +54 (011) 5555-1234</p>
-          <p>✉️ hola@HuellitasUnidas.app</p>
-        </div>
-
-        <div className="footer-col">
-          <h4>Suscribite</h4>
-          <p style={{ fontSize: "0.85rem", marginBottom: "0.75rem" }}>
-            Recibí nuevas mascotas reportadas cerca tuyo.
-          </p>
-          <form
-            className="footer-newsletter-form"
-            onSubmit={(e) => e.preventDefault()}
-          >
-            <input
-              type="email"
-              className="input"
-              placeholder="tu@email.com"
-              aria-label="Email"
-            />
-            <button type="submit" className="btn btn-primary">
-              Enviar
-            </button>
-          </form>
         </div>
       </div>
 

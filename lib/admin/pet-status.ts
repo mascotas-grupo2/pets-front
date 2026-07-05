@@ -2,7 +2,6 @@ import { PetMedicalStatus, PetNoteKind, PetStatus } from "@/types/pet";
 
 export const PET_STATUS_OPTIONS: { value: PetStatus; label: string }[] = [
   { value: "perdido", label: "Perdido" },
-  { value: "encontrado", label: "Encontrado" },
   { value: "en tránsito", label: "En tránsito" },
   { value: "en tratamiento médico", label: "En tratamiento médico" },
   { value: "en adopción", label: "En adopción" },
@@ -11,7 +10,6 @@ export const PET_STATUS_OPTIONS: { value: PetStatus; label: string }[] = [
 
 export const PET_STATUS_CHIP_CLASS: Record<PetStatus, string> = {
   perdido: "admin-chip admin-chip-perdido",
-  encontrado: "admin-chip admin-chip-encontrado",
   "en tránsito": "admin-chip admin-chip-transito",
   "en tratamiento médico": "admin-chip admin-chip-medico",
   "en adopción": "admin-chip admin-chip-adopcion",

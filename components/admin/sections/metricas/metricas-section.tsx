@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   PawPrint,
   Heart,
@@ -20,7 +20,15 @@ import { PublicacionDrawer } from "../publicacion/publicacion-drawer";
 import { usePublicaciones } from "../hook/usePublicaciones";
 import { MascotaEstadoPill } from "../../lib/pet-status";
 import { VerTodas } from "../dashboard/dashboard-section";
+import { getPublicRefugios } from "@/services/refugios";
 import type { PetStatus } from "@/types/pet";
+
+type RefugioLite = {
+  id: number;
+  name: string;
+  latitud?: number | null;
+  longitud?: number | null;
+};
 
 const STAT_ICONS = [
   <PawPrint size={20} key="paw" />,
@@ -44,8 +52,19 @@ export function MetricasSection() {
   const { chartData, loading, error, filter, setFilter, filters, refresh } =
     useMetricas();
 
-  // El mapa se carga aparte (endpoint propio), independiente del período.
-  const { ubicaciones: mapaUbicaciones } = useMapaReportes();
+  // El mapa se carga aparte (endpoint propio, scopeado al refugio), independiente
+  // del período. Reutiliza el mismo componente que el mapa público de reportes.
+  const { pets: mapaPets } = useMapaReportes();
+
+  // Refugios (con coordenadas) para agrupar sus mascotas en la sede en el mapa.
+  const [refugios, setRefugios] = useState<RefugioLite[]>([]);
+  useEffect(() => {
+    getPublicRefugios()
+      .then((res) => {
+        if (res && res.ok && res.data) setRefugios(res.data);
+      })
+      .catch((e: unknown) => console.error(e));
+  }, []);
 
   // Estado para el manejo del Drawer
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -260,7 +279,7 @@ export function MetricasSection() {
 
       {/* Fila 3: Mapa */}
       <div className="metricas-map-wrap">
-        <MetricasMap ubicaciones={mapaUbicaciones} />
+        <MetricasMap pets={mapaPets} refugios={refugios} />
       </div>
 
       {/* Drawer reutilizado */}

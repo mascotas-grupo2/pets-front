@@ -17,7 +17,6 @@ const REPORT_STATUS_META: Record<
 /** Tono de color del badge según el estado real de la mascota. */
 const STATUS_TONE: Record<PetStatus, string> = {
   perdido: "perdido",
-  encontrado: "encontrado",
   "en tránsito": "transito",
   "en tratamiento médico": "medico",
   "en adopción": "adopcion",

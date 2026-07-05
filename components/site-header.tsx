@@ -15,21 +15,20 @@ const NAV = [
   { href: "/mascotas-perdidas", label: "Mascotas perdidas" },
   { href: "/adoptar", label: "Adoptar" },
   { href: "/care-guides", label: "Guías" },
-  { href: "/about", label: "Nosotros" },
   { href: "/faq", label: "FAQ" },
 ];
 
 export function SiteHeader() {
   const pathname = usePathname();
-  const { isLoggedIn, adopter } = useUserContext();
+  const { isLoggedIn } = useUserContext();
   const role = useAppSelector((state) => state.user.role);
   // El superadmin también accede al panel (para gestionar Refugios y Usuarios).
   const isAdmin = role === "admin" || role === "superadmin";
   const [menuOpen, setMenuOpen] = useState(false);
 
-  const navItems = NAV.filter((item) =>
-    adopter ? item.label != "Adoptar" : item.label,
-  );
+  // "Adoptar" queda siempre visible, incluso si la persona ya completó el
+  // formulario de adoptante (puede seguir explorando mascotas en adopción).
+  const navItems = NAV;
 
   // Cerrar el drawer al navegar.
   useEffect(() => {

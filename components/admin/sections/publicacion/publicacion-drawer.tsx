@@ -282,8 +282,8 @@ export function PublicacionDrawer({ pet, onClose, actions, initialEditing = fals
                 <Check size={16} aria-hidden />
                 {drawerActions.busy ? "Procesando…" : "Aprobar"}
               </button>
-              {/* Botón "Confirmar devolución": solo si la mascota está en refugio/tránsito (NO si está perdida) */}
-              {(pet.status === "encontrado" || pet.status === "en tránsito" || pet.status === "en tratamiento médico") &&
+              {/* Botón "Confirmar devolución": solo si la mascota está en el flujo del refugio (NO si está perdida) */}
+              {(pet.status === "en tránsito" || pet.status === "en tratamiento médico") &&
                 pet.reportStatus === "activo" && (
                   <button
                     type="button"

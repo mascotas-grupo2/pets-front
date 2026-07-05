@@ -28,7 +28,6 @@ type Props = {
 /** Estados operativos que el admin puede setear a mano (sin "adoptado"). */
 const STATUS_LABEL: Record<PetStatus, string> = {
   perdido: "Perdido",
-  encontrado: "En refugio",
   "en tránsito": "En tránsito",
   "en tratamiento médico": "En tratamiento médico",
   "en adopción": "En adopción",
@@ -101,10 +100,9 @@ export function MascotaDrawer({ pet, onClose, onChanged, reviewMode = false }: P
   const yaAdoptada = esEstadoMascotaTerminal(pet.status);
   // "Registrar adopción directa" solo aplica a mascotas que están en adopción.
   const puedeEntregar = pet.status === "en adopción";
-  // El cierre "apareció/resuelta" aplica a casos de pérdida (perdido/encontrado).
+  // El cierre "apareció/resuelta" aplica a casos de pérdida (perdido).
   const puedeCerrar =
-    (pet.status === "perdido" || pet.status === "encontrado") &&
-    pet.reportStatus !== "finalizado";
+    pet.status === "perdido" && pet.reportStatus !== "finalizado";
   // Estados ofrecidos: el actual + solo los siguientes válidos (incremental).
   const opcionesEstado: PetStatus[] = [
     pet.status,

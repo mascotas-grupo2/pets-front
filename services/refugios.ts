@@ -10,6 +10,8 @@ export type Refugio = {
   email?: string | null;
   phone?: string | null;
   location?: string | null;
+  latitud?: number | null;
+  longitud?: number | null;
   active: boolean;
   createdAt?: string;
 };
@@ -30,7 +32,7 @@ export const getMyRefugio = () =>
   request<Refugio | null>(() => axios.get("refugios/mine"));
 
 export const getPublicRefugios = () =>
-  request<Pick<Refugio, "id" | "name" | "slug">[]>(() =>
+  request<Pick<Refugio, "id" | "name" | "slug" | "latitud" | "longitud">[]>(() =>
     axios.get("refugios/public"),
   );
 

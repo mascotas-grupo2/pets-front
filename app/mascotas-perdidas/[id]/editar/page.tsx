@@ -24,7 +24,6 @@ type NewPhoto = { file: File; url: string };
 
 const STATUS_OPTIONS: PetStatus[] = [
   "perdido",
-  "encontrado",
   "en tránsito",
   "en tratamiento médico",
   "en adopción",

@@ -21,6 +21,7 @@ import { PetsMap } from "@/components/pets-map";
 import { CatLoader } from "@/components/cat-loader";
 
 type Filter = AnimalType | "todos";
+type Category = "todos" | "perdido" | "adopcion";
 type SortBy = "urgentes" | "recientes" | "antiguos" | "nombre";
 type View = "grid" | "map";
 
@@ -37,6 +38,7 @@ type Age = "cachorro" | "joven" | "adulto" | "senior";
 
 interface FilterCriteria {
   type: Filter;
+  category: Category;
   search: string;
   location: string;
   refugioId: number | null;
@@ -53,6 +55,14 @@ const TYPE_FILTERS: { value: Filter; label: string; icon: string }[] = [
   { value: "perro", label: "Perros", icon: "🐶" },
   { value: "gato", label: "Gatos", icon: "🐱" },
   { value: "otro", label: "Otros", icon: "🐰" },
+];
+
+// Categoría de reporte: el listado combina perdidos y en adopción; este toggle
+// permite ver solo una de las dos (o ambas).
+const CATEGORY_FILTERS: { value: Category; label: string; icon: string }[] = [
+  { value: "todos", label: "Todos", icon: "📋" },
+  { value: "perdido", label: "Perdidos", icon: "🔍" },
+  { value: "adopcion", label: "En adopción", icon: "🏠" },
 ];
 
 const SIZE_OPTIONS: { value: Size; label: string }[] = [
@@ -86,10 +96,18 @@ const PAGE_SIZE = 9;
 export default function LostPetsPage() {
   const [page, setPage] = useState(1);
   const [pets, setPets] = useState<Pet[]>([]);
-  const [refugios, setRefugios] = useState<{ id: number; name: string }[]>([]);
+  const [refugios, setRefugios] = useState<
+    {
+      id: number;
+      name: string;
+      latitud?: number | null;
+      longitud?: number | null;
+    }[]
+  >([]);
   const [referenceDate] = useState(() => Date.now());
   const [filters, setFilters] = useState<FilterCriteria>({
     type: "todos",
+    category: "todos",
     search: "",
     location: "",
     refugioId: null,
@@ -126,6 +144,15 @@ export default function LostPetsPage() {
         if (res && res.ok && res.data) setRefugios(res.data);
       })
       .catch((error: unknown) => console.error(error));
+  }, []);
+
+  // Preselección de categoría vía query param (ej. venir desde "Adoptar" con
+  // ?categoria=adopcion deja marcado "En adopción").
+  useEffect(() => {
+    const c = new URLSearchParams(window.location.search).get("categoria");
+    if (c === "adopcion" || c === "perdido") {
+      setFilters((prev) => ({ ...prev, category: c }));
+    }
   }, []);
 
   const updateFilter = (changes: Partial<FilterCriteria>) => {
@@ -166,6 +193,11 @@ export default function LostPetsPage() {
     const result = basePets.filter((p) => {
       // Excluir mascotas devueltas al dueño del listado público
       if (p.status === "devuelta al dueño") return false;
+      // Categoría de reporte (perdidos vs en adopción).
+      if (filters.category === "perdido" && p.status !== "perdido")
+        return false;
+      if (filters.category === "adopcion" && p.status !== "en adopción")
+        return false;
       if (filters.type !== "todos" && p.animalType !== filters.type)
         return false;
       if (filters.sex !== "cualquiera" && p.sex !== filters.sex) return false;
@@ -205,13 +237,10 @@ export default function LostPetsPage() {
 
     switch (filters.sortBy) {
       case "urgentes": {
-        // Casos activos (perdido/encontrado/en tránsito) primero, los más
-        // recientes arriba; adopción/adoptado quedan al final.
+        // Casos de mascotas perdidas primero, los más recientes arriba; las
+        // publicaciones en adopción quedan al final.
         const score = (p: Pet) => {
-          const active =
-            p.status === "perdido" ||
-            p.status === "encontrado" ||
-            p.status === "en tránsito";
+          const active = p.status === "perdido";
           const days =
             (referenceDate - new Date(p.date).getTime()) / 86_400_000;
           return (active ? 1_000_000 : 0) - days;
@@ -248,6 +277,7 @@ export default function LostPetsPage() {
   const clearFilters = () => {
     setFilters({
       type: "todos",
+      category: "todos",
       search: "",
       location: "",
       refugioId: null,
@@ -263,6 +293,7 @@ export default function LostPetsPage() {
 
   const activeFilters =
     (filters.type !== "todos" ? 1 : 0) +
+    (filters.category !== "todos" ? 1 : 0) +
     (filters.search ? 1 : 0) +
     (filters.location ? 1 : 0) +
     (filters.sortBy !== "recientes" ? 1 : 0) +
@@ -274,6 +305,12 @@ export default function LostPetsPage() {
 
   // Chips de filtros activos (removibles) que se muestran sobre la grilla.
   const chips: { key: string; label: string; onRemove: () => void }[] = [];
+  if (filters.category !== "todos")
+    chips.push({
+      key: "category",
+      label: CATEGORY_FILTERS.find((c) => c.value === filters.category)!.label,
+      onRemove: () => updateFilter({ category: "todos" }),
+    });
   if (filters.type !== "todos")
     chips.push({
       key: "type",
@@ -373,6 +410,27 @@ export default function LostPetsPage() {
                 Limpiar ({activeFilters})
               </button>
             )}
+          </div>
+
+          <div className="sidebar-block">
+            <span className="sidebar-label">Tipo de reporte</span>
+            <div className="sidebar-types sidebar-types--cats">
+              {CATEGORY_FILTERS.map((f) => (
+                <button
+                  key={f.value}
+                  type="button"
+                  className={`sidebar-type${filters.category === f.value ? " active" : ""}`}
+                  onClick={() => updateFilter({ category: f.value })}
+                  aria-label={f.label}
+                  aria-pressed={filters.category === f.value}
+                >
+                  <span className="sidebar-type-icon" aria-hidden>
+                    {f.icon}
+                  </span>
+                  <span className="sidebar-type-label">{f.label}</span>
+                </button>
+              ))}
+            </div>
           </div>
 
           <div className="sidebar-types">
@@ -653,7 +711,7 @@ export default function LostPetsPage() {
               </div>
             </div>
           ) : view === "map" ? (
-            <PetsMap pets={filtered} />
+            <PetsMap pets={filtered} refugios={refugios} />
           ) : (
             <>
               <ul className="pet-grid listing-grid">

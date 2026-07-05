@@ -175,7 +175,10 @@ export default function AdoptarLandingPage() {
             <Link href="/adoptar/solicitar" className="btn btn-primary btn-lg adopt-cta-main">
               Empezar solicitud <ArrowRight size={18} aria-hidden />
             </Link>
-            <Link href="/mascotas-perdidas" className="btn btn-outline btn-lg">
+            <Link
+              href="/mascotas-perdidas?categoria=adopcion"
+              className="btn btn-outline btn-lg"
+            >
               Ver mascotas
             </Link>
           </div>
