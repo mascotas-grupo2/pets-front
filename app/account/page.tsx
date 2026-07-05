@@ -3,6 +3,7 @@
 import ProfileView from "@/components/nav-account/account-main";
 import MyReportsView from "@/components/nav-account/account-report";
 import MyRequestsView from "@/components/nav-account/account-requests";
+import MyFollowupsView from "@/components/nav-account/account-followups";
 import { useUserContext } from "@/context/UserContext";
 import { getIdsPets } from "@/services/mascotas.pets";
 import { getUserDetails } from "@/services/user.info";
@@ -21,6 +22,7 @@ import {
   User,
   FileText,
   ClipboardList,
+  CalendarCheck,
   MessageSquare,
   Bell,
   Settings,
@@ -31,6 +33,7 @@ const ACCOUNT_TABS = [
   { id: "profile", label: "Perfil", icon: User },
   { id: "reports", label: "Mis reportes", icon: FileText },
   { id: "requests", label: "Mis solicitudes", icon: ClipboardList },
+  { id: "followups", label: "Mis seguimientos", icon: CalendarCheck },
   { id: "messages", label: "Mensajes", icon: MessageSquare },
   { id: "notifications", label: "Notificaciones", icon: Bell },
   { id: "settings", label: "Configuración", icon: Settings },
@@ -42,7 +45,7 @@ function AccountPageContent() {
   const [userDetails, setUserDetails] = useState<UserDetails | null>(null);
   const [pets, setPets] = useState<Pet[]>([]);
   const [activeSection, setActiveSection] = useState<
-    "profile" | "reports" | "requests" | "messages" | "notifications" | "settings"
+    "profile" | "reports" | "requests" | "followups" | "messages" | "notifications" | "settings"
   >("profile");
   const [loadError, setLoadError] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
@@ -55,7 +58,7 @@ function AccountPageContent() {
     ? Number(searchParams.get("user"))
     : undefined;
   useEffect(() => {
-    const valid = ["profile", "reports", "requests", "messages", "notifications", "settings"];
+    const valid = ["profile", "reports", "requests", "followups", "messages", "notifications", "settings"];
     if (tabParam && valid.includes(tabParam) && tabParam !== activeSection) {
       // Envolvemos en un microtask para evitar el error de setState sincrónico en un effect
       Promise.resolve().then(() => {
@@ -177,6 +180,7 @@ function AccountPageContent() {
               <MyReportsView pets={pets} onChange={() => setReloadKey((k) => k + 1)} />
             )}
             {activeSection === "requests" && <MyRequestsView />}
+            {activeSection === "followups" && <MyFollowupsView />}
             {activeSection === "messages" && (
               <div className="account-messages">
                 <MessagesPanel initialUserId={initialUserId} />

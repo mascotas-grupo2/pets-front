@@ -45,6 +45,18 @@ export type FollowupsParams = {
 export const getFollowups = (params?: FollowupsParams) =>
   request<FollowupsResponse>(() => axios.get("followups", { params }));
 
+/** Seguimiento post-adopción visto por el adoptante (incluye datos de la mascota). */
+export type MyFollowupItem = FollowupItem & {
+  petName: string | null;
+  petPhoto: string | null;
+};
+
+export type MyFollowupsResponse = { items: MyFollowupItem[] };
+
+/** Seguimientos post-adopción del usuario autenticado (como adoptante). */
+export const getMyFollowups = () =>
+  request<MyFollowupsResponse>(() => axios.get("followups/mine"));
+
 export type CreateFollowupInput = {
   petId: string;
   userId: number;
