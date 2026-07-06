@@ -324,6 +324,12 @@ export default function PetDetailPage() {
                 <span aria-hidden>📍</span>
                 {pet.location}
               </p>
+              {pet.refugioName && (
+                <p className="pet-detail-place pet-refugio">
+                  <span aria-hidden>🏠</span>
+                  {pet.refugioName}
+                </p>
+              )}
               {(isOriginalCreator || isVerifiedOwner) && pet.ownerUserId != null && pet.ownerUserId !== pet.userId && (
                 <p style={roleNoteStyle}>
                   {isOriginalCreator

@@ -217,6 +217,13 @@
   align-items: center;
 }
 
+/* Refugio dueño de la publicación: destacado entre el resto del meta (gris)
+   para que el adoptante sepa de un vistazo a qué refugio irá su solicitud. */
+.pet-refugio {
+  font-weight: 600;
+  color: var(--primary-600, var(--primary-500));
+}
+
 .pet-expiry {
   color: var(--gray-600);
   font-weight: 600;

@@ -156,6 +156,11 @@ export function PetCard({
         )}
 
         <div className="pet-meta">
+          {pet.refugioName && (
+            <span className="pet-refugio" title={`Publicada por ${pet.refugioName}`}>
+              🏠 {pet.refugioName}
+            </span>
+          )}
           <span>📍 {pet.location}</span>
           <span>📅 {pet.date}</span>
           {typeof pet.daysLeft === "number" && (

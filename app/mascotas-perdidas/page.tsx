@@ -265,6 +265,7 @@ export default function LostPetsPage() {
     (filters.type !== "todos" ? 1 : 0) +
     (filters.search ? 1 : 0) +
     (filters.location ? 1 : 0) +
+    (filters.refugioId != null ? 1 : 0) +
     (filters.sortBy !== "recientes" ? 1 : 0) +
     filters.sizes.length +
     filters.ages.length +
@@ -291,6 +292,12 @@ export default function LostPetsPage() {
       key: "loc",
       label: `📍 ${filters.location}`,
       onRemove: () => updateFilter({ location: "" }),
+    });
+  if (filters.refugioId != null)
+    chips.push({
+      key: "refugio",
+      label: `🏠 ${refugios.find((r) => r.id === filters.refugioId)?.name ?? "Refugio"}`,
+      onRemove: () => updateFilter({ refugioId: null }),
     });
   if (filters.dateFilter !== "todos")
     chips.push({
