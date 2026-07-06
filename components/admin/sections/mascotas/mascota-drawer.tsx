@@ -100,7 +100,6 @@ const EDIT_CHECKS: { key: keyof EditForm; label: string }[] = [
 /** Estados operativos que el admin puede setear a mano (sin "adoptado"). */
 const STATUS_LABEL: Record<PetStatus, string> = {
   perdido: "Perdido",
-  encontrado: "En refugio",
   "en tránsito": "En tránsito",
   "en tratamiento médico": "En tratamiento médico",
   "en adopción": "En adopción",
@@ -232,21 +231,20 @@ export function MascotaDrawer({
   // "Registrar adopción directa" solo aplica a mascotas que están en adopción.
   const puedeEntregar = pet.status === "en adopción";
   // Mascota marcada "con dueño" (isOwner, sea por el form o por un reclamo
-  // aprobado): el paso correcto es devolverla, no ponerla "en refugio".
+  // aprobado): el paso correcto es devolverla, no ponerla en el flujo del refugio.
   const tieneDuenoVerificado =
     pet.isOwner === true && pet.status !== "devuelta al dueño";
   const puedeDevolver =
     tieneDuenoVerificado && !yaAdoptada && pet.reportStatus !== "finalizado";
-  // El cierre "apareció/resuelta" aplica a casos de pérdida SIN dueño verificado
-  // (con dueño verificado se usa "Devolver al dueño").
+  // El cierre "apareció/resuelta" aplica a perdidas SIN dueño verificado (con
+  // dueño verificado se usa "Devolver al dueño").
   const puedeCerrar =
     !tieneDuenoVerificado &&
-    (pet.status === "perdido" || pet.status === "encontrado") &&
+    pet.status === "perdido" &&
     pet.reportStatus !== "finalizado";
   // El refugio puede editar la ficha (vacunas, peso, tratamiento…) una vez que la
-  // mascota está en su custodia ("En refugio" o estado posterior).
+  // mascota está en su custodia (en tránsito o estado posterior).
   const puedeEditarFicha = new Set<PetStatus>([
-    "encontrado",
     "en tránsito",
     "en tratamiento médico",
     "en adopción",

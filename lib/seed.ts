@@ -121,7 +121,7 @@ export const seedPets: Pet[] = [
   },
   {
     id: "seed-5",
-    status: "encontrado",
+    status: "perdido",
     name: "Rocco",
     photos: ["/images/guide-2.jpg", "/images/pet-dog.jpg"],
     description:

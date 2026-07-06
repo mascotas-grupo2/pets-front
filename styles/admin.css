@@ -4420,14 +4420,15 @@
 }
 
 .metricas-map-body {
-  height: 340px;
   position: relative;
 }
 
-.metricas-map-body .leaflet-container {
-  width: 100%;
-  height: 100%;
-  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+/* El mapa de métricas reutiliza el componente PetsMap, que trae su propio
+   contenedor `.pets-map`. Le fijamos la altura acá (especificidad 0,2,0, gana
+   sobre la regla global de `.pets-map`). NO usar `.leaflet-container { height:100% }`:
+   dejaría el mapa en 0px porque su viewport no tiene altura propia. */
+.metricas-map-body .pets-map {
+  height: 420px;
 }
 
 .leaflet-metricas-pin {
@@ -4459,8 +4460,8 @@
     align-items: flex-start;
   }
 
-  .metricas-map-body {
-    height: 260px;
+  .metricas-map-body .pets-map {
+    height: 300px;
   }
 
   .chart-card-body {

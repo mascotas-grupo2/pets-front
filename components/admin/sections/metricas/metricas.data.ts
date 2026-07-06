@@ -125,15 +125,14 @@ export function getMetricasData(filter: MetricasFilter = "30d"): MetricasData {
     mascotasPorEstado: {
       labels: [
         "Perdida",
-        "Encontrada",
         "En refugio",
         "En adopción",
         "Adoptada",
       ],
       datasets: [
         {
-          data: [312, 386, 178, 201, 171],
-          backgroundColor: [C.blue, C.green, C.amber, C.violet, C.rose],
+          data: [312, 178, 201, 171],
+          backgroundColor: [C.blue, C.amber, C.violet, C.rose],
           borderWidth: 0,
           hoverOffset: 8,
         },
@@ -210,7 +209,7 @@ export function getMetricasData(filter: MetricasFilter = "30d"): MetricasData {
         avatar: "https://placedog.net/200/200?id=1",
       },
       {
-        titulo: "Simba - Encontrado en Parque Central",
+        titulo: "Simba - Avistado en Parque Central",
         vistas: 1876,
         comentarios: 21,
         estado: "Activa",
@@ -224,7 +223,7 @@ export function getMetricasData(filter: MetricasFilter = "30d"): MetricasData {
         avatar: "https://placedog.net/200/200?id=3",
       },
       {
-        titulo: "Michi - Encontrada en Av. Siempre Viva",
+        titulo: "Michi - Avistada en Av. Siempre Viva",
         vistas: 1245,
         comentarios: 12,
         estado: "Activa",

@@ -47,6 +47,10 @@ export type UbicacionMascota = {
   estado: string;
   /** Especie/animal (ej. "perro", "gato"). */
   especie: string;
+  /** Refugio que la gestiona (null = reporte público). Para agrupar en el mapa. */
+  refugioId?: number | null;
+  /** Fotos de la mascota (para la card del mapa). */
+  photos?: string[] | null;
   /** Foto principal para el popup del mapa (URL o null). */
   foto?: string | null;
 };

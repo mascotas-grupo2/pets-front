@@ -2,7 +2,6 @@ export type AnimalType = "perro" | "gato" | "otro";
 export type PetSex = "macho" | "hembra";
 export type PetStatus =
   | "perdido"
-  | "encontrado"
   | "en tránsito"
   | "en tratamiento médico"
   | "en adopción"

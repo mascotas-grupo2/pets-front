@@ -57,18 +57,26 @@ export function SiteFooter() {
           </div>
         </div>
 
-        <nav className="footer-col footer-nav" aria-label="Enlaces del sitio">
-          <h4>¿Cómo te ayudamos?</h4>
+        <div className="footer-col">
+          <h4>Explorar</h4>
           <ul>
             <li>
               <Link href="/mascotas-perdidas">Mascotas perdidas</Link>
+            </li>
+            <li>
+              <Link href="/adoptar">Adoptar</Link>
             </li>
             {isLoggedIn ? (
               <li>
                 <Link href="/mascotas-perdidas/reportar">Reportar</Link>
               </li>
             ) : null}
+          </ul>
+        </div>
 
+        <div className="footer-col">
+          <h4>Recursos</h4>
+          <ul>
             <li>
               <Link href="/care-guides">Guías de cuidado</Link>
             </li>
@@ -76,7 +84,7 @@ export function SiteFooter() {
               <Link href="/faq">Preguntas frecuentes</Link>
             </li>
           </ul>
-        </nav>
+        </div>
       </div>
 
       <div className="footer-bottom">

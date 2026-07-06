@@ -221,8 +221,8 @@ export function ChatbotWidget() {
                 <div className="chatbot-empty-icon" aria-hidden="true">
                   🐾
                 </div>
-                ¡Hola! Te puedo ayudar a buscar mascotas perdidas, encontradas
-                o iniciar una adopción.
+                ¡Hola! Te puedo ayudar a buscar mascotas perdidas, reportar un
+                avistaje o iniciar una adopción.
                 <br />
                 Escribime algo para empezar o tocá una opción.
               </div>

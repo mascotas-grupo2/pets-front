@@ -480,7 +480,7 @@ export default function PetDetailPage() {
             )}
 
             {/* Contacto del refugio (visible para todos) */}
-            {(pet.status === "perdido" || pet.status === "encontrado") && (
+            {pet.status === "perdido" && (
               <section className="pet-detail-contact">
                 <h3
                   style={{

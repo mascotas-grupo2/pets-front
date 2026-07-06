@@ -2,25 +2,17 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { getMapaReportes } from "@/services/metrics";
-import type { UbicacionMapa, CategoriaMapa } from "../metricas/metricas.data";
+import type { AnimalType, Pet, PetStatus } from "@/types/pet";
 
-/** Deriva la categoría del pin (color) a partir del estado real de la mascota. */
-function categoria(estado?: string): CategoriaMapa {
-  const e = (estado || "").toLowerCase();
-  if (e.includes("perdid")) return "perdida";
-  if (e.includes("adop")) return "adopcion"; // en adopción / adoptado
-  if (e.includes("tránsito") || e.includes("transito")) return "transito";
-  if (e.includes("encontr") || e.includes("refugio") || e.includes("médic") || e.includes("medic"))
-    return "refugio";
-  return "otros";
-}
+const ANIMAL_TYPES: AnimalType[] = ["perro", "gato", "otro"];
 
 /**
- * Carga el mapa de ubicaciones desde su endpoint dedicado (separado de las
- * métricas), normalizando cada punto a UbicacionMapa para el componente.
+ * Carga las ubicaciones del mapa (endpoint scopeado al refugio + reportes
+ * públicos) y las normaliza a objetos `Pet`, para poder reutilizar el mismo
+ * componente de mapa (`PetsMap`) que se usa en los reportes públicos.
  */
 export function useMapaReportes(params?: { estado?: string; especie?: string }) {
-  const [ubicaciones, setUbicaciones] = useState<UbicacionMapa[]>([]);
+  const [pets, setPets] = useState<Pet[]>([]);
   const [loading, setLoading] = useState(true);
 
   const estado = params?.estado;
@@ -30,17 +22,23 @@ export function useMapaReportes(params?: { estado?: string; especie?: string }) 
     setLoading(true);
     const res = await getMapaReportes({ estado, especie });
     const list = res.ok && res.data ? res.data.data : [];
-    setUbicaciones(
-      list.map((u) => ({
-        id: u.id,
-        nombre: u.nombre,
-        lat: u.lat,
-        lng: u.lng,
-        tipo: categoria(u.estado),
-        estado: u.estado,
-        especie: u.especie,
-        foto: u.foto,
-      })),
+    setPets(
+      list.map(
+        (u) =>
+          ({
+            id: u.id,
+            name: u.nombre ?? null,
+            animalType: (ANIMAL_TYPES.includes(u.especie as AnimalType)
+              ? u.especie
+              : "otro") as AnimalType,
+            status: u.estado as PetStatus,
+            photos: u.photos ?? (u.foto ? [u.foto] : []),
+            latitud: u.lat,
+            longitud: u.lng,
+            refugioId: u.refugioId ?? null,
+            location: u.nombre ?? "",
+          }) as unknown as Pet,
+      ),
     );
     setLoading(false);
   }, [estado, especie]);
@@ -49,5 +47,5 @@ export function useMapaReportes(params?: { estado?: string; especie?: string }) 
     void load();
   }, [load]);
 
-  return { ubicaciones, loading, reload: load };
+  return { pets, loading, reload: load };
 }

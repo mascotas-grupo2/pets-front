@@ -27,10 +27,9 @@ describe("catálogos de estado de mascota", () => {
     }
   });
 
-  it("incluye los 6 estados de publicación esperados", () => {
+  it("incluye los 5 estados de publicación esperados", () => {
     expect(PET_STATUS_OPTIONS.map((o) => o.value)).toEqual([
       "perdido",
-      "encontrado",
       "en tránsito",
       "en tratamiento médico",
       "en adopción",

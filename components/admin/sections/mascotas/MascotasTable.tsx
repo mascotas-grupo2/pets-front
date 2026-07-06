@@ -32,7 +32,6 @@ type Props = {
 /** Estados en los que el refugio gestiona a la mascota: se puede editar su ficha
  * (vacunas, peso, tratamiento…) desde el panel, aunque no sea el publicador. */
 const ADMIN_EDITABLE_STATUSES = new Set([
-  "encontrado",
   "en tránsito",
   "en tratamiento médico",
   "en adopción",

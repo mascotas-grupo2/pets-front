@@ -8,6 +8,13 @@ import { CatLoader } from "@/components/cat-loader";
 import { LocateFixed } from "lucide-react";
 import DOMPurify from "dompurify";
 
+type RefugioLite = {
+  id: number;
+  name: string;
+  latitud?: number | null;
+  longitud?: number | null;
+};
+
 /**
  * Fallback de coordenadas para ubicaciones conocidas del seed que todavía no
  * tengan lat/lng geocodificada en la base. Las mascotas reales ya traen
@@ -34,45 +41,67 @@ function petLatLng(pet: Pet): [number, number] | null {
   return GEO[pet.location] ?? null;
 }
 
-/** Color del pin según el estado de la mascota. */
-function statusColor(status: Pet["status"]): string {
-  switch (status) {
-    case "perdido":
-      return "#e53935";
-    case "encontrado":
-      return "#1ba07a";
-    case "en tránsito":
-      return "#f5a623";
-    case "adoptado":
-      return "#6b7280";
-    default:
-      return "#6c5ce7";
-  }
+/** ¿Es una mascota gestionada por un refugio (no un reporte suelto)? */
+function isManaged(pet: Pet): boolean {
+  return (pet.refugioId ?? null) != null;
 }
 
-/** Agrupa cada estado en una de las categorías de la leyenda/filtro. */
-type Bucket = "perdido" | "refugio" | "transito" | "adopcion" | "otro";
-function bucketOf(status: Pet["status"]): Bucket {
-  switch (status) {
-    case "perdido":
-      return "perdido";
-    case "encontrado":
-      return "refugio";
-    case "en tránsito":
-      return "transito";
-    case "adoptado":
-      return "otro";
-    default:
-      return "adopcion";
-  }
+/** Imagen por defecto según tipo (mismos assets que las tarjetas). */
+function placeholderFor(animalType: Pet["animalType"]): string {
+  return animalType === "gato" ? "/images/pet-cat.jpg" : "/images/pet-dog.jpg";
 }
 
-const LEGEND: { key: Bucket; label: string; color: string }[] = [
-  { key: "perdido", label: "Perdido", color: "#e53935" },
-  { key: "refugio", label: "En refugio", color: "#1ba07a" },
-  { key: "transito", label: "En tránsito", color: "#f5a623" },
-  { key: "adopcion", label: "En adopción", color: "#6c5ce7" },
-];
+/** Primera foto de la mascota (o placeholder), validando el esquema de URL. */
+function petPhoto(pet: Pet): string {
+  const raw =
+    Array.isArray(pet.photos) && pet.photos.length > 0 ? pet.photos[0] : "";
+  return /^(https?:\/\/|\/)/.test(raw) ? raw : placeholderFor(pet.animalType);
+}
+
+/** Emoji del marcador según el tipo de animal. */
+function petEmoji(animalType: Pet["animalType"]): string {
+  if (animalType === "gato") return "🐱";
+  if (animalType === "perro") return "🐶";
+  return "";
+}
+
+/** Nombre a mostrar (o el tipo capitalizado si no tiene). */
+function petDisplayName(pet: Pet): string {
+  return (
+    pet.name ??
+    pet.animalType.charAt(0).toUpperCase() + pet.animalType.slice(1)
+  );
+}
+
+/** Tipo capitalizado ("Perro" / "Gato" / "Otro"). */
+function typeLabelOf(pet: Pet): string {
+  return pet.animalType.charAt(0).toUpperCase() + pet.animalType.slice(1);
+}
+
+/**
+ * Ubica una card superpuesta cerca de un punto del mapa, clampada para que
+ * siempre quede dentro del área visible (se voltea debajo si no entra arriba).
+ */
+function placeCard(
+  px: number,
+  py: number,
+  cardW: number,
+  cardH: number,
+  mapW: number,
+  mapH: number,
+): { left: number; top: number } {
+  let left = px - cardW / 2;
+  let top = py - cardH - 18; // por defecto, encima del marcador
+  if (top < 6) top = py + 20; // sin espacio arriba → debajo del marcador
+  left = Math.max(6, Math.min(left, mapW - cardW - 6));
+  top = Math.max(6, Math.min(top, mapH - cardH - 6));
+  return { left, top };
+}
+
+type HoverCard =
+  | { kind: "pet"; pet: Pet; left: number; top: number }
+  | { kind: "refugio"; name: string; count: number; left: number; top: number };
+
 
 /** "850 m" / "2,4 km" a partir de kilómetros. */
 function fmtDist(km: number): string {
@@ -112,10 +141,17 @@ function loadLeaflet(): Promise<any> {
   });
 }
 
-export function PetsMap({ pets }: { pets: Pet[] }) {
+export function PetsMap({
+  pets,
+  refugios = [],
+}: {
+  pets: Pet[];
+  refugios?: RefugioLite[];
+}) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<any>(null);
   const layerRef = useRef<any>(null);
+  const resizeObsRef = useRef<ResizeObserver | null>(null);
   const [status, setStatus] = useState<"loading" | "ready" | "error">(
     "loading",
   );
@@ -124,29 +160,25 @@ export function PetsMap({ pets }: { pets: Pet[] }) {
     "idle",
   );
 
-  // Filtro por categoría (leyenda clickeable). Arranca con todas activas.
-  const [active, setActive] = useState<Set<Bucket>>(
-    () => new Set(LEGEND.map((l) => l.key)),
-  );
-  const toggle = (key: Bucket) =>
-    setActive((prev) => {
-      const next = new Set(prev);
-      if (next.has(key)) next.delete(key);
-      else next.add(key);
-      return next;
-    });
-  const isVisible = useCallback(
-    (status: Pet["status"]) => {
-      const b = bucketOf(status);
-      return b === "otro" || active.has(b);
-    },
-    [active],
-  );
+  // Card de preview al pasar el mouse (posicionada y clampada dentro del mapa).
+  const [hover, setHover] = useState<HoverCard | null>(null);
 
-  // Mascotas con posición conocida (todas, para contar por categoría).
-  const located = useMemo(
+  // Refugios con coordenadas conocidas → posición de su marcador.
+  const refugioById = useMemo(() => {
+    const m = new Map<number, { name: string; pos: [number, number] }>();
+    for (const r of refugios) {
+      if (typeof r.latitud === "number" && typeof r.longitud === "number") {
+        m.set(r.id, { name: r.name, pos: [r.latitud, r.longitud] });
+      }
+    }
+    return m;
+  }, [refugios]);
+
+  // Mascotas perdidas (reportes sueltos) con posición conocida.
+  const loosePets = useMemo(
     () =>
       pets
+        .filter((p) => !isManaged(p))
         .map((p) => ({ pet: p, pos: petLatLng(p) }))
         .filter(
           (x): x is { pet: Pet; pos: [number, number] } => x.pos !== null,
@@ -154,28 +186,46 @@ export function PetsMap({ pets }: { pets: Pet[] }) {
     [pets],
   );
 
-  // Cantidad ubicada por categoría (para la chapita de cada filtro).
-  const counts = useMemo(() => {
-    const m: Partial<Record<Bucket, number>> = {};
-    for (const { pet } of located) {
-      const b = bucketOf(pet.status);
-      m[b] = (m[b] ?? 0) + 1;
+  // Mascotas de refugio agrupadas por sede (solo refugios con coordenadas).
+  const refugioGroups = useMemo(() => {
+    const groups = new Map<
+      number,
+      { name: string; pos: [number, number]; pets: Pet[] }
+    >();
+    for (const p of pets) {
+      const rid = p.refugioId ?? null;
+      if (rid == null) continue;
+      const r = refugioById.get(rid);
+      if (!r) continue; // refugio sin coords → cuenta como "sin ubicación"
+      let g = groups.get(rid);
+      if (!g) {
+        g = { name: r.name, pos: r.pos, pets: [] };
+        groups.set(rid, g);
+      }
+      g.pets.push(p);
     }
-    return m;
-  }, [located]);
+    return [...groups.entries()].map(([id, g]) => ({ refugioId: id, ...g }));
+  }, [pets, refugioById]);
 
-  // Mascotas ubicadas que pasan el filtro activo (las que se dibujan).
-  const visibleLocated = useMemo(
-    () => located.filter(({ pet }) => isVisible(pet.status)),
-    [located, isVisible],
-  );
-
-  // Sin ubicación, contando solo las que pasan el filtro.
-  const unlocated = useMemo(
-    () =>
-      pets.filter((p) => petLatLng(p) === null && isVisible(p.status)).length,
-    [pets, isVisible],
-  );
+  // Puntos que se dibujan (perdidas sueltas + marcadores de refugio). Formato
+  // unificado para bounds y "más cercana". El filtrado por tipo de reporte ya
+  // lo hace la página (Todos / Perdidos / En adopción) antes de pasar `pets`.
+  type DrawItem =
+    | { kind: "pet"; pet: Pet; pos: [number, number] }
+    | {
+        kind: "refugio";
+        refugioId: number;
+        name: string;
+        pos: [number, number];
+        pets: Pet[];
+      };
+  const drawItems = useMemo<DrawItem[]>(() => {
+    const items: DrawItem[] = [];
+    for (const { pet, pos } of loosePets)
+      items.push({ kind: "pet", pet, pos });
+    for (const g of refugioGroups) items.push({ kind: "refugio", ...g });
+    return items;
+  }, [loosePets, refugioGroups]);
 
   // Pedir la ubicación del usuario ("Vos").
   const locate = useCallback(() => {
@@ -210,10 +260,24 @@ export function PetsMap({ pets }: { pets: Pet[] }) {
         mapRef.current = map;
         layerRef.current = L.layerGroup().addTo(map);
         setStatus("ready");
+        // Leaflet calcula el tamaño al inicializar. Cuando el mapa vive dentro
+        // de un panel (ej. Métricas, abajo de una página larga) puede montarse
+        // antes de tener su tamaño final y los tiles quedan en gris. Forzamos un
+        // recálculo al inicio y ante cualquier cambio de tamaño del contenedor.
+        setTimeout(() => map.invalidateSize(), 0);
+        if (typeof ResizeObserver !== "undefined" && containerRef.current) {
+          const ro = new ResizeObserver(() => map.invalidateSize());
+          ro.observe(containerRef.current);
+          resizeObsRef.current = ro;
+        }
       })
       .catch(() => !cancelled && setStatus("error"));
     return () => {
       cancelled = true;
+      if (resizeObsRef.current) {
+        resizeObsRef.current.disconnect();
+        resizeObsRef.current = null;
+      }
       if (mapRef.current) {
         mapRef.current.remove();
         mapRef.current = null;
@@ -226,7 +290,11 @@ export function PetsMap({ pets }: { pets: Pet[] }) {
     const L = (window as any).L;
     if (status !== "ready" || !L || !mapRef.current || !layerRef.current)
       return;
+    // Asegura el tamaño correcto antes de encuadrar (evita tiles en gris / mal
+    // fitBounds cuando el contenedor cambió de tamaño desde el init).
+    mapRef.current.invalidateSize();
     layerRef.current.clearLayers();
+    setHover(null);
     const bounds: [number, number][] = [];
 
     // Distancia desde "Vos" (turf, haversine) si tenemos ubicación.
@@ -237,40 +305,120 @@ export function PetsMap({ pets }: { pets: Pet[] }) {
           })
       : null;
 
-    visibleLocated.forEach(({ pet, pos }) => {
-      bounds.push(pos);
-      const marker = L.circleMarker(pos, {
-        radius: 9,
-        color: "#fff",
-        weight: 2,
-        fillColor: statusColor(pet.status),
-        fillOpacity: 1,
+    const clean = (value: unknown) =>
+      DOMPurify.sanitize(String(value ?? ""), {
+        ALLOWED_TAGS: [],
+        ALLOWED_ATTR: [],
       });
-
-      const clean = (value: unknown) =>
-        DOMPurify.sanitize(String(value ?? ""), {
-          ALLOWED_TAGS: [],
-          ALLOWED_ATTR: [],
-        });
-
-      const name =
-        pet.name ??
-        pet.animalType.charAt(0).toUpperCase() + pet.animalType.slice(1);
-      const distHtml = distKm
+    // Sanitiza el HTML del popup/tooltip permitiendo solo lo que usamos (incluye
+    // <img>, con lo que DOMPurify neutraliza src maliciosos como javascript:).
+    const safeHtml = (raw: string) =>
+      DOMPurify.sanitize(raw, {
+        ALLOWED_TAGS: ["div", "span", "strong", "a", "img", "br"],
+        ALLOWED_ATTR: ["class", "href", "src", "alt", "target", "rel"],
+      });
+    const distHtml = (pos: [number, number]) =>
+      distKm
         ? `<span class="map-pop-dist">📏 a ${clean(fmtDist(distKm(pos)))} de vos</span>`
         : "";
 
-      marker.bindPopup(
-        `<div class="map-pop">
-           <strong>${clean(name)}</strong>
-           <span class="map-pop-status">${clean(pet.status)}</span>
-           <span class="map-pop-loc">📍 ${clean(pet.location)}</span>
-           ${distHtml}
-           <a href="/mascotas-perdidas/${encodeURIComponent(pet.id)}">Ver más →</a>
-         </div>`,
-      );
-      layerRef.current.addLayer(marker);
-    });
+    for (const item of drawItems) {
+      bounds.push(item.pos);
+
+      if (item.kind === "pet") {
+        const { pet, pos } = item;
+        const emoji = petEmoji(pet.animalType);
+        // Carita del animal (perro/gato) o un punto para "otro".
+        const icon = emoji
+          ? L.divIcon({
+              className: "map-pet-icon",
+              html: `<span class="map-pet-badge">${emoji}</span>`,
+              iconSize: [32, 32],
+              iconAnchor: [16, 16],
+            })
+          : L.divIcon({
+              className: "map-pet-icon",
+              html: `<span class="map-pet-dot"></span>`,
+              iconSize: [18, 18],
+              iconAnchor: [9, 9],
+            });
+        const marker = L.marker(pos, { icon });
+        const href = `/mascotas-perdidas/${encodeURIComponent(pet.id)}`;
+        // Preview clampada al área del mapa (no se recorta contra el borde).
+        marker.on("mouseover", () => {
+          const map = mapRef.current;
+          const el = containerRef.current;
+          if (!map || !el) return;
+          const p = map.latLngToContainerPoint(pos);
+          const { left, top } = placeCard(
+            p.x,
+            p.y,
+            190,
+            195,
+            el.clientWidth,
+            el.clientHeight,
+          );
+          setHover({ kind: "pet", pet, left, top });
+        });
+        marker.on("mouseout", () => setHover(null));
+        // Click en la mascota: abre su reporte en una pestaña nueva.
+        marker.on("click", () => {
+          setHover(null);
+          window.open(href, "_blank", "noopener,noreferrer");
+        });
+        layerRef.current.addLayer(marker);
+      } else {
+        // Marcador especial del refugio: agrupa todas sus mascotas en la sede.
+        const { name, pos, pets: groupPets } = item;
+        const icon = L.divIcon({
+          className: "map-refugio-icon",
+          html: `<span class="map-refugio-badge">🏠<span class="map-refugio-count">${groupPets.length}</span></span>`,
+          iconSize: [36, 36],
+          iconAnchor: [18, 18],
+        });
+        const shown = groupPets.slice(0, 6);
+        const listHtml = shown
+          .map(
+            (p) =>
+              `<a class="map-pop-listitem" href="/mascotas-perdidas/${encodeURIComponent(p.id)}" target="_blank" rel="noopener noreferrer"><img class="map-pop-listimg" src="${petPhoto(p)}" alt="" />${clean(petDisplayName(p))}</a>`,
+          )
+          .join("");
+        const moreHtml =
+          groupPets.length > shown.length
+            ? `<span class="map-pop-more">y ${groupPets.length - shown.length} más…</span>`
+            : "";
+        const marker = L.marker(pos, { icon });
+        // Preview clampada; el detalle (lista) se abre en el popup al clickear.
+        marker.on("mouseover", () => {
+          const map = mapRef.current;
+          const el = containerRef.current;
+          if (!map || !el) return;
+          const p = map.latLngToContainerPoint(pos);
+          const { left, top } = placeCard(
+            p.x,
+            p.y,
+            210,
+            96,
+            el.clientWidth,
+            el.clientHeight,
+          );
+          setHover({ kind: "refugio", name, count: groupPets.length, left, top });
+        });
+        marker.on("mouseout", () => setHover(null));
+        marker.on("click", () => setHover(null));
+        marker.bindPopup(
+          safeHtml(
+            `<div class="map-pop">
+               <strong>🏠 ${clean(name)}</strong>
+               <span class="map-pop-status">${groupPets.length} en adopción</span>
+               ${distHtml(pos)}
+               <div class="map-pop-list">${listHtml}${moreHtml}</div>
+             </div>`,
+          ),
+        );
+        layerRef.current.addLayer(marker);
+      }
+    }
 
     // Marcador "Vos".
     if (userLoc) {
@@ -291,22 +439,26 @@ export function PetsMap({ pets }: { pets: Pet[] }) {
     } else if (bounds.length > 1) {
       mapRef.current.fitBounds(bounds, { padding: [40, 40], maxZoom: 15 });
     }
-  }, [visibleLocated, status, userLoc]);
+  }, [drawItems, status, userLoc]);
 
-  // Mascota más cercana (para el resumen).
+  // Punto más cercano (para el resumen): perdida suelta o refugio.
   const nearest = useMemo(() => {
-    if (!userLoc || visibleLocated.length === 0) return null;
-    let best: { pet: Pet; km: number } | null = null;
-    for (const { pet, pos } of visibleLocated) {
+    if (!userLoc || drawItems.length === 0) return null;
+    let best: { label: string; km: number } | null = null;
+    for (const item of drawItems) {
       const km = distance(
         point([userLoc[1], userLoc[0]]),
-        point([pos[1], pos[0]]),
+        point([item.pos[1], item.pos[0]]),
         { units: "kilometers" },
       );
-      if (!best || km < best.km) best = { pet, km };
+      const label =
+        item.kind === "pet"
+          ? (item.pet.name ?? item.pet.animalType)
+          : item.name;
+      if (!best || km < best.km) best = { label, km };
     }
     return best;
-  }, [userLoc, visibleLocated]);
+  }, [userLoc, drawItems]);
 
   return (
     <div className="pets-map-wrap">
@@ -327,64 +479,66 @@ export function PetsMap({ pets }: { pets: Pet[] }) {
         )}
         {nearest && (
           <span className="pets-map-toolbar-msg">
-            La más cercana:{" "}
-            <strong>{nearest.pet.name ?? nearest.pet.animalType}</strong> a{" "}
+            La más cercana: <strong>{nearest.label}</strong> a{" "}
             {fmtDist(nearest.km)}.
           </span>
         )}
       </div>
 
-      <div
-        ref={containerRef}
-        className="pets-map"
-        aria-label="Mapa de mascotas"
-      >
-        {status === "loading" && <CatLoader label="CARGANDO" variant="page" />}
+      <div className="pets-map-viewport">
+        <div
+          ref={containerRef}
+          className="pets-map"
+          aria-label="Mapa de mascotas"
+        >
+          {status === "loading" && (
+            <CatLoader label="CARGANDO" variant="page" />
+          )}
+        </div>
+        {hover && (
+          <div
+            className="map-hovercard"
+            style={{ left: hover.left, top: hover.top }}
+          >
+            {hover.kind === "pet" ? (
+              <div className="map-preview">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  className="map-preview-img"
+                  src={petPhoto(hover.pet)}
+                  alt=""
+                />
+                <div className="map-preview-body">
+                  <span className="map-preview-name">
+                    {petDisplayName(hover.pet)}
+                  </span>
+                  <span className="map-preview-meta">
+                    {typeLabelOf(hover.pet)} · Perdida
+                  </span>
+                  <span className="map-preview-cta">
+                    Click para ver el reporte →
+                  </span>
+                </div>
+              </div>
+            ) : (
+              <div className="map-preview map-preview--refugio">
+                <span className="map-preview-name">🏠 {hover.name}</span>
+                <span className="map-preview-meta">
+                  {hover.count} en adopción
+                </span>
+                <span className="map-preview-cta">
+                  Click para ver las mascotas →
+                </span>
+              </div>
+            )}
+          </div>
+        )}
       </div>
       {status === "error" && (
         <p className="pets-map-msg">
           No se pudo cargar el mapa. Probá la vista de grilla.
         </p>
       )}
-      <div
-        className="pets-map-legend"
-        role="group"
-        aria-label="Filtrar por estado"
-      >
-        {LEGEND.map((l) => {
-          const on = active.has(l.key);
-          const count = counts[l.key] ?? 0;
-          return (
-            <button
-              key={l.key}
-              type="button"
-              className={`pets-map-legend-item${on ? "" : " is-off"}`}
-              aria-pressed={on}
-              onClick={() => toggle(l.key)}
-              title={on ? `Ocultar ${l.label}` : `Mostrar ${l.label}`}
-            >
-              <i style={{ background: l.color }} /> {l.label}
-              {count > 0 && (
-                <span className="pets-map-legend-count">{count}</span>
-              )}
-            </button>
-          );
-        })}
-        {active.size < LEGEND.length && (
-          <button
-            type="button"
-            className="pets-map-legend-reset"
-            onClick={() => setActive(new Set(LEGEND.map((l) => l.key)))}
-          >
-            Ver todos
-          </button>
-        )}
-        {unlocated > 0 && (
-          <span className="pets-map-legend-note">
-            {unlocated} sin ubicación en el mapa
-          </span>
-        )}
-      </div>
     </div>
   );
 }

@@ -59,7 +59,7 @@ const GUIDES = [
     content: [
       "Seguridad: acercate con cuidado para no asustarlo y llevalo a un lugar seguro.",
       "Revisá identificación: buscá chapitas en el collar o llevalo a una veterinaria para ver si tiene microchip.",
-      "Publicá como 'Encontrado': subí el reporte aclarando que lo tenés vos a resguardo.",
+      "Reportá el avistaje: subí el reporte (figura como 'perdido') aclarando que lo tenés vos a resguardo, así su dueño puede encontrarlo.",
       "Pedí pruebas: si alguien reclama ser el dueño, pedí fotos previas o carnet de vacunación.",
       "Hogar temporal: si no podés tenerlo, buscá ayuda en refugios locales o tránsito vecinal.",
     ],
