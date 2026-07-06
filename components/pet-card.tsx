@@ -1,6 +1,9 @@
+"use client";
+
 import Link from "next/link";
 import { Pet, PetReportStatus, PetStatus } from "@/types/pet";
 import { PetCardActions } from "@/components/pet-card-actions";
+import { useAppSelector } from "@/redux/hooks";
 
 /** Etiqueta y tono del estado de validación de la publicación. */
 const REPORT_STATUS_META: Record<
@@ -72,6 +75,13 @@ export function PetCard({
     showReportStatus && pet.reportStatus
       ? REPORT_STATUS_META[pet.reportStatus]
       : null;
+
+  const currentUser = useAppSelector((s) => s.user);
+  const esMia =
+    !!currentUser.isLoggedIn &&
+    [pet.userId, pet.ownerUserId].some(
+      (uid) => uid != null && Number(uid) === Number(currentUser.id),
+    );
 
   const href = `/mascotas-perdidas/${pet.id}`;
   const tone = STATUS_TONE[pet.status] ?? "perdido";
@@ -156,14 +166,19 @@ export function PetCard({
 
         <div className="pet-meta">
           {pet.refugioName && (
-            <span className="pet-refugio" title={`Publicada por ${pet.refugioName}`}>
+            <span
+              className="pet-refugio"
+              title={`Publicada por ${pet.refugioName}`}
+            >
               🏠 {pet.refugioName}
             </span>
           )}
           <span>📍 {pet.location}</span>
           <span>📅 {pet.date}</span>
-          {typeof pet.daysLeft === "number" && (
-            <span className={`pet-expiry${pet.expired ? " pet-expiry--over" : ""}`}>
+          {esMia && typeof pet.daysLeft === "number" && (
+            <span
+              className={`pet-expiry${pet.expired ? " pet-expiry--over" : ""}`}
+            >
               {pet.expired
                 ? "⏳ Publicación vencida"
                 : `⏳ Vence en ${pet.daysLeft} día${pet.daysLeft === 1 ? "" : "s"}`}
