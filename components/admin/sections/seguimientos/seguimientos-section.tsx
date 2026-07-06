@@ -41,6 +41,7 @@ export function SeguimientosSection() {
     now,
     handleConfirm,
     handleComplete,
+    handleReject,
     handleDelete,
   } = useSeguimientos();
 
@@ -49,6 +50,8 @@ export function SeguimientosSection() {
   const [detail, setDetail] = useState<Seguimiento | null>(null);
   const [pendingDelete, setPendingDelete] = useState<Seguimiento | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [pendingReject, setPendingReject] = useState<Seguimiento | null>(null);
+  const [rejecting, setRejecting] = useState(false);
 
   return (
     <div className="pub seg">
@@ -105,6 +108,7 @@ export function SeguimientosSection() {
             onView={setDetail}
             onConfirm={handleConfirm}
             onComplete={handleComplete}
+            onReject={setPendingReject}
             onDelete={setPendingDelete}
           />
         </div>
@@ -142,6 +146,27 @@ export function SeguimientosSection() {
           setPendingDelete(null);
         }}
         onCancel={() => setPendingDelete(null)}
+      />
+
+      <ConfirmDialog
+        open={pendingReject != null}
+        title="Rechazar seguimiento"
+        message="Al rechazar este seguimiento se DESCARTA la solicitud de adopción y la mascota vuelve a publicarse (disponible para otro adoptante). Esta acción es definitiva."
+        reasonOptional
+        reasonLabel="Motivo del rechazo"
+        reasonPlaceholder="Ej: no se cumplieron las condiciones acordadas…"
+        confirmLabel="Sí, rechazar"
+        cancelLabel="Cancelar"
+        danger
+        busy={rejecting}
+        onConfirm={async (reason) => {
+          if (!pendingReject) return;
+          setRejecting(true);
+          await handleReject(pendingReject, reason || undefined);
+          setRejecting(false);
+          setPendingReject(null);
+        }}
+        onCancel={() => setPendingReject(null)}
       />
     </div>
   );

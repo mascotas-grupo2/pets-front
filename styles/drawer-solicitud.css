@@ -850,10 +850,13 @@
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
-  /* Scroll-shadow: sombra sutil arriba/abajo que indica que hay más contenido. */
+  /* Scroll-shadow: sombra sutil arriba/abajo que indica que hay más contenido.
+     Los gradientes de cobertura usan var(--surface) (el fondo del modal) para
+     camuflarse en tema claro Y oscuro; con #fff hardcodeado se veían como bandas
+     blancas sobre el modal oscuro. */
   background:
-    linear-gradient(#fff 30%, rgba(255, 255, 255, 0)) center top,
-    linear-gradient(rgba(255, 255, 255, 0), #fff 70%) center bottom,
+    linear-gradient(var(--surface) 30%, transparent) center top,
+    linear-gradient(transparent, var(--surface) 70%) center bottom,
     radial-gradient(farthest-side at 50% 0, rgba(31, 25, 87, 0.12), rgba(31, 25, 87, 0)) center top,
     radial-gradient(farthest-side at 50% 100%, rgba(31, 25, 87, 0.12), rgba(31, 25, 87, 0)) center bottom;
   background-repeat: no-repeat;

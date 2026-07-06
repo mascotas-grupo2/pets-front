@@ -1,8 +1,12 @@
 "use client";
 
-import { Eye, CheckCircle2, CheckSquare, Trash2 } from "lucide-react";
+import { Eye, CheckCircle2, CheckSquare, Ban, Trash2 } from "lucide-react";
 import type { Seguimiento } from "./seguimientos.data";
-import { seguimientoEstadoTone, FOLLOWUP_STATUS } from "./seguimientos.data";
+import {
+  seguimientoEstadoTone,
+  FOLLOWUP_STATUS,
+  FOLLOWUP_TYPE,
+} from "./seguimientos.data";
 import { ActionButton } from "../../ui/button";
 import { DataTable, type Column, type SortOrder } from "../../ui/data-table";
 import { Pill } from "../../ui/pill";
@@ -25,6 +29,7 @@ type Props = {
   onView: (s: Seguimiento) => void;
   onConfirm: (s: Seguimiento) => void;
   onComplete: (s: Seguimiento) => void;
+  onReject: (s: Seguimiento) => void;
   onDelete: (s: Seguimiento) => void;
 };
 
@@ -42,6 +47,7 @@ export function SeguimientosTable({
   onView,
   onConfirm,
   onComplete,
+  onReject,
   onDelete,
 }: Props) {
   const columns: Column<Seguimiento>[] = [
@@ -123,6 +129,16 @@ export function SeguimientosTable({
               title="Completar"
             />
           )}
+          {s.typeId === FOLLOWUP_TYPE.postAdopcion &&
+            (s.estadoId === FOLLOWUP_STATUS.pendiente ||
+              s.estadoId === FOLLOWUP_STATUS.confirmado) && (
+              <ActionButton
+                icon={Ban}
+                onClick={() => onReject(s)}
+                ariaLabel="Rechazar seguimiento"
+                title="Rechazar (descarta la adopción y re-publica la mascota)"
+              />
+            )}
           <ActionButton
             icon={Trash2}
             onClick={() => onDelete(s)}

@@ -16,6 +16,30 @@ import { useConversation } from "../hook/messages/useConversation";
 import { useEvaluacion } from "../hook/useEvaluacion";
 import { initials } from "../dashboard/dashboard.data";
 import { Avatar, Burbuja, Spinner } from "@/components/messages/chat-ui";
+import { getAdoptionById, updateAdoptionStatus } from "@/services/adoptions";
+import { ConfirmDialog } from "@/components/admin/ui/confirm-dialog";
+import { ComboSelect } from "@/components/admin/ui/combo-select";
+import { Pill } from "@/components/admin/ui/pill";
+import handleToast from "@/components/utils/toast";
+import {
+  ESTADO_LABELS,
+  esEstadoTerminal,
+  transicionesPermitidas,
+  efectoTransicion,
+  solicitudEstadoTone,
+} from "@/components/admin/lib/solicitud-status";
+import type { EstadoSolicitud } from "@/components/admin/sections/solicitudes/solicitudes.data";
+
+const REQUIRED_CHECKS: Partial<Record<EstadoSolicitud, string[]>> = {
+  ENTREVISTA_PENDIENTE: ["Verificó identidad", "Consultó sobre vivienda"],
+  ACEPTADA_CON_SEGUIMIENTO: [
+    "Verificó identidad",
+    "Consultó sobre vivienda",
+    "Evaluó experiencia previa",
+    "Revisó situación familiar",
+    "Coordinó visita al hogar",
+  ],
+};
 
 type Props = {
   conversationData: ReturnType<typeof useConversation>;
@@ -41,7 +65,12 @@ function TabEvaluacion({
 }: {
   adoptionId?: number | null;
   evaluationNote?: string | null;
-  petNotes?: { id: string; text: string; author: string | null; createdAt: string }[];
+  petNotes?: {
+    id: string;
+    text: string;
+    author: string | null;
+    createdAt: string;
+  }[];
 }) {
   const { items, checked, notes, toggle, addNote, disabled } =
     useEvaluacion(adoptionId);
@@ -50,6 +79,60 @@ function TabEvaluacion({
   async function guardar() {
     const ok = await addNote(nota);
     if (ok) setNota("");
+  }
+
+  // --- Cambio de estado de la solicitud (igual que el drawer de Solicitudes) ---
+  const [estado, setEstado] = useState<EstadoSolicitud | null>(null);
+  const [selected, setSelected] = useState<EstadoSolicitud | "">("");
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [updating, setUpdating] = useState(false);
+
+  // Estado actual de la solicitud del adoptante; se recarga al cambiar de conversación.
+  useEffect(() => {
+    if (!adoptionId) {
+      setEstado(null);
+      return;
+    }
+    let cancel = false;
+    getAdoptionById(adoptionId)
+      .then((res) => {
+        if (!cancel && res?.ok && res.data)
+          setEstado(res.data.status as EstadoSolicitud);
+      })
+      .catch(() => {});
+    return () => {
+      cancel = true;
+    };
+  }, [adoptionId]);
+
+  const opciones = estado ? transicionesPermitidas(estado) : [];
+  const terminal = estado ? esEstadoTerminal(estado) : false;
+
+  // Preseleccionar la primera transición válida cuando cambia el estado actual.
+  useEffect(() => {
+    setSelected(estado ? (transicionesPermitidas(estado)[0] ?? "") : "");
+  }, [estado]);
+
+  const checksFaltantes = (e: EstadoSolicitud) =>
+    (REQUIRED_CHECKS[e] ?? []).filter((r) => !checked.includes(r));
+  const faltantes = selected ? checksFaltantes(selected) : [];
+
+  async function cambiarEstado(reason: string) {
+    if (!adoptionId || !selected) return;
+    setUpdating(true);
+    const res = await updateAdoptionStatus(
+      adoptionId,
+      selected,
+      reason || undefined,
+    );
+    setUpdating(false);
+    if (res?.ok) {
+      handleToast("success", `Solicitud → ${ESTADO_LABELS[selected]}`);
+      setEstado((res.data?.status as EstadoSolicitud) ?? selected);
+      setConfirmOpen(false);
+    } else {
+      handleToast("error", res?.error ?? "No se pudo cambiar el estado.");
+    }
   }
 
   const fecha = (d: string) =>
@@ -74,6 +157,64 @@ function TabEvaluacion({
         <p className="msg-tab-empty">
           Este usuario todavía no tiene una solicitud para evaluar.
         </p>
+      )}
+
+      {adoptionId && estado && (
+        <div className="msg-eval-block">
+          <p className="msg-section-label">Estado de la solicitud</p>
+          <div
+            className="sdet-estado-actual"
+            style={{ marginBottom: "0.5rem" }}
+          >
+            <Pill tone={solicitudEstadoTone(estado)}>
+              {ESTADO_LABELS[estado]}
+            </Pill>
+          </div>
+          {terminal ? (
+            <p className="msg-tab-empty" style={{ margin: 0 }}>
+              Esta solicitud está finalizada y no admite más cambios de estado.
+            </p>
+          ) : (
+            <>
+              <div className="sdet-estado-row">
+                <div className="field sdet-estado-select-wrap">
+                  <ComboSelect
+                    id="msg-eval-estado"
+                    value={selected}
+                    placeholder="Cambiar a…"
+                    searchable={false}
+                    options={opciones.map((value) => {
+                      const faltan = checksFaltantes(value).length;
+                      return {
+                        value,
+                        label: `${ESTADO_LABELS[value]}${faltan > 0 ? ` (faltan ${faltan} ítem(s))` : ""}`,
+                        disabled: faltan > 0,
+                      };
+                    })}
+                    onChange={(v) => setSelected(v as EstadoSolicitud)}
+                  />
+                </div>
+                <button
+                  type="button"
+                  className="btn btn-primary btn-sm"
+                  onClick={() => setConfirmOpen(true)}
+                  disabled={updating || !selected || faltantes.length > 0}
+                >
+                  Cambiar estado
+                </button>
+              </div>
+              {faltantes.length > 0 && (
+                <p
+                  className="sdet-estado-gating-hint"
+                  style={{ marginTop: "0.4rem" }}
+                >
+                  Para pasar a “{ESTADO_LABELS[selected as EstadoSolicitud]}”
+                  faltan ítems de la evaluación: {faltantes.join(", ")}.
+                </p>
+              )}
+            </>
+          )}
+        </div>
       )}
 
       <div className="msg-eval-block">
@@ -154,6 +295,28 @@ function TabEvaluacion({
           </ul>
         </div>
       )}
+
+      <ConfirmDialog
+        open={confirmOpen}
+        title="Confirmar cambio de estado"
+        message={
+          selected
+            ? `Vas a cambiar la solicitud a “${ESTADO_LABELS[selected]}”.${
+                efectoTransicion(selected)
+                  ? ` ${efectoTransicion(selected)}`
+                  : ""
+              }`
+            : ""
+        }
+        reasonOptional={selected === "DESCARTADA"}
+        reasonLabel="Motivo del rechazo"
+        reasonPlaceholder="Ej: el hogar no cumple con los requisitos para esta mascota…"
+        confirmLabel="Sí, cambiar estado"
+        danger={selected === "DESCARTADA"}
+        busy={updating}
+        onConfirm={(reason) => cambiarEstado(reason)}
+        onCancel={() => setConfirmOpen(false)}
+      />
     </div>
   );
 }
@@ -170,7 +333,8 @@ export default function ConversationView({
   const [tab, setTab] = useState<Tab>("mensajes");
   const [newCount, setNewCount] = useState(0);
 
-  const { messages, profile, hasMore, loadingOlder, loadOlder } = conversationData;
+  const { messages, profile, hasMore, loadingOlder, loadOlder } =
+    conversationData;
   const esInterno = activeUserMessage?.role === "admin";
   // Si el solicitante no está en la bandeja (nunca escribió), usamos el perfil
   // que devuelve la conversación para mostrar nombre/foto igual.
@@ -194,7 +358,9 @@ export default function ConversationView({
     [esInterno],
   );
 
-  const visibleTabs = tabs.some((t) => t.id === tab) ? tabs : tabs.filter((t) => t.id === "mensajes");
+  const visibleTabs = tabs.some((t) => t.id === tab)
+    ? tabs
+    : tabs.filter((t) => t.id === "mensajes");
   if (visibleTabs.length !== tabs.length) setTab("mensajes");
 
   const threadRef = useRef<HTMLDivElement>(null);
@@ -208,7 +374,11 @@ export default function ConversationView({
   }
   function scrollToBottom(smooth = true) {
     const el = threadRef.current;
-    if (el) el.scrollTo({ top: el.scrollHeight, behavior: smooth ? "smooth" : "auto" });
+    if (el)
+      el.scrollTo({
+        top: el.scrollHeight,
+        behavior: smooth ? "smooth" : "auto",
+      });
     setNewCount(0);
   }
 
@@ -223,7 +393,8 @@ export default function ConversationView({
     if (prev === null) {
       el.scrollTop = el.scrollHeight; // carga inicial → abajo
     } else if (lastId !== prev) {
-      if (atBottomRef.current) el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
+      if (atBottomRef.current)
+        el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
       else requestAnimationFrame(() => setNewCount((c) => c + 1));
     }
     prevLastIdRef.current = lastId;
@@ -264,7 +435,15 @@ export default function ConversationView({
   return (
     <section className="msg-chat-panel">
       <header className="msg-chat-head">
-        <Avatar user={{ id: 0, name: headName, photo: headPhoto } as { id: number; name: string; photo?: string | null } } />
+        <Avatar
+          user={
+            { id: 0, name: headName, photo: headPhoto } as {
+              id: number;
+              name: string;
+              photo?: string | null;
+            }
+          }
+        />
         <div className="msg-chat-head-info">
           <h3>{headName}</h3>
           {(profile?.context || activeUserMessage?.context) && (
@@ -291,7 +470,11 @@ export default function ConversationView({
           {/* Las tarjetas de reclamo ahora viven en el carrusel de alertas
               (arriba del panel), así que acá ya no se duplican. */}
           <div className="msg-thread-wrap">
-            <div className="msg-thread" ref={threadRef} onScroll={onThreadScroll}>
+            <div
+              className="msg-thread"
+              ref={threadRef}
+              onScroll={onThreadScroll}
+            >
               {loadingOlder && (
                 <div className="msg-older-loader">
                   <Loader2 className="animate-spin" size={16} /> Cargando…
@@ -300,7 +483,9 @@ export default function ConversationView({
               {conversationData.loading ? (
                 <Spinner />
               ) : messages.length === 0 ? (
-                <div className="text-center p-8 text-gray-500">No hay mensajes.</div>
+                <div className="text-center p-8 text-gray-500">
+                  No hay mensajes.
+                </div>
               ) : (
                 messages.map((m) => {
                   return (
@@ -323,7 +508,8 @@ export default function ConversationView({
                 className="msg-new-badge"
                 onClick={() => scrollToBottom()}
               >
-                <ArrowDown size={14} /> {newCount} mensaje{newCount > 1 ? "s" : ""} nuevo
+                <ArrowDown size={14} /> {newCount} mensaje
+                {newCount > 1 ? "s" : ""} nuevo
                 {newCount > 1 ? "s" : ""}
               </button>
             )}
@@ -358,7 +544,7 @@ export default function ConversationView({
                 if (e.target.files && e.target.files[0]) {
                   setPhotoFile(e.target.files[0]);
                 }
-                e.target.value = '';
+                e.target.value = "";
               }}
             />
             <button
@@ -395,8 +581,14 @@ export default function ConversationView({
       {tab === "perfil" && (
         <div className="msg-tab-content">
           <div className="vdrawer-section">
-            <Campo label="Nombre" value={profile?.name ?? activeUserMessage?.name} />
-            <Campo label="Email" value={profile?.email ?? activeUserMessage?.email} />
+            <Campo
+              label="Nombre"
+              value={profile?.name ?? activeUserMessage?.name}
+            />
+            <Campo
+              label="Email"
+              value={profile?.email ?? activeUserMessage?.email}
+            />
             {!esInterno && (
               <>
                 <Campo label="Teléfono" value={profile?.phone} />

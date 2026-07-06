@@ -75,6 +75,11 @@ export const confirmFollowup = (id: number) =>
 export const completeFollowup = (id: number) =>
   request<FollowupItem>(() => axios.post(`followups/${id}/completar`));
 
+export const rejectFollowup = (id: number, reason?: string) =>
+  request<FollowupItem>(() =>
+    axios.post(`followups/${id}/rechazar`, { reason }),
+  );
+
 /** Elimina un seguimiento (Admin). */
 export const deleteFollowup = (id: number) =>
   request<null>(() => axios.delete(`followups/${id}`));

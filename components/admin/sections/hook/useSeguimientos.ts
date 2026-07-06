@@ -6,6 +6,7 @@ import {
   getFollowups,
   confirmFollowup,
   completeFollowup,
+  rejectFollowup,
   deleteFollowup,
   createFollowup,
   type FollowupItem,
@@ -243,6 +244,19 @@ export function useSeguimientos() {
     return false;
   }
 
+  async function handleReject(s: Seguimiento, reason?: string) {
+    const res = await rejectFollowup(s.id, reason);
+    if (res.ok) {
+      toast.success(
+        "Seguimiento rechazado: la solicitud se descartó y la mascota volvió a publicarse.",
+      );
+      await load();
+      return true;
+    }
+    toast.error("No se pudo rechazar el seguimiento.");
+    return false;
+  }
+
   return {
     loading,
     tab,
@@ -271,6 +285,7 @@ export function useSeguimientos() {
     reload: load,
     handleConfirm,
     handleComplete,
+    handleReject,
     handleDelete,
   };
 }
