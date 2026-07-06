@@ -591,6 +591,18 @@ export default function PetDetailPage() {
                 <p>
                   {adopter ? "¿Me querés adoptar?" : "¿Te interesa adoptar?"}
                 </p>
+                {pet.refugioName && (
+                  <p
+                    style={{
+                      fontSize: "0.85rem",
+                      color: "var(--text-muted, #6b7280)",
+                      margin: "0 0 0.75rem",
+                    }}
+                  >
+                    🏠 Tu solicitud será gestionada por{" "}
+                    <strong>{pet.refugioName}</strong>.
+                  </p>
+                )}
                 {alreadyApplied ? (
                   <button
                     type="button"
@@ -607,6 +619,7 @@ export default function PetDetailPage() {
                       query: {
                         pet: pet.id,
                         name: pet.name ?? detail.animalLabel,
+                        ...(pet.refugioName ? { refugio: pet.refugioName } : {}),
                       },
                     }}
                     className="btn btn-primary"

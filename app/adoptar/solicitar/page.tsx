@@ -67,6 +67,7 @@ function AdoptarSolicitarContent() {
   const searchParams = useSearchParams();
   const targetPetId = searchParams.get("pet") ?? "";
   const targetPetName = searchParams.get("name") ?? "";
+  const targetRefugio = searchParams.get("refugio") ?? "";
   const esTransito = searchParams.get("modo") === "transito";
   const [step, setStep] = useState(0);
   const [submitted, setSubmitted] = useState(false);
@@ -203,6 +204,11 @@ function AdoptarSolicitarContent() {
           <div className="adopt-target-chip">
             Completa el formulario y volve con{" "}
             <strong>{targetPetName || targetPetId}</strong>
+            {targetRefugio && (
+              <>
+                {" · "}🏠 Gestiona <strong>{targetRefugio}</strong>
+              </>
+            )}
             {" · "}
             <a
               href={`/mascotas-perdidas/${targetPetId}`}
