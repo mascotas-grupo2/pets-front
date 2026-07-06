@@ -3937,7 +3937,10 @@
 
 /* Vista completa en la cuenta del usuario */
 .notif-view {
-  background: #fff;
+  /* var(--surface), no #fff: con blanco hardcodeado, en modo oscuro las
+     notificaciones LEÍDAS (fondo transparente) mostraban texto claro
+     (--gray-900 ≈ #f3f4f6) sobre blanco → invisibles. */
+  background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   overflow: hidden;
