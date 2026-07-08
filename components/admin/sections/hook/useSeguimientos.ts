@@ -206,6 +206,15 @@ export function useSeguimientos() {
     return false;
   }
 
+  // Un 409/404 significa que la fila que ves quedó desactualizada respecto del
+  // backend (otro admin actuó, o la vista quedó vieja). Mostramos el motivo real
+  // del backend y recargamos para resincronizar la tabla con la base.
+  async function handleActionError(res: { status: number; error?: string }, fallback: string) {
+    const stale = res.status === 409 || res.status === 404;
+    toast.error(res.error ?? fallback);
+    if (stale) await load();
+  }
+
   async function handleConfirm(s: Seguimiento) {
     const res = await confirmFollowup(s.id);
     if (res.ok) {
@@ -213,13 +222,14 @@ export function useSeguimientos() {
       await load();
       return true;
     }
-    toast.error("No se pudo confirmar.");
+    await handleActionError(res, "No se pudo confirmar.");
     return false;
   }
 
   async function handleComplete(s: Seguimiento) {
     if (s.estadoId !== FOLLOWUP_STATUS.confirmado) {
       toast.error("Solo se pueden completar seguimientos confirmados.");
+      await load();
       return false;
     }
     const res = await completeFollowup(s.id);
@@ -228,7 +238,7 @@ export function useSeguimientos() {
       await load();
       return true;
     }
-    toast.error("No se pudo completar.");
+    await handleActionError(res, "No se pudo completar.");
     return false;
   }
 
@@ -240,7 +250,7 @@ export function useSeguimientos() {
       await load();
       return true;
     }
-    toast.error("No se pudo eliminar.");
+    await handleActionError(res, "No se pudo eliminar.");
     return false;
   }
 
@@ -253,7 +263,7 @@ export function useSeguimientos() {
       await load();
       return true;
     }
-    toast.error("No se pudo rechazar el seguimiento.");
+    await handleActionError(res, "No se pudo rechazar el seguimiento.");
     return false;
   }
 
