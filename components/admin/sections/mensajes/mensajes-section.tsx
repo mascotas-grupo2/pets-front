@@ -92,6 +92,7 @@ export default function MensajesSection() {
                 inbox.conversations.find((c) => c.user.id === activeUserId)
                   ?.user || null
               }
+              onSent={inbox.reload}
             />
           )}
         </div>

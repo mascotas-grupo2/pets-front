@@ -44,6 +44,8 @@ const REQUIRED_CHECKS: Partial<Record<EstadoSolicitud, string[]>> = {
 type Props = {
   conversationData: ReturnType<typeof useConversation>;
   activeUserMessage: userMessage | null;
+  /** Se dispara tras enviar un mensaje con éxito (para refrescar la bandeja). */
+  onSent?: () => void;
 };
 
 type Tab = "mensajes" | "perfil" | "evaluacion";
@@ -324,6 +326,7 @@ function TabEvaluacion({
 export default function ConversationView({
   conversationData,
   activeUserMessage,
+  onSent,
 }: Props) {
   const currentUser = useAppSelector((state) => state.user);
   const [draft, setDraft] = useState("");
@@ -428,6 +431,9 @@ export default function ConversationView({
       setDraft("");
       setPhotoFile(null);
       setTimeout(() => scrollToBottom(), 50);
+      // Refresca la bandeja: si es la primera vez que se le escribe a este
+      // usuario, la conversación no existía en la lista de la izquierda.
+      onSent?.();
     }
     setSending(false);
   }
